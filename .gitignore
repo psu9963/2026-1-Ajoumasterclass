@@ -1,0 +1,26 @@
+# === Python ===
+# 파이썬 실행 시 생기는 캐시 파일들
+__pycache__/
+*.py[cod]
+*$py.class
+
+# === Virtual Environment (가상환경) ===
+# 가상환경 폴더는 용량이 매우 크고, 각자의 컴퓨터에서 세팅해야 하므로 올리지 않습니다.
+venv/
+env/
+.venv/
+
+# === Flask & Security ===
+# API 키, 비밀번호 등이 들어가는 환경 변수 파일
+.env
+# Flask의 로컬 데이터베이스나 설정이 들어가는 폴더
+instance/
+
+# === OS Files ===
+# Mac이나 Windows 운영체제가 자동으로 만드는 숨김 파일
+.DS_Store
+Thumbs.db
+
+# === IDE Files ===
+# VS Code 설정 파일
+.vscode/
