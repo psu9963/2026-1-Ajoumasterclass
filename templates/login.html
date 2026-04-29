@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그인 - 아주마스터클래스</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="login-page-body">
+    <div class="login-container fade-in-up">
+        <h2 class="login-title">로그인</h2>
+        <p class="login-subtitle">욱동잡이에 오신 것을 환영합니다.</p>
+        
+        <!-- 🌟 회원가입 성공 시 파란색 메시지 출력 🌟 -->
+        {% if success %}
+            <div style="color: #3498db; font-size: 13px; margin-bottom: 15px; font-weight: bold;">
+                {{ success }}
+            </div>
+        {% endif %}
+
+        <!-- 🌟 아이디/비번 틀렸을 때 빨간색 메시지 출력 🌟 -->
+        {% if error %}
+            <div style="color: red; font-size: 13px; margin-bottom: 15px; font-weight: bold;">
+                {{ error }}
+            </div>
+        {% endif %}
+        
+        <form action="/login" method="POST">
+            <div class="input-group">
+                <label for="userid">아이디</label>
+                <input type="text" id="userid" name="userid" placeholder="아이디를 입력하세요" required>
+            </div>
+            <div class="input-group">
+                <label for="password">비밀번호</label>
+                <input type="password" id="password" name="password" placeholder="비밀번호를 입력하세요" required>
+            </div>
+            <button type="submit" class="btn-submit">로그인 하기</button>
+        </form>
+        
+        <div class="register-link">
+            계정이 없으신가요? <a href="/register">회원가입 하기</a>
+        </div>
+        
+        <a href="/" class="back-link">메인으로 돌아가기</a>
+    </div>
+</body>
+</html>
