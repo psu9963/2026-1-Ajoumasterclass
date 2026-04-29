@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원가입 - 아주마스터클래스</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="login-page-body">
+    <div class="login-container fade-in-up">
+        <h2 class="login-title">회원가입</h2>
+        <p class="login-subtitle">새로운 계정을 만드세요.</p>
+        
+        <!-- 회원가입 시 발생한 에러 메시지 출력 -->
+        {% if error %}
+            <div style="color: red; font-size: 13px; margin-bottom: 15px; font-weight: bold;">
+                {{ error }}
+            </div>
+        {% endif %}
+        
+        <!-- 🌟 action을 /register로 바꾸고 method를 POST로 변경 🌟 -->
+        <form action="/register" method="POST">
+            <div class="input-group">
+                <label for="new_userid">사용할 아이디</label>
+                <input type="text" id="new_userid" name="new_userid" placeholder="아이디" required>
+            </div>
+            <div class="input-group">
+                <label for="new_password">비밀번호</label>
+                <input type="password" id="new_password" name="new_password" placeholder="비밀번호" required>
+            </div>
+            <div class="input-group">
+                <label for="new_password_confirm">비밀번호 확인</label>
+                <input type="password" id="new_password_confirm" name="new_password_confirm" placeholder="비밀번호 재입력" required>
+            </div>
+            <button type="submit" class="btn-submit">가입 완료하기</button>
+        </form>
+        
+        <a href="/login" class="back-link">이미 계정이 있으신가요? 로그인</a>
+    </div>
+</body>
+</html>
