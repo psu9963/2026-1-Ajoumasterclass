@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>대시보드 — StudyAI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Noto+Sans+KR:wght@400;500&display=swap&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body>
+
+  <!-- ────────────────────────────────────
+       사이드바
+  ──────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-mark">S</span>
+      <span class="logo-text">StudyAI</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('dashboard.dashboard') }}" class="nav-item active">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/>
+            <rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/>
+          </svg>
+        </span>
+        <span class="nav-label">대시보드</span>
+      </a>
+
+      <a href="{{ url_for('home') }}" class="nav-item">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+        </span>
+        <span class="nav-label">학습 기록</span>
+      </a>
+
+      <a href="{{ url_for('home') }}" class="nav-item">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+        </span>
+        <span class="nav-label">학습 분석</span>
+      </a>
+
+      <a href="{{ url_for('home') }}" class="nav-item">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 16v-4M12 8h.01"/>
+          </svg>
+        </span>
+        <span class="nav-label">AI 학습 계획</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar">{{ username[0] | upper }}</div>
+        <div class="user-info">
+          <span class="user-name">{{ username }}</span>
+          <span class="user-role">학습자</span>
+        </div>
+      </div>
+      <a href="{{ url_for('home') }}" class="logout-btn" title="로그아웃">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ────────────────────────────────────
+       메인 콘텐츠
+  ──────────────────────────────────────── -->
+  <main class="main">
+
+    <!-- 상단 헤더 -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">대시보드</h1>
+        <p class="page-sub">{{ today_str }} 기준</p>
+      </div>
+      <a href="{{ url_for('home') }}" class="btn-primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        기록 추가
+      </a>
+    </header>
+
+    <!-- 플래시 메시지 -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- ── 요약 카드 3개 ── -->
+    <section class="stat-grid">
+
+      <div class="stat-card stat-card--total">
+        <div class="stat-card__label">총 학습 시간</div>
+        <div class="stat-card__value">
+          {{ total_hours }}<span class="stat-unit">h</span>
+        </div>
+        <div class="stat-card__bar">
+          <div class="stat-card__bar-fill" style="width: 100%"></div>
+        </div>
+        <div class="stat-card__icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+      </div>
+
+      <div class="stat-card stat-card--week">
+        <div class="stat-card__label">이번 주 학습</div>
+        <div class="stat-card__value">
+          {{ week_hours }}<span class="stat-unit">h</span>
+        </div>
+        <div class="stat-card__bar">
+          {% if total_hours > 0 %}
+          <div class="stat-card__bar-fill" style="width: {{ [((week_hours / total_hours) * 100)|int, 100]|min }}%"></div>
+          {% else %}
+          <div class="stat-card__bar-fill" style="width: 0%"></div>
+          {% endif %}
+        </div>
+        <div class="stat-card__icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+      </div>
+
+      <div class="stat-card stat-card--subjects">
+        <div class="stat-card__label">학습 중인 과목</div>
+        <div class="stat-card__value">
+          {{ subject_count }}<span class="stat-unit">개</span>
+        </div>
+        <div class="stat-card__bar">
+          <div class="stat-card__bar-fill" style="width: {{ [subject_count * 20, 100]|min }}%"></div>
+        </div>
+        <div class="stat-card__icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ── 하단 그리드 ── -->
+    <section class="content-grid">
+
+      <!-- 최근 학습 기록 -->
+      <div class="card card--records">
+        <div class="card-head">
+          <h2 class="card-title">최근 학습 기록</h2>
+          <a href="{{ url_for('home') }}" class="card-link">전체 보기</a>
+        </div>
+
+        {% if recent_records %}
+        <table class="record-table">
+          <thead>
+            <tr>
+              <th>과목</th>
+              <th>시간</th>
+              <th>날짜</th>
+              <th>메모</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in recent_records %}
+            <tr class="record-row" style="animation-delay: {{ loop.index0 * 0.06 }}s">
+              <td>
+                <span class="subject-badge subject-badge--{{ loop.index % 5 }}">
+                  {{ r['subject'] }}
+                </span>
+              </td>
+              <td class="td-hours">{{ r['duration_hours'] }}h</td>
+              <td class="td-date">{{ r['study_date'] }}</td>
+              <td class="td-memo">{{ r['memo'] or '—' }}</td>
+              <td>
+                <form method="POST" action="{{ url_for('home', record_id=r['id']) }}"
+                      onsubmit="return confirm('삭제하시겠습니까?')">
+                  <button type="submit" class="del-btn">✕</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          </div>
+          <p>아직 학습 기록이 없어요</p>
+          <a href="{{ url_for('home') }}" class="btn-primary btn-sm">첫 기록 추가하기</a>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- 과목별 학습 비율 -->
+      <div class="card card--subjects">
+        <div class="card-head">
+          <h2 class="card-title">과목별 학습 비율</h2>
+        </div>
+
+        {% if subjects %}
+          {% set max_h = subjects[0]['total_hours'] %}
+          <div class="subject-list">
+            {% for s in subjects %}
+            <div class="subject-row" style="animation-delay: {{ loop.index0 * 0.08 }}s">
+              <div class="subject-info">
+                <span class="subject-dot subject-dot--{{ loop.index % 5 }}"></span>
+                <span class="subject-name">{{ s['subject'] }}</span>
+              </div>
+              <div class="subject-track">
+                <div class="subject-fill subject-fill--{{ loop.index % 5 }}"
+                     style="width: {{ ((s['total_hours'] / max_h) * 100)|int }}%"></div>
+              </div>
+              <span class="subject-hours">{{ s['total_hours'] }}h</span>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </div>
+          <p>데이터가 없어요</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- AI 학습 계획 바로가기 배너 -->
+      <div class="card card--ai-banner">
+        <div class="ai-banner-content">
+          <div class="ai-banner-text">
+            <div class="ai-badge">AI</div>
+            <h3>맞춤 학습 계획을 받아보세요</h3>
+            <p>학습 목표를 입력하면 AI가 주차별 계획을 바로 생성해드려요.</p>
+          </div>
+          <a href="{{ url_for('home') }}" class="btn-ai">계획 생성하기 →</a>
+        </div>
+        <div class="ai-banner-deco"></div>
+      </div>
+
+    </section>
+  </main>
+
+</body>
+</html>
