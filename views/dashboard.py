@@ -12,5 +12,7 @@ def dashboard():
         'recent_records': [],
         'subjects': [],
         'username': session.get('username', '사용자')
+
+        
     }
     return render_template('dashboard.html', **dummy_data)

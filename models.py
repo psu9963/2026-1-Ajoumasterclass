@@ -8,3 +8,10 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True) # 회원 번호 (1, 2, 3... 자동 생성)
     userid = db.Column(db.String(50), unique=True, nullable=False) # 아이디 (중복 불가)
     password = db.Column(db.String(100), nullable=False) # 비밀번호
+
+class StudyRecord(db.Model):
+    id = db.Column(db.Integer, primary_key=True) # 고유 번호
+    subject = db.Column(db.String(100), nullable=False) # 과목명
+    duration_hours = db.Column(db.Float, nullable=False) # 학습 시간 (예: 1.5시간)
+    study_date = db.Column(db.String(20), nullable=False) # 학습 날짜 (예: 2023-10-25)
+    memo = db.Column(db.Text) # 메모 (선택 사항)

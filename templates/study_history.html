@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>대시보드 — StudyAI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Noto+Sans+KR:wght@400;500&display=swap&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body>
+<main class="main">
+
+
+  <!-- ────────────────────────────────────
+       사이드바
+  ──────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-mark">S</span>
+      <span class="logo-text">StudyAI</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('dashboard.dashboard') }}" class="nav-item">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/>
+            <rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/>
+          </svg>
+        </span>
+        <span class="nav-label">대시보드</span>
+      </a>
+
+      <a href="{{ url_for('study_history.history') }}" class="nav-item active">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+        </span>
+        <span class="nav-label">학습 기록</span>
+      </a>
+
+
+      <a href="{{ url_for('home') }}" class="nav-item">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+        </span>
+        <span class="nav-label">학습 분석</span>
+      </a>
+
+      <a href="{{ url_for('home') }}" class="nav-item">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 16v-4M12 8h.01"/>
+          </svg>
+        </span>
+        <span class="nav-label">AI 학습 계획</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar">{{ username[0] | upper }}</div>
+        <div class="user-info">
+          <span class="user-name">{{ username }}</span>
+          <span class="user-role">학습자</span>
+        </div>
+      </div>
+      <a href="{{ url_for('home') }}" class="logout-btn" title="로그아웃">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ────────────────────────────────────
+       메인 콘텐츠
+  ──────────────────────────────────────── -->
+    <div class="main-content">
+    <div class="header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1>학습 기록</h1>
+            <p style="color: #777;">과목을 선택하여 상세 학습 기록을 남겨보세요.</p>
+        </div>
+        <!-- 🌟 새 과목 추가 버튼 -->
+        <button onclick="openModal()" class="btn-primary" style="padding: 10px 20px; background-color: #333; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+            + 새 과목 추가
+        </button>
+    </div>
+    
+    <!-- 🌟 과목 폴더 목록 (그리드 형태로 여러 개 나열) -->
+    <section class="content-grid" style="margin-top: 30px; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px;">
+        
+        {% if subjects %}
+            {% for s in subjects %}
+            <!-- 카드를 클릭하면 파이썬의 subject_detail 라우트로 이동합니다! -->
+            <a href="{{ url_for('study_history.subject_detail', subject=s) }}" style="text-decoration: none; color: inherit;">
+                <div class="card" style="padding: 30px; text-align: center; cursor: pointer; transition: transform 0.2s;">
+                    <!-- 폴더 아이콘 -->
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#4a90e2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 15px;">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    <h2 style="margin: 0; font-size: 1.2rem;">{{ s }}</h2>
+                </div>
+            </a>
+            {% endfor %}
+        {% else %}
+            <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: white; border-radius: 12px; border: 1px solid #eee;">
+                <p style="color: #777;">아직 생성된 과목이 없습니다.</p>
+            </div>
+        {% endif %}
+
+    </section>
+  </div>
+
+  <!-- 🌟 새 과목 추가 팝업 -->
+  <div id="recordModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+      <div style="background-color: white; padding: 40px; border-radius: 16px; width: 400px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+              <h2 style="margin: 0;">새 과목 만들기</h2>
+              <button onclick="closeModal()" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+          </div>
+          <form method="POST" style="display: flex; flex-direction: column; gap: 20px;">
+              <div>
+                  <label style="display: block; font-weight: bold; margin-bottom: 8px;">과목명</label>
+                  <input type="text" name="subject" placeholder="예: 데이터베이스" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+              </div>
+              <button type="submit" class="btn-primary" style="width: 100%; padding: 14px; background-color: #333; color: white; border: none; border-radius: 8px; font-weight: bold;">
+                  과목 생성하기
+              </button>
+          </form>
+      </div>
+  </div>
+
+  <!-- 팝업 열고 닫는 JS (기존과 동일) -->
+  <script>
+      function openModal() { document.getElementById('recordModal').style.display = 'flex'; }
+      function closeModal() { document.getElementById('recordModal').style.display = 'none'; }
+      window.onclick = function(event) { if (event.target == document.getElementById('recordModal')) closeModal(); }
+  </script>
+</div>
+</div>
+</body>
+</html>
