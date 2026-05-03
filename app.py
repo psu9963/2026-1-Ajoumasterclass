@@ -2,6 +2,7 @@ from flask import Flask, render_template
 from views.login import login_bp
 from models import db
 from views.dashboard import dashboard_bp
+from views.study_history import study_history_bp
 
 
 # 1. 🌟 가장 먼저 플라스크 앱(app)을 만들어 줍니다! 🌟
@@ -23,11 +24,12 @@ with app.app_context():
 
 # 블루프린트 등록
 app.register_blueprint(login_bp)
-# app.register_blueprint(dashboard_bp) # (동원님 코드가 아직 없다면 주석 처리)
+app.register_blueprint(study_history_bp)
+
 
 @app.route('/')
 def home():
     return render_template('index.html')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5001)
