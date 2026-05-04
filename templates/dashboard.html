@@ -41,7 +41,7 @@
       </a>
 
 
-      <a href="{{ url_for('home') }}" class="nav-item">
+      <a href="{{ url_for('dashboard.dashboard') }}" class="nav-item">
         <span class="nav-icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
@@ -50,7 +50,7 @@
         <span class="nav-label">학습 분석</span>
       </a>
 
-      <a href="{{ url_for('home') }}" class="nav-item">
+      <a href="{{ url_for('ai_plan.ai_plan') }}" class="nav-item">
         <span class="nav-icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"/>
@@ -247,7 +247,7 @@
             <h3>맞춤 학습 계획을 받아보세요</h3>
             <p>학습 목표를 입력하면 AI가 주차별 계획을 바로 생성해드려요.</p>
           </div>
-          <a href="{{ url_for('home') }}" class="btn-ai">계획 생성하기 →</a>
+          <a href="{{ url_for('ai_plan.ai_plan') }}" class="btn-ai">계획 생성하기 →</a>
         </div>
         <div class="ai-banner-deco"></div>
       </div>
