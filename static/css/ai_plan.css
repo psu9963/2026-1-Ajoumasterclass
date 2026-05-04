@@ -1,0 +1,273 @@
+/* ════════════════════════════════════════
+   AI 학습 계획 추가 CSS
+════════════════════════════════════════ */
+
+/* ── 페이지 타이틀 크기 조정 ── */
+.aip-title {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+/* ── 사이드바 서브메뉴 ── */
+.nav-group { display: flex; flex-direction: column; }
+
+.nav-item--parent {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  color: var(--text-2);
+  font-size: 13.5px;
+  font-weight: 400;
+  cursor: default;
+}
+.nav-item--parent.active {
+  background: var(--accent);
+  color: #ffffff;
+}
+.nav-item--parent.active .nav-icon { color: #ffffff; }
+
+.nav-submenu {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 0 4px 16px;
+}
+
+.nav-sub-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: var(--text-2);
+  transition: background .15s, color .15s;
+  text-decoration: none;
+}
+.nav-sub-item:hover { background: var(--surface-2); color: var(--text-1); }
+.nav-sub-item.active { color: var(--text-1); font-weight: 600; }
+
+.sub-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--border-hover);
+  flex-shrink: 0;
+  transition: background .15s;
+}
+.nav-sub-item.active .sub-dot { background: var(--accent); }
+
+/* ── 입력 카드 ── */
+.aip-form-card { margin-bottom: 20px; animation: fadeUp .3s ease both; }
+.aip-form-body { padding: 20px 22px 24px; }
+
+.aip-form-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 28px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.aip-field { display: flex; flex-direction: column; gap: 10px; }
+.aip-field--narrow { width: 180px; }
+
+.aip-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: .6px;
+}
+
+/* ── 칩 ── */
+.subject-chips, .week-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { cursor: pointer; }
+.chip input { display: none; }
+.chip span {
+  display: inline-block;
+  padding: 7px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  font-size: 13px;
+  color: var(--text-2);
+  background: var(--surface);
+  transition: border-color .15s, background .15s, color .15s;
+  white-space: nowrap;
+}
+.chip:hover span { border-color: var(--border-hover); color: var(--text-1); }
+.chip--active span { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 500; }
+
+/* ── 생성 버튼 ── */
+.aip-btn-submit { width: 100%; justify-content: center; padding: 12px; font-size: 14px; gap: 8px; }
+
+/* ── 저장 안내 ── */
+.aip-save-notice {
+  background: #f0faf4;
+  border: 1px solid #c3e6cb;
+  color: #1a6b3a;
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  animation: fadeUp .3s ease both;
+}
+.aip-save-notice a { color: #1a6b3a; font-weight: 600; text-decoration: underline; }
+
+/* ── 로딩 ── */
+.aip-loading-card {
+  padding: 56px 24px;
+  text-align: center;
+  margin-bottom: 20px;
+  animation: fadeUp .3s ease both;
+}
+.loading-dots { display: flex; gap: 8px; justify-content: center; margin-bottom: 18px; }
+.loading-dots span {
+  width: 9px; height: 9px;
+  background: var(--accent);
+  border-radius: 50%;
+  animation: ldBounce 1.2s ease infinite;
+}
+.loading-dots span:nth-child(2) { animation-delay: .2s; }
+.loading-dots span:nth-child(3) { animation-delay: .4s; }
+
+@keyframes ldBounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: .3; }
+  40%           { transform: scale(1);   opacity: 1; }
+}
+
+.loading-text { font-size: 15px; font-weight: 500; color: var(--text-1); margin-bottom: 4px; }
+.loading-sub  { font-size: 13px; color: var(--text-3); }
+
+/* ── 주차별 행 ── */
+.aip-week-row {
+  padding: 16px 22px;
+  border-bottom: 1px solid var(--border);
+  animation: fadeUp .35s ease both;
+  transition: background .15s;
+}
+.aip-week-row:last-child { border-bottom: none; }
+.aip-week-row:hover { background: var(--surface-2); }
+
+.aip-week-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.aip-week-theme { font-size: 13.5px; font-weight: 600; color: var(--text-1); margin-bottom: 8px; line-height: 1.4; }
+.aip-week-topics { list-style: none; padding: 0; margin-bottom: 10px; display: flex; flex-direction: column; gap: 4px; }
+.aip-week-topics li { font-size: 12.5px; color: var(--text-2); padding-left: 12px; position: relative; line-height: 1.5; }
+.aip-week-topics li::before { content: '·'; position: absolute; left: 0; color: var(--text-3); font-weight: 700; }
+
+.aip-week-check { font-size: 12px; color: var(--text-2); background: var(--surface-2); border-radius: var(--radius-sm); padding: 7px 11px; line-height: 1.5; }
+.aip-check-label { font-weight: 600; color: var(--text-1); margin-right: 6px; }
+
+/* ── 팁 ── */
+.aip-tip-row { align-items: flex-start; padding: 4px 0; }
+.aip-tip-num { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; color: var(--text-3); margin-top: 2px; flex-shrink: 0; }
+.aip-tip-text { font-size: 13px; color: var(--text-1); line-height: 1.6; flex: 1; }
+
+/* ════════════════════════════════════════
+   계획 확인 페이지
+════════════════════════════════════════ */
+
+/* ── 과목 탭 ── */
+.aip-subject-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  animation: fadeUp .3s ease both;
+}
+
+.aip-subject-tab {
+  padding: 8px 18px;
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+  font-size: 13px;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all .15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+.aip-subject-tab:hover { border-color: var(--border-hover); color: var(--text-1); }
+.aip-subject-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 500; }
+
+.tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px; height: 18px;
+  background: rgba(255,255,255,0.25);
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 700;
+}
+.aip-subject-tab:not(.active) .tab-count { background: var(--surface-2); color: var(--text-3); }
+
+/* ── 히스토리 카드 ── */
+.aip-history-card { animation: fadeUp .35s ease both; }
+
+.aip-history-diagnosis {
+  padding: 12px 22px;
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.6;
+  border-bottom: 1px solid var(--border);
+}
+
+.aip-history-summary {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.aip-summary-item {
+  flex: 1;
+  padding: 14px 22px;
+  text-align: center;
+  border-right: 1px solid var(--border);
+}
+.aip-summary-item:last-child { border-right: none; }
+
+.aip-summary-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-1);
+  margin-bottom: 4px;
+}
+.aip-summary-label { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: .5px; }
+
+/* ── 펼치기 토글 ── */
+.aip-history-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  font-size: 13px;
+  color: var(--text-2);
+  cursor: pointer;
+  border-top: 1px solid var(--border);
+  transition: background .15s, color .15s;
+}
+.aip-history-toggle:hover { background: var(--surface-2); color: var(--text-1); }
+.aip-history-toggle svg { transition: transform .2s; }
+
+.aip-tips-section { border-top: 1px solid var(--border); }
+
+/* ── 반응형 ── */
+@media (max-width: 900px) {
+  .aip-form-row { grid-template-columns: 1fr; }
+  .aip-field--narrow { width: 100%; }
+  .nav-submenu { padding-left: 8px; }
+}
