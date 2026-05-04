@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, session
 from models import db, StudyRecord # 🌟 방금 만든 모델 불러오기
 from sqlalchemy import func # 🌟 중복된 과목을 묶기 위해 추가
 
@@ -11,17 +11,19 @@ def history():
     if request.method == 'POST':
         subject_name = request.form.get('subject')
         # 과목명만 입력받고, 시간이나 날짜 등은 빈 값으로 초기 폴더용 데이터를 하나 만듭니다.
-        new_folder = StudyRecord(subject=subject_name, duration_hours=0, study_date='', memo='과목 생성')
+        new_folder = StudyRecord(user_id=session['user_id'], subject=subject_name, duration_hours=0, study_date='', memo='과목 생성')
         db.session.add(new_folder)
         db.session.commit()
         return redirect(url_for('study_history.history'))
         
     # 🌟 DB에서 '과목명'만 중복 없이 가져오기 (폴더처럼 보여주기 위함)
-    subjects = db.session.query(StudyRecord.subject).distinct().all()
+    subjects = db.session.query(StudyRecord.subject)\
+        .filter_by(user_id=session['user_id'])\
+        .distinct().all()
     # [('수학',), ('데이터베이스',)] 형태로 오기 때문에, 이름만 깔끔하게 리스트로 바꿉니다.
     subject_list = [s[0] for s in subjects]
     
-    return render_template('study_history.html', username='사용자', subjects=subject_list)
+    return render_template('study_history.html', username=session.get('username', '사용자'), subjects=subject_list)
 @study_history_bp.route('/study-history/<subject>', methods=['GET', 'POST'])
 def subject_detail(subject):
     if request.method == 'POST':
@@ -31,7 +33,7 @@ def subject_detail(subject):
         memo = request.form.get('memo')
         
         # URL에 있는 과목명(subject)을 그대로 사용해서 저장합니다.
-        new_record = StudyRecord(subject=subject, duration_hours=float(duration), study_date=date, memo=memo)
+        new_record = StudyRecord(user_id=session['user_id'], subject=subject, duration_hours=float(duration), study_date=date, memo=memo)
         db.session.add(new_record)
         db.session.commit()
         return redirect(url_for('study_history.subject_detail', subject=subject))
@@ -40,7 +42,7 @@ def subject_detail(subject):
     records = StudyRecord.query.filter(StudyRecord.subject == subject, StudyRecord.duration_hours > 0).order_by(StudyRecord.study_date.desc()).all()
     
     # 새로운 HTML 파일(subject_detail.html)로 연결해 줍니다.
-    return render_template('subject_detail.html', username='사용자', subject=subject, records=records)
+    return render_template('subject_detail.html', username=session.get('username', '사용자'), subject=subject, records=records)
 
 
 @study_history_bp.route('/study-history/delete/<int:record_id>', methods=['POST'])

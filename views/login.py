@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, session
 from models import db, User  # 🌟 데이터베이스와 User 모델 불러오기
 from werkzeug.security import generate_password_hash, check_password_hash 
 
@@ -15,6 +15,8 @@ def login():
         
         # 🌟 변경된 부분: 원본 비교(==) 대신 check_password_hash 도구 사용!
         if user and check_password_hash(user.password, user_pw):
+            session['user_id'] = user.id     
+            session['username'] = user.userid   
             return redirect(url_for('dashboard.dashboard'))
         else:
             return render_template('login.html', error="아이디 또는 비밀번호가 잘못되었습니다.")
@@ -49,3 +51,7 @@ def register():
         
     return render_template('register.html')
 
+@login_bp.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login.login'))
