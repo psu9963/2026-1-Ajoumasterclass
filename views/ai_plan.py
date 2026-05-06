@@ -5,16 +5,12 @@ from datetime import datetime
 from openai import OpenAI
 import os
 import json
+from flask_login import login_required, current_user
+
 
 ai_plan_bp = Blueprint('ai_plan', __name__)
 
-def login_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        if 'user_id' not in session:
-            return redirect(url_for('login.login'))
-        return f(*args, **kwargs)
-    return decorated
+
 
 def generate_study_plan(subject, total_hours, recent_dates, goal_weeks=4):
     client = OpenAI(
@@ -67,17 +63,17 @@ def generate_study_plan(subject, total_hours, recent_dates, goal_weeks=4):
 @ai_plan_bp.route('/ai-plan')
 @login_required
 def ai_plan():
-    user_id  = session['user_id']
-    records  = StudyRecord.query.filter_by(user_id=user_id).all()
+    user_id  = current_user.id
+    records  = StudyRecord.query.filter_by(user_id=current_user.id).all()
     subjects = list({r.subject for r in records if r.duration_hours > 0})
     return render_template('ai_plan.html',
                            subjects=subjects,
-                           username=session.get('username', '사용자'))
+                           username=current_user.username)
 
 @ai_plan_bp.route('/ai-plan/analyze', methods=['POST'])
 @login_required
 def analyze():
-    user_id    = session['user_id']
+    user_id    = current_user.id
     subject    = request.form.get('subject', '')
     goal_weeks = int(request.form.get('weeks', 4))
 
@@ -85,7 +81,7 @@ def analyze():
         return jsonify({'error': '과목을 선택해 주세요.'}), 400
 
     records = StudyRecord.query.filter(
-        StudyRecord.user_id == user_id,
+        StudyRecord.user_id == current_user.id,
         StudyRecord.subject == subject,
         StudyRecord.duration_hours > 0
     ).order_by(StudyRecord.study_date.desc()).all()
@@ -104,7 +100,7 @@ def analyze():
             goal_weeks=goal_weeks
         )
         new_plan = AIPlan(
-            user_id=user_id,
+            user_id=current_user.id,
             subject=subject,
             goal_weeks=goal_weeks,
             plan_content=json.dumps(plan, ensure_ascii=False),
@@ -120,8 +116,8 @@ def analyze():
 @ai_plan_bp.route('/ai-plan/history')
 @login_required
 def plan_history():
-    user_id = session['user_id']
-    plans   = AIPlan.query.filter_by(user_id=user_id)\
+    user_id = current_user.id
+    plans   = AIPlan.query.filter_by(user_id=current_user.id)\
                           .order_by(AIPlan.id.desc()).all()
     plans_by_subject = {}
     for p in plans:
@@ -137,12 +133,12 @@ def plan_history():
         plans_by_subject[p.subject].append(plan_data)
     return render_template('ai_plan_history.html',
                            plans_by_subject=plans_by_subject,
-                           username=session.get('username', '사용자'))
+                           username=current_user.username)
 
 @ai_plan_bp.route('/ai-plan/delete/<int:plan_id>', methods=['POST'])
 @login_required
 def delete_plan(plan_id):
-    plan = AIPlan.query.filter_by(id=plan_id, user_id=session['user_id']).first_or_404()
+    plan = AIPlan.query.filter_by(id=plan_id, user_id=current_user.id).first_or_404()
     db.session.delete(plan)
     db.session.commit()
     return redirect(url_for('ai_plan.plan_history'))

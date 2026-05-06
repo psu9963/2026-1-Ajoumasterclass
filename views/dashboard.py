@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, session, redirect, url_for
 from functools import wraps
 from models import db, StudyRecord
 from datetime import datetime, timedelta, date
+from flask_login import login_required, current_user
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
@@ -52,7 +53,7 @@ def dashboard():
     
     return render_template(
         'dashboard.html', 
-        username= session.get('username', '사용자'), 
+        username= current_user.username, 
         total_hours=round(total_hours, 1), 
         weekly_hours=round(weekly_hours, 1), 
         subject_count=subject_count,
