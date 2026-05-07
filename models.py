@@ -1,13 +1,17 @@
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin
 
 # 데이터베이스 객체 생성
 db = SQLAlchemy()
 
 # 회원 정보 테이블(표) 설계
-class User(db.Model):
+class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True) # 회원 번호 (1, 2, 3... 자동 생성)
-    userid = db.Column(db.String(50), unique=True, nullable=False) # 아이디 (중복 불가)
-    password = db.Column(db.String(100), nullable=False) # 비밀번호
+    username = db.Column(db.String(50), unique=True, nullable=False) # 아이디 (중복 불가)
+    password = db.Column(db.String(100), nullable=True) # 비밀번호
+
+    provider = db.Column(db.String(50)) # 'kakao', 'google' 등
+    social_id = db.Column(db.String(100), unique=True) # 소셜에서 주는 고유 번호
 
 class StudyRecord(db.Model):
     id = db.Column(db.Integer, primary_key=True) # 고유 번호
