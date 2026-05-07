@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>학습 분석 — StudyAI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* ── 탭 */
+    .tab-bar { display:flex; gap:4px; background:var(--surface-2); border-radius:var(--radius-md); padding:4px; margin-bottom:28px; width:fit-content; animation:fadeUp .3s ease both; }
+    .tab-btn { padding:8px 24px; border:none; background:none; border-radius:calc(var(--radius-md) - 2px); font-size:13.5px; font-weight:500; color:var(--text-2); cursor:pointer; transition:background .15s, color .15s; font-family:'Noto Sans KR',sans-serif; }
+    .tab-btn.active { background:var(--surface); color:var(--text-1); box-shadow:0 1px 4px rgba(0,0,0,0.08); }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
+
+    /* ── 리듬 카드들 */
+    .rhythm-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:16px; }
+    .rhythm-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:22px; animation:fadeUp .35s ease both; transition:box-shadow .2s; }
+    .rhythm-card:hover { box-shadow:0 4px 16px rgba(0,0,0,0.06); }
+    .rhythm-card__icon { font-size:24px; margin-bottom:10px; }
+    .rhythm-card__title { font-size:11px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:.6px; margin-bottom:12px; }
+    .rhythm-card__body { font-size:13.5px; color:var(--text-1); line-height:1.7; }
+    .rhythm-card__body strong { color:var(--text-1); font-weight:700; }
+    .rhythm-card__body .warn { color:#c0392b; font-weight:600; }
+    .rhythm-card__body .good { color:#2d6a4f; font-weight:600; }
+    .rhythm-card__body .down { color:#8b5e3c; font-weight:600; }
+
+    .gap-item { display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:13px; }
+    .gap-dot { width:7px; height:7px; border-radius:50%; background:#c0392b; flex-shrink:0; }
+
+    .streak-num { font-family:'Syne',sans-serif; font-size:36px; font-weight:800; color:var(--text-1); line-height:1; }
+    .streak-sub { font-size:12px; color:var(--text-3); margin-top:4px; }
+
+    /* ── 레이더 + 스토리 그리드 */
+    .analysis-grid { display:grid; grid-template-columns:1fr 1.4fr; gap:16px; margin-bottom:16px; }
+    .chart-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; animation:fadeUp .4s ease both; }
+    .chart-body { padding:20px 22px; }
+
+    /* ── 스토리 */
+    .story-list { display:flex; flex-direction:column; gap:10px; }
+    .story-item { display:flex; align-items:flex-start; gap:12px; padding:10px 12px; border-radius:var(--radius-md); background:var(--surface-2); }
+    .story-day { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; color:var(--text-3); width:20px; flex-shrink:0; padding-top:1px; }
+    .story-content { flex:1; }
+    .story-subject { font-size:13px; font-weight:600; color:var(--text-1); }
+    .story-memo { font-size:12px; color:var(--text-2); margin-top:2px; }
+    .story-hours { font-family:'Syne',sans-serif; font-size:12px; font-weight:600; color:var(--text-3); flex-shrink:0; }
+
+    .ai-comment-box { margin-top:14px; background:var(--accent); border-radius:var(--radius-md); padding:14px 16px; }
+    .ai-comment-box p { font-size:13px; color:#fff; line-height:1.7; margin:0; }
+    .ai-comment-label { font-size:10px; font-weight:700; color:rgba(255,255,255,0.6); letter-spacing:1px; text-transform:uppercase; margin-bottom:6px; }
+
+    .story-ai-btn { margin-top:12px; display:inline-flex; align-items:center; gap:6px; padding:9px 18px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius-md); font-size:12.5px; font-weight:500; cursor:pointer; transition:background .15s; font-family:'Noto Sans KR',sans-serif; }
+    .story-ai-btn:hover { background:var(--accent-hover); }
+    .story-ai-btn:disabled { opacity:.5; cursor:not-allowed; }
+
+    /* ── 과목별 탭 */
+    .subject-chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:24px; animation:fadeUp .3s ease both; }
+    .s-chip { padding:8px 18px; border:1.5px solid var(--border); border-radius:20px; background:var(--surface); font-size:13px; color:var(--text-2); cursor:pointer; transition:all .15s; font-family:'Noto Sans KR',sans-serif; }
+    .s-chip:hover { border-color:var(--border-hover); color:var(--text-1); }
+    .s-chip.active { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:500; }
+
+    .detail-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px; }
+    .detail-stat { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px; animation:fadeUp .35s ease both; }
+    .detail-stat__label { font-size:11px; font-weight:500; color:var(--text-3); text-transform:uppercase; letter-spacing:.6px; margin-bottom:8px; }
+    .detail-stat__value { font-family:'Syne',sans-serif; font-size:24px; font-weight:700; color:var(--text-1); }
+
+    /* ── AI 피드백 */
+    .ai-feedback-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; animation:fadeUp .45s ease both; margin-bottom:16px; }
+    .ai-feedback-body { padding:22px; }
+    .feedback-btn { display:inline-flex; align-items:center; gap:8px; padding:10px 22px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius-md); font-size:13px; font-weight:500; cursor:pointer; transition:background .15s; font-family:'Noto Sans KR',sans-serif; }
+    .feedback-btn:hover { background:var(--accent-hover); }
+    .feedback-btn:disabled { opacity:.5; cursor:not-allowed; }
+
+    .feedback-result { margin-top:20px; }
+    .feedback-section { margin-bottom:16px; }
+    .feedback-section h4 { font-size:11px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:.6px; margin-bottom:8px; }
+    .feedback-section p { font-size:13.5px; color:var(--text-1); line-height:1.7; }
+    .feedback-tags { display:flex; flex-wrap:wrap; gap:8px; }
+    .feedback-tag { padding:5px 12px; border-radius:20px; font-size:12.5px; font-weight:500; }
+    .feedback-tag--good { background:var(--c1b); color:var(--c1); }
+    .feedback-tag--bad  { background:var(--c2b); color:var(--c2); }
+
+    /* ── 저장된 피드백 히스토리 */
+    .feedback-history { margin-top:16px; }
+    .history-title { font-size:11px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:.6px; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+    .history-item { border:1px solid var(--border); border-radius:var(--radius-md); margin-bottom:10px; overflow:hidden; }
+    .history-item-head { display:flex; align-items:center; justify-content:space-between; padding:11px 14px; background:var(--surface-2); cursor:pointer; }
+    .history-item-date { font-size:12px; color:var(--text-3); }
+    .history-item-body { padding:16px; display:none; }
+    .history-del-btn { background:none; border:none; color:var(--text-3); cursor:pointer; font-size:12px; padding:3px 6px; border-radius:4px; transition:background .15s, color .15s; font-family:inherit; }
+    .history-del-btn:hover { background:#fef0f0; color:#c0392b; }
+
+    .no-data-panel { text-align:center; padding:60px 24px; color:var(--text-3); }
+    .no-data-panel p { font-size:14px; color:var(--text-2); margin:12px 0 20px; }
+
+    @keyframes ldBounce { 0%,80%,100%{transform:scale(.6);opacity:.3} 40%{transform:scale(1);opacity:1} }
+  </style>
+</head>
+<body>
+
+  <!-- ── 사이드바 -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-mark">S</span>
+      <span class="logo-text">StudyAI</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('dashboard.dashboard') }}" class="nav-item">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></span>
+        <span class="nav-label">대시보드</span>
+      </a>
+      <a href="{{ url_for('study_history.history') }}" class="nav-item">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span>
+        <span class="nav-label">학습 기록</span>
+      </a>
+      <a href="{{ url_for('analysis.analysis') }}" class="nav-item active">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+        <span class="nav-label">학습 분석</span>
+      </a>
+      <div class="nav-group">
+        <a href="{{ url_for('ai_plan.ai_plan') }}" class="nav-item">
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></span>
+          <span class="nav-label">AI 학습 계획</span>
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar">{{ username[0] | upper }}</div>
+        <div class="user-info">
+          <span class="user-name">{{ username }}</span>
+          <span class="user-role">학습자</span>
+        </div>
+      </div>
+      <a href="{{ url_for('login.logout') }}" class="logout-btn" title="로그아웃">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ── 메인 -->
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <h1 class="page-title">학습 분석</h1>
+        <p class="page-sub">학습 기록을 바탕으로 패턴과 개선점을 분석해요</p>
+      </div>
+    </header>
+
+    {% if not has_data %}
+    <div class="card">
+      <div class="no-data-panel">
+        <div class="empty-icon" style="justify-content:center; margin-bottom:12px; opacity:.35;">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <p>아직 분석할 학습 기록이 없어요</p>
+        <a href="{{ url_for('study_history.history') }}" class="btn-primary btn-sm">학습 기록 추가하기</a>
+      </div>
+    </div>
+
+    {% else %}
+
+    <!-- 탭 -->
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('rhythm', this)">학습 리듬 분석</button>
+      <button class="tab-btn" onclick="switchTab('subject', this)">과목별 분석</button>
+    </div>
+
+    <!-- ════ 학습 리듬 분석 탭 ════ -->
+    <div id="tab-rhythm" class="tab-panel active">
+
+      <!-- 리듬 카드 3개 -->
+      <div class="rhythm-grid">
+
+        <!-- 😴 학습 공백 경고 -->
+        <div class="rhythm-card">
+          <div class="rhythm-card__icon">😴</div>
+          <div class="rhythm-card__title">학습 공백 경고</div>
+          <div class="rhythm-card__body">
+            {% if gap_warnings %}
+              {% for w in gap_warnings %}
+              <div class="gap-item">
+                <span class="gap-dot"></span>
+                <span>
+                  <strong>{{ w.subject }}</strong>을 마지막으로 공부한 지
+                  <span class="warn">{{ w.days }}일</span>이 지났어요
+                </span>
+              </div>
+              {% endfor %}
+            {% else %}
+              <span class="good">🎉 모든 과목을 최근 3일 이내 학습했어요!</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- 🔥 연속 학습 스트릭 -->
+        <div class="rhythm-card">
+          <div class="rhythm-card__icon">🔥</div>
+          <div class="rhythm-card__title">연속 학습 스트릭</div>
+          <div class="rhythm-card__body">
+            <div class="streak-num">{{ current_streak }}일</div>
+            <div class="streak-sub">연속 학습 중</div>
+            <div style="margin-top:12px; font-size:13px;">
+              최고 기록은 <strong>{{ best_streak }}일</strong>이에요
+              {% if current_streak == best_streak and current_streak > 0 %}
+              <br><span class="good">🏆 지금이 최고 기록이에요!</span>
+              {% elif current_streak == 0 %}
+              <br><span class="warn">오늘 학습을 시작해볼까요?</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- 📉 이번 주 페이스 -->
+        <div class="rhythm-card">
+          <div class="rhythm-card__icon">{% if pace_pct is not none and pace_pct >= 0 %}📈{% else %}📉{% endif %}</div>
+          <div class="rhythm-card__title">이번 주 페이스</div>
+          <div class="rhythm-card__body">
+            <div style="font-size:13px;">
+              이번 주 <strong>{{ this_week_h }}h</strong> / 지난 주 <strong>{{ last_week_h }}h</strong>
+            </div>
+            <div style="margin-top:10px;">
+              {% if pace_pct is none %}
+                <span style="color:var(--text-3);">지난 주 기록이 없어요</span>
+              {% elif pace_pct > 0 %}
+                지난 주보다 <span class="good">{{ pace_pct }}% 늘었어요 💪</span>
+              {% elif pace_pct < 0 %}
+                지난 주보다 <span class="down">{{ pace_pct | abs }}% 줄었어요</span><br>
+                <span style="font-size:12px; color:var(--text-3);">무슨 일이 있었나요?</span>
+              {% else %}
+                지난 주와 <span class="good">동일한 페이스예요</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 레이더 + 이번 주 스토리 -->
+      <div class="analysis-grid">
+
+        <!-- 과목 균형 레이더 -->
+        <div class="chart-card">
+          <div class="card-head">
+            <h3 class="card-title">과목 균형 레이더</h3>
+            <span class="card-link">100 = 가장 많이 한 과목 기준</span>
+          </div>
+          <div class="chart-body">
+            <canvas id="radarChart" height="220"></canvas>
+          </div>
+        </div>
+
+        <!-- 이번 주 학습 스토리 -->
+        <div class="chart-card">
+          <div class="card-head">
+            <h3 class="card-title">📅 이번 주 학습 스토리</h3>
+          </div>
+          <div class="chart-body">
+            {% if week_story %}
+            <div class="story-list">
+              {% for s in week_story %}
+              <div class="story-item">
+                <div class="story-day">{{ s.day }}</div>
+                <div class="story-content">
+                  <div class="story-subject">{{ s.subject }}</div>
+                  {% if s.memo %}
+                  <div class="story-memo">{{ s.memo }}</div>
+                  {% endif %}
+                </div>
+                <div class="story-hours">{{ s.hours }}h</div>
+              </div>
+              {% endfor %}
+            </div>
+            <button class="story-ai-btn" id="story-btn" onclick="getWeeklyStory()">
+              💬 AI 한마디 받기
+            </button>
+            <div id="ai-comment-area"></div>
+            {% else %}
+            <div style="text-align:center; padding:40px 0; color:var(--text-3);">
+              <p style="font-size:13px;">이번 주 학습 기록이 없어요</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ 과목별 분석 탭 ════ -->
+    <div id="tab-subject" class="tab-panel">
+
+      {% if subjects %}
+      <div class="subject-chips">
+        {% for s in subjects %}
+        <button class="s-chip {% if loop.first %}active{% endif %}"
+                onclick="selectSubject('{{ s }}', this)">{{ s }}</button>
+        {% endfor %}
+      </div>
+      <div id="subject-detail"></div>
+      {% else %}
+      <div class="card">
+        <div class="no-data-panel">
+          <p>분석할 과목이 없어요</p>
+          <a href="{{ url_for('study_history.history') }}" class="btn-primary btn-sm">학습 기록 추가하기</a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    {% endif %}
+  </main>
+
+  <script>
+  function switchTab(name, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  {% if has_data %}
+  const subjectDetails  = {{ subject_details | safe }};
+  const savedFeedbacks  = {{ saved_feedbacks | safe }};
+  const weekStoryData   = {{ week_story | tojson }};
+  const COLORS = ['#2d2d2d','#2d6a4f','#8b5e3c','#4a5568','#6b4c7a'];
+  let monthlyChartInst  = null;
+
+  // ── 레이더 차트
+  new Chart(document.getElementById('radarChart'), {
+    type: 'radar',
+    data: {
+      labels: {{ radar_labels | safe }},
+      datasets: [{
+        label: '학습 비중',
+        data: {{ radar_values | safe }},
+        backgroundColor: 'rgba(45,45,45,0.1)',
+        borderColor: '#2d2d2d',
+        borderWidth: 2,
+        pointBackgroundColor: '#2d2d2d',
+        pointRadius: 4
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const raw = {{ radar_raw | safe }};
+              return ` ${raw[ctx.dataIndex]}h`;
+            }
+          }
+        }
+      },
+      scales: {
+        r: {
+          beginAtZero: true, max: 100,
+          ticks: { display: false },
+          grid: { color: '#e8e8e4' },
+          pointLabels: { font: { size: 12 }, color: '#555550' }
+        }
+      }
+    }
+  });
+
+  // ── 이번 주 AI 한마디
+  function getWeeklyStory() {
+    const btn = document.getElementById('story-btn');
+    btn.disabled = true;
+    btn.textContent = '분석 중...';
+
+    fetch('/analysis/weekly-story', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ story: weekStoryData })
+    })
+    .then(r => r.json())
+    .then(data => {
+      btn.disabled = false;
+      btn.textContent = '💬 다시 받기';
+      const area = document.getElementById('ai-comment-area');
+      if (data.success) {
+        area.innerHTML = `
+          <div class="ai-comment-box">
+            <div class="ai-comment-label">💬 AI 한마디</div>
+            <p>${data.result.comment}</p>
+          </div>`;
+      } else {
+        area.innerHTML = `<p style="color:#c0392b; font-size:13px; margin-top:10px;">오류: ${data.error}</p>`;
+      }
+    });
+  }
+
+  // ── 과목별 분석
+  function selectSubject(subject, btn) {
+    document.querySelectorAll('.s-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    renderSubjectDetail(subject);
+  }
+
+  function renderSubjectDetail(subject) {
+    const d = subjectDetails[subject];
+    if (!d) return;
+
+    const feedbacks = savedFeedbacks[subject] || [];
+    const historyHTML = feedbacks.length > 0 ? `
+      <div class="feedback-history">
+        <div class="history-title">저장된 피드백 (${feedbacks.length}개)</div>
+        ${feedbacks.map(f => `
+          <div class="history-item" id="fb-${f.id}">
+            <div class="history-item-head" onclick="toggleHistory(${f.id})">
+              <span style="font-size:13px; font-weight:500; color:var(--text-1);">${f.created_at} 분석</span>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:12px; color:var(--text-3);">▾</span>
+                <button class="history-del-btn" onclick="deleteFeedback(event, ${f.id})">삭제</button>
+              </div>
+            </div>
+            <div class="history-item-body" id="fb-body-${f.id}">
+              <div class="feedback-section"><h4>📊 진단</h4><p>${f.content.diagnosis}</p></div>
+              <div class="feedback-section"><h4>✅ 잘하고 있는 점</h4>
+                <div class="feedback-tags">${f.content.strengths.map(s=>`<span class="feedback-tag feedback-tag--good">${s}</span>`).join('')}</div>
+              </div>
+              <div class="feedback-section"><h4>⚡ 개선할 점</h4>
+                <div class="feedback-tags">${f.content.improvements.map(s=>`<span class="feedback-tag feedback-tag--bad">${s}</span>`).join('')}</div>
+              </div>
+              <div class="feedback-section"><h4>💡 추천 학습법</h4><p>${f.content.recommendation}</p></div>
+            </div>
+          </div>`).join('')}
+      </div>` : '';
+
+    document.getElementById('subject-detail').innerHTML = `
+      <div class="detail-grid">
+        <div class="detail-stat"><div class="detail-stat__label">총 학습 시간</div><div class="detail-stat__value">${d.total_hours}h</div></div>
+        <div class="detail-stat"><div class="detail-stat__label">학습 세션</div><div class="detail-stat__value">${d.session_count}회</div></div>
+        <div class="detail-stat"><div class="detail-stat__label">평균 세션</div><div class="detail-stat__value">${d.avg_hours}h</div></div>
+        <div class="detail-stat"><div class="detail-stat__label">마지막 학습</div><div class="detail-stat__value" style="font-size:16px">${d.last_date}</div></div>
+      </div>
+
+      <div class="chart-card" style="margin-bottom:16px;">
+        <div class="card-head"><h3 class="card-title">월별 학습 추이</h3><span class="card-link">${subject}</span></div>
+        <div class="chart-body"><canvas id="monthlyChart" height="100"></canvas></div>
+      </div>
+
+      <div class="ai-feedback-card">
+        <div class="card-head">
+          <h3 class="card-title">AI 학습 피드백</h3>
+          <span class="card-link">분석 결과는 자동 저장돼요</span>
+        </div>
+        <div class="ai-feedback-body">
+          <p style="font-size:13px; color:var(--text-2); margin-bottom:16px;">
+            AI가 학습 패턴을 분석하고 맞춤 피드백을 제공해요. 결과는 자동으로 저장됩니다.
+          </p>
+          <button class="feedback-btn" id="feedback-btn" onclick="getAIFeedback('${subject}')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            새 피드백 받기
+          </button>
+          <div class="feedback-result" id="feedback-result"></div>
+          ${historyHTML}
+        </div>
+      </div>
+    `;
+
+    // 월별 차트
+    if (monthlyChartInst) monthlyChartInst.destroy();
+    monthlyChartInst = new Chart(document.getElementById('monthlyChart'), {
+      type: 'bar',
+      data: {
+        labels: d.monthly_labels,
+        datasets: [{ label: '학습 시간(h)', data: d.monthly_values, backgroundColor: '#2d2d2d', borderRadius: 6 }]
+      },
+      options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#f0f0ee' } }, x: { grid: { display: false } } } }
+    });
+  }
+
+  function getAIFeedback(subject) {
+    const btn = document.getElementById('feedback-btn');
+    const result = document.getElementById('feedback-result');
+    btn.disabled = true;
+    btn.innerHTML = `<span style="display:flex;gap:4px;align-items:center;">
+      <span style="width:7px;height:7px;background:#fff;border-radius:50%;animation:ldBounce 1.2s ease infinite;display:inline-block;"></span>
+      <span style="width:7px;height:7px;background:#fff;border-radius:50%;animation:ldBounce 1.2s .2s ease infinite;display:inline-block;"></span>
+      <span style="width:7px;height:7px;background:#fff;border-radius:50%;animation:ldBounce 1.2s .4s ease infinite;display:inline-block;"></span>
+      분석 중...
+    </span>`;
+
+    fetch('/analysis/ai-feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subject })
+    })
+    .then(r => r.json())
+    .then(data => {
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg> 새 피드백 받기`;
+
+      if (data.success) {
+        const f = data.feedback;
+        // 새 피드백 표시
+        result.style.display = 'block';
+        result.innerHTML = `
+          <div style="padding:14px; background:var(--surface-2); border-radius:var(--radius-md); margin-bottom:16px;">
+            <div style="font-size:11px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:.6px; margin-bottom:10px;">✨ 방금 생성된 피드백 — ${data.created_at}</div>
+            <div class="feedback-section"><h4>📊 진단</h4><p>${f.diagnosis}</p></div>
+            <div class="feedback-section"><h4>✅ 잘하고 있는 점</h4>
+              <div class="feedback-tags">${f.strengths.map(s=>`<span class="feedback-tag feedback-tag--good">${s}</span>`).join('')}</div>
+            </div>
+            <div class="feedback-section"><h4>⚡ 개선할 점</h4>
+              <div class="feedback-tags">${f.improvements.map(s=>`<span class="feedback-tag feedback-tag--bad">${s}</span>`).join('')}</div>
+            </div>
+            <div class="feedback-section"><h4>💡 추천 학습법</h4><p>${f.recommendation}</p></div>
+          </div>`;
+
+        // savedFeedbacks 업데이트 후 재렌더 (히스토리 갱신)
+        if (!savedFeedbacks[subject]) savedFeedbacks[subject] = [];
+        savedFeedbacks[subject].unshift({ id: data.id, content: f, created_at: data.created_at });
+      } else {
+        result.style.display = 'block';
+        result.innerHTML = `<p style="color:#c0392b;font-size:13px;">오류: ${data.error}</p>`;
+      }
+    });
+  }
+
+  function toggleHistory(id) {
+    const body = document.getElementById('fb-body-' + id);
+    body.style.display = body.style.display === 'block' ? 'none' : 'block';
+  }
+
+  function deleteFeedback(e, id) {
+    e.stopPropagation();
+    if (!confirm('이 피드백을 삭제할까요?')) return;
+    fetch(`/analysis/ai-feedback/delete/${id}`, { method: 'POST' })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          document.getElementById('fb-' + id).remove();
+        }
+      });
+  }
+
+  // 첫 과목 자동 렌더링
+  const firstSubject = {{ subjects | tojson }};
+  if (firstSubject.length > 0) renderSubjectDetail(firstSubject[0]);
+
+  {% endif %}
+  </script>
+</body>
+</html>

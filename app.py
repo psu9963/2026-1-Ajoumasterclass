@@ -4,6 +4,7 @@ from models import db
 from views.dashboard import dashboard_bp
 from views.study_history import study_history_bp
 from views.ai_plan import ai_plan_bp
+from views.analysis import analysis_bp
 
 
 # 1. 🌟 가장 먼저 플라스크 앱(app)을 만들어 줍니다! 🌟
@@ -26,7 +27,7 @@ app.register_blueprint(login_bp)
 app.register_blueprint(study_history_bp)
 app.register_blueprint(ai_plan_bp)
 app.register_blueprint(dashboard_bp)
-
+app.register_blueprint(analysis_bp)
 
 @app.route('/')
 def home():
