@@ -24,3 +24,4 @@ Thumbs.db
 # === IDE Files ===
 # VS Code 설정 파일
 .vscode/
+.env

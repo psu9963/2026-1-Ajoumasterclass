@@ -36,6 +36,32 @@
             </div>
             <button type="submit" class="btn-submit">로그인 하기</button>
         </form>
+<!-- 버튼들을 가운데 정렬하고 여백을 주는 컨테이너 -->
+<div style="display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 20px;">
+
+    <!-- 🟡 카카오 로그인 공식 디자인 스타일 -->
+    <a href="{{ url_for('kakao_login') }}" 
+       style="display: flex; align-items: center; justify-content: center; width: 300px; height: 45px; background-color: #FEE500; color: #000000; text-decoration: none; border-radius: 6px; font-size: 15px; font-weight: bold;">
+        <!-- 카카오 말풍선 로고 -->
+        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e3/KakaoTalk_logo.svg" 
+             style="width: 20px; margin-right: 10px;" alt="카카오 로고">
+        카카오계정으로   로그인
+    </a>
+
+    <!-- ⚪ 구글 로그인 공식 디자인 스타일 -->
+    <a href="{{ url_for('login.google_login') }}" 
+       style="display: flex; align-items: center; justify-content: center; width: 300px; height: 45px; background-color: #FFFFFF; color: #3C4043; text-decoration: none; border: 1px solid #DADCE0; border-radius: 6px; font-size: 14px; font-weight: 500; font-family: 'Roboto', sans-serif;">
+        <!-- 구글 G 로고 -->
+        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" 
+             style="width: 18px; margin-right: 10px;" alt="구글 로고">
+        구글 계정으로 로그인
+    </a>
+
+</div>
+
+        <!-- 기존 카카오 버튼 아래에 추가 -->
+
+
         
         <div class="register-link">
             계정이 없으신가요? <a href="/register">회원가입 하기</a>
