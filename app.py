@@ -4,6 +4,8 @@ from models import db
 from views.dashboard import dashboard_bp
 from views.study_history import study_history_bp
 from views.ai_plan import ai_plan_bp
+from views.analysis import analysis_bp
+
 from flask_login import login_user, LoginManager
 import requests
 from models import User
@@ -43,7 +45,7 @@ GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI")
 app.register_blueprint(study_history_bp)
 app.register_blueprint(ai_plan_bp)
 app.register_blueprint(dashboard_bp)
-
+app.register_blueprint(analysis_bp)
 
 @app.route('/')
 def home():

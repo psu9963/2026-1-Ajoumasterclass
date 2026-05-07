@@ -28,3 +28,10 @@ class AIPlan(db.Model):
     goal_weeks   = db.Column(db.Integer, nullable=False)
     plan_content = db.Column(db.Text, nullable=False)
     created_at   = db.Column(db.String(30), nullable=False)
+
+class AIFeedback(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, nullable=False)
+    subject = db.Column(db.String(100), nullable=False)
+    feedback_content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.String(30), nullable=False)
