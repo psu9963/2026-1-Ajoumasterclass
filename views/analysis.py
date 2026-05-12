@@ -5,16 +5,12 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 from openai import OpenAI
 import os, json
+from flask_login import login_required, current_user
+
 
 analysis_bp = Blueprint('analysis', __name__)
 
-def login_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        if 'user_id' not in session:
-            return redirect(url_for('login.login'))
-        return f(*args, **kwargs)
-    return decorated
+
 
 def get_streaks(records):
     dates = sorted(set(
@@ -109,7 +105,7 @@ def get_this_week_story(records):
 @analysis_bp.route('/analysis')
 @login_required
 def analysis():
-    user_id = session['user_id']
+    user_id = current_user.id
     records = StudyRecord.query.filter(
         StudyRecord.user_id == user_id,
         StudyRecord.duration_hours > 0
@@ -177,7 +173,7 @@ def analysis():
         })
 
     return render_template('analysis.html',
-        username       = session.get('username', '사용자'),
+        username       = current_user.username,
         has_data       = len(records) > 0,
         subjects       = subjects,
         current_streak = current_streak,
@@ -198,7 +194,7 @@ def analysis():
 @analysis_bp.route('/analysis/ai-feedback', methods=['POST'])
 @login_required
 def ai_feedback():
-    user_id = session['user_id']
+    user_id = current_user.id
     subject = request.json.get('subject', '')
 
     records = StudyRecord.query.filter(
@@ -267,7 +263,7 @@ def ai_feedback():
 @analysis_bp.route('/analysis/ai-feedback/delete/<int:fb_id>', methods=['POST'])
 @login_required
 def delete_feedback(fb_id):
-    fb = AIFeedback.query.filter_by(id=fb_id, user_id=session['user_id']).first_or_404()
+    fb = AIFeedback.query.filter_by(id=fb_id, user_id=current_user.id).first_or_404()
     db.session.delete(fb)
     db.session.commit()
     return jsonify({'success': True})
@@ -276,7 +272,7 @@ def delete_feedback(fb_id):
 @analysis_bp.route('/analysis/weekly-story', methods=['POST'])
 @login_required
 def weekly_story():
-    user_id = session['user_id']
+    user_id = current_user.id
     story   = request.json.get('story', [])
 
     if not story:

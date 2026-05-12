@@ -60,23 +60,40 @@
         <span class="nav-label">AI 학습 계획</span>
       </a>
     </nav>
+<div class="sidebar-footer">
+  <div class="user-chip">
+    <div class="user-avatar">{{ username[0] | upper }}</div>
+    <div class="user-info">
+      <span class="user-name" style="display:flex; align-items:center; gap:5px;">
+        {{ username }}
+        
+        {% if current_user.provider == 'kakao' %}
+          <img 
+            src="https://upload.wikimedia.org/wikipedia/commons/e/e3/KakaoTalk_logo.svg" 
+            alt="카카오" 
+            style="width:18px; height:18px; vertical-align:middle;">
+        
+        {% elif current_user.provider == 'google' %}
+          <img 
+            src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" 
+            alt="구글" 
+            style="width:18px; height:18px; vertical-align:middle;">
+        
+        {% endif %}
 
-    <div class="sidebar-footer">
-      <div class="user-chip">
-        <div class="user-avatar">{{ username[0] | upper }}</div>
-        <div class="user-info">
-          <span class="user-name">{{ username }}</span>
-          <span class="user-role">학습자</span>
-        </div>
-      </div>
-      <a href="{{ url_for('login.logout') }}" class="logout-btn" title="로그아웃">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-          <polyline points="16 17 21 12 16 7"/>
-          <line x1="21" y1="12" x2="9" y2="12"/>
-        </svg>
-      </a>
+      </span>
+      <span class="user-role">학습자</span>
     </div>
+  </div>
+  <a href="{{ url_for('login.logout') }}" class="logout-btn" title="로그아웃">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+      <polyline points="16 17 21 12 16 7"/>
+      <line x1="21" y1="12" x2="9" y2="12"/>
+    </svg>
+  </a>
+</div>
+
   </aside>
 
   <!-- ────────────────────────────────────
