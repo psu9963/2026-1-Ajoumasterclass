@@ -17,8 +17,16 @@ app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
 
 # ── DB 설정 ──────────────────────────────────────
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+db_url = os.environ.get('DATABASE_URL') or 'sqlite:///app.db'
+print("🔥 현재 연결된 DB 주소는:", db_url)
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+#연결 끊김 방지용
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_recycle': 280,      # 280초마다 연결 선을 아예 새것으로 교체
+    'pool_pre_ping': True     # 쿼리를 날리기 전에 연결이 살아있는지 확인
+}
 db.init_app(app)
 
 # ── 로그인 매니저 ─────────────────────────────────

@@ -9,8 +9,11 @@ dashboard_bp = Blueprint('dashboard', __name__)
 @dashboard_bp.route('/dashboard')
 def dashboard():
     # 1. 모든 학습 기록 가져오기 (빈 폴더용 시간 0짜리는 제외)
-    valid_records = StudyRecord.query.filter(StudyRecord.duration_hours > 0).all()
-    
+    valid_records = StudyRecord.query.filter(
+        StudyRecord.user_id == current_user.id,  # <- 이 조건이 핵심입니다!
+        StudyRecord.duration_hours > 0
+    ).all()
+
     # 2. 총 학습 시간 계산
     total_hours = sum(r.duration_hours for r in valid_records)
     
@@ -49,7 +52,10 @@ def dashboard():
                 pass
                 
     # 5. 최근 학습 기록 (최신순으로 3개만 가져오기)
-    recent_records = StudyRecord.query.filter(StudyRecord.duration_hours > 0).order_by(StudyRecord.study_date.desc()).limit(3).all()
+    recent_records = StudyRecord.query.filter(
+        StudyRecord.user_id == current_user.id, 
+        StudyRecord.duration_hours > 0
+    ).order_by(StudyRecord.study_date.desc()).limit(3).all()
     
     return render_template(
         'dashboard.html', 
