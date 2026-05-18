@@ -36,6 +36,7 @@ pillow==11.3.0
 pycparser==2.23
 pydantic==2.13.3
 pydantic_core==2.46.3
+PyMySQL==1.1.3
 pyparsing==3.3.2
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.1
