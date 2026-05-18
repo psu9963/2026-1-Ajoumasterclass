@@ -6,7 +6,9 @@ from openai import OpenAI
 import os
 import json
 from flask_login import login_required, current_user
+from dotenv import load_dotenv
 
+load_dotenv()
 
 ai_plan_bp = Blueprint('ai_plan', __name__)
 
@@ -14,7 +16,7 @@ ai_plan_bp = Blueprint('ai_plan', __name__)
 
 def generate_study_plan(subject, total_hours, recent_dates, goal_weeks=4):
     client = OpenAI(
-        api_key=os.environ.get("AJOU_API_KEY"),
+        api_key=os.getenv("AJOU_API_KEY"),
         base_url="https://factchat-cloud.mindlogic.ai/v1/gateway"
     )
     prompt = f"""당신은 대학생 학습 분석 전문가입니다.
