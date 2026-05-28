@@ -1,260 +1,174 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI 학습 계획 — 당신만을 위한 A+ 스터디 플래너</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/ai_plan.css') }}">
-</head>
-<body>
+{% extends "base.html" %}
+{% set active_menu = 'ai_plan' %}
+{% set active_sub = 'ai_plan_create' %}
+{% block title %}AI 학습 계획 — A+ 스터디 플래너{% endblock %}
 
-  <!-- ── 사이드바 ── -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <span class="logo-mark">S</span>
-      <span class="logo-text">StudyAI</span>
-    </div>
-    <nav class="sidebar-nav">
-      <a href="{{ url_for('dashboard.dashboard') }}" class="nav-item">
-        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg></span>
-        <span class="nav-label">대시보드</span>
-      </a>
-      <a href="{{ url_for('study_history.history') }}" class="nav-item">
-        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span>
-        <span class="nav-label">학습 기록</span>
-      </a>
-      <a href="{{ url_for('analysis.analysis') }}" class="nav-item">
-        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
-        <span class="nav-label">학습 분석</span>
-      </a>
+{% block content %}
+<header class="topbar">
+  <div class="topbar-left">
+    <h1 class="page-title aip-title">AI 학습 계획</h1>
+    <p class="page-sub">학습 기록을 분석해 맞춤 계획을 생성해드려요</p>
+  </div>
+</header>
 
-      <!-- AI 학습 계획 메뉴 + 서브메뉴 -->
-      <div class="nav-group">
-        <div class="nav-item nav-item--parent active">
-          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></span>
-          <span class="nav-label">AI 학습 계획</span>
-        </div>
-        <div class="nav-submenu">
-          <a href="{{ url_for('ai_plan.ai_plan') }}" class="nav-sub-item active">
-            <span class="sub-dot"></span>계획 생성하기
-          </a>
-          <a href="{{ url_for('ai_plan.plan_history') }}" class="nav-sub-item">
-            <span class="sub-dot"></span>계획 확인하기
-          </a>
-        </div>
-      </div>
-    </nav>
-    <div class="sidebar-footer">
-      <div class="user-chip">
-        <div class="user-avatar">{{ username[0] | upper }}</div>
-        <div class="user-info">
-          <span class="user-name">{{ username }}</span>
-          <span class="user-role">학습자</span>
-        </div>
-      </div>
-      <a href="{{ url_for('login.logout') }}" class="logout-btn" title="로그아웃">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      </a>
-    </div>
-  </aside>
-
-  <!-- ── 메인 ── -->
-  <main class="main">
-    <header class="topbar">
-      <div class="topbar-left">
-        <h1 class="page-title aip-title">AI 학습 계획</h1>
-        <p class="page-sub">학습 기록을 분석해 맞춤 계획을 생성해드려요</p>
-      </div>
-    </header>
-
-    <!-- 입력 카드 -->
-    <div class="card aip-form-card">
-      <div class="card-head">
-        <h2 class="card-title">과목 및 기간 선택</h2>
-      </div>
-      <div class="aip-form-body">
-        {% if subjects %}
-        <form id="plan-form">
-          <div class="aip-form-row">
-            <div class="aip-field">
-              <label class="aip-label">분석할 과목</label>
-              <div class="subject-chips">
-                {% for s in subjects %}
-                <label class="chip">
-                  <input type="radio" name="subject" value="{{ s }}" {% if loop.first %}checked{% endif %}>
-                  <span>{{ s }}</span>
-                </label>
-                {% endfor %}
-              </div>
-            </div>
-            <div class="aip-field aip-field--narrow">
-              <label class="aip-label">계획 기간</label>
-              <div class="week-chips">
-                <label class="chip"><input type="radio" name="weeks" value="2"><span>2주</span></label>
-                <label class="chip"><input type="radio" name="weeks" value="4" checked><span>4주</span></label>
-                <label class="chip"><input type="radio" name="weeks" value="6"><span>6주</span></label>
-                <label class="chip"><input type="radio" name="weeks" value="8"><span>8주</span></label>
-              </div>
-            </div>
-          </div>
-          <button type="submit" class="btn-primary aip-btn-submit">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-            학습 계획 생성하기
-          </button>
-        </form>
-        {% else %}
-        <div class="empty-state">
-          <div class="empty-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
-          <p>학습 기록이 없어요</p>
-          <a href="{{ url_for('study_history.history') }}" class="btn-primary btn-sm">학습 기록 추가하기</a>
-        </div>
-        {% endif %}
-      </div>
-    </div>
-
-    <!-- 로딩 -->
-    <div id="loading" style="display:none;">
-      <div class="card aip-loading-card">
-        <div class="loading-dots"><span></span><span></span><span></span></div>
-        <p class="loading-text">학습 데이터를 분석하고 있어요</p>
-        <p class="loading-sub">AI가 최적의 학습 계획을 설계 중이에요</p>
-      </div>
-    </div>
-
-    <!-- 결과 -->
-    <div id="result" style="display:none;">
-      <div class="aip-save-notice">✅ 계획이 자동 저장됐어요 — <a href="{{ url_for('ai_plan.plan_history') }}">계획 확인하기</a>에서 다시 볼 수 있어요</div>
-
-      <div class="card card--ai-banner">
-        <div class="ai-banner-content">
-          <div class="ai-banner-text">
-            <div class="ai-badge">AI 진단</div>
-            <h3 id="result-subject"></h3>
-            <p id="diagnosis-text"></p>
+<div class="card aip-form-card">
+  <div class="card-head"><h2 class="card-title">과목 및 기간 선택</h2></div>
+  <div class="aip-form-body">
+    {% if subjects %}
+    <form id="plan-form">
+      <div class="aip-form-row">
+        <div class="aip-field">
+          <label class="aip-label">분석할 과목</label>
+          <div class="subject-chips">
+            {% for s in subjects %}
+            <label class="chip">
+              <input type="radio" name="subject" value="{{ s }}" {% if loop.first %}checked{% endif %}>
+              <span>{{ s }}</span>
+            </label>
+            {% endfor %}
           </div>
         </div>
-        <div class="ai-banner-deco"></div>
+        <div class="aip-field aip-field--narrow">
+          <label class="aip-label">계획 기간</label>
+          <div class="week-chips">
+            <label class="chip"><input type="radio" name="weeks" value="2"><span>2주</span></label>
+            <label class="chip"><input type="radio" name="weeks" value="4" checked><span>4주</span></label>
+            <label class="chip"><input type="radio" name="weeks" value="6"><span>6주</span></label>
+            <label class="chip"><input type="radio" name="weeks" value="8"><span>8주</span></label>
+          </div>
+        </div>
       </div>
-
-      <section class="stat-grid">
-        <div class="stat-card">
-          <div class="stat-card__label">주당 권장 학습</div>
-          <div class="stat-card__value" id="weekly-hours">—<span class="stat-unit">h</span></div>
-          <div class="stat-card__bar"><div class="stat-card__bar-fill" style="width:70%"></div></div>
-          <div class="stat-card__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card__label">전체 계획 시간</div>
-          <div class="stat-card__value" id="total-plan-hours">—<span class="stat-unit">h</span></div>
-          <div class="stat-card__bar"><div class="stat-card__bar-fill" style="width:85%"></div></div>
-          <div class="stat-card__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card__label">계획 기간</div>
-          <div class="stat-card__value" id="plan-weeks">—<span class="stat-unit">주</span></div>
-          <div class="stat-card__bar"><div class="stat-card__bar-fill" style="width:100%"></div></div>
-          <div class="stat-card__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
-        </div>
-      </section>
-
-      <section class="content-grid">
-        <div class="card card--records">
-          <div class="card-head"><h2 class="card-title">주차별 학습 계획</h2></div>
-          <div id="weeks-list"></div>
-        </div>
-        <div class="card card--subjects">
-          <div class="card-head"><h2 class="card-title">학습 팁</h2></div>
-          <div id="tips-list" class="subject-list"></div>
-        </div>
-      </section>
+      <button type="submit" class="btn-primary aip-btn-submit">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        학습 계획 생성하기
+      </button>
+    </form>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+      <p>학습 기록이 없어요</p>
+      <a href="{{ url_for('study_history.history') }}" class="btn-primary btn-sm">학습 기록 추가하기</a>
     </div>
+    {% endif %}
+  </div>
+</div>
 
-    <div id="error-msg" class="flash flash-error" style="display:none; margin-top:16px;"></div>
-  </main>
+<div id="loading" style="display:none;">
+  <div class="card aip-loading-card">
+    <div class="loading-dots"><span></span><span></span><span></span></div>
+    <p class="loading-text">학습 데이터를 분석하고 있어요</p>
+    <p class="loading-sub">AI가 최적의 학습 계획을 설계 중이에요</p>
+  </div>
+</div>
 
-  <script>
-  document.querySelectorAll('.chip input:checked').forEach(i => i.closest('.chip').classList.add('chip--active'));
-  document.querySelectorAll('.chip input').forEach(input => {
-    input.addEventListener('change', () => {
-      input.closest('.subject-chips, .week-chips')?.querySelectorAll('.chip').forEach(c => c.classList.remove('chip--active'));
-      input.closest('.chip').classList.add('chip--active');
-    });
+<div id="result" style="display:none;">
+  <div class="aip-save-notice">✅ 계획이 자동 저장됐어요 — <a href="{{ url_for('ai_plan.plan_history') }}">계획 확인하기</a>에서 다시 볼 수 있어요</div>
+  <div class="card card--ai-banner">
+    <div class="ai-banner-content">
+      <div class="ai-banner-text">
+        <div class="ai-badge">AI 진단</div>
+        <h3 id="result-subject"></h3>
+        <p id="diagnosis-text"></p>
+      </div>
+    </div>
+    <div class="ai-banner-deco"></div>
+  </div>
+  <section class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-card__label">주당 권장 학습</div>
+      <div class="stat-card__value" id="weekly-hours">—<span class="stat-unit">h</span></div>
+      <div class="stat-card__bar"><div class="stat-card__bar-fill" style="width:70%"></div></div>
+      <div class="stat-card__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__label">전체 계획 시간</div>
+      <div class="stat-card__value" id="total-plan-hours">—<span class="stat-unit">h</span></div>
+      <div class="stat-card__bar"><div class="stat-card__bar-fill" style="width:85%"></div></div>
+      <div class="stat-card__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__label">계획 기간</div>
+      <div class="stat-card__value" id="plan-weeks">—<span class="stat-unit">주</span></div>
+      <div class="stat-card__bar"><div class="stat-card__bar-fill" style="width:100%"></div></div>
+      <div class="stat-card__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+    </div>
+  </section>
+  <section class="content-grid">
+    <div class="card card--records">
+      <div class="card-head"><h2 class="card-title">주차별 학습 계획</h2></div>
+      <div id="weeks-list"></div>
+    </div>
+    <div class="card card--subjects">
+      <div class="card-head"><h2 class="card-title">학습 팁</h2></div>
+      <div id="tips-list" class="subject-list"></div>
+    </div>
+  </section>
+</div>
+
+<div id="error-msg" class="flash flash-error" style="display:none;margin-top:16px;"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.chip input:checked').forEach(i=>i.closest('.chip').classList.add('chip--active'));
+document.querySelectorAll('.chip input').forEach(input=>{
+  input.addEventListener('change',()=>{
+    input.closest('.subject-chips,.week-chips')?.querySelectorAll('.chip').forEach(c=>c.classList.remove('chip--active'));
+    input.closest('.chip').classList.add('chip--active');
   });
+});
 
-  document.getElementById('plan-form')?.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const subject = document.querySelector('input[name="subject"]:checked')?.value;
-    const weeks   = document.querySelector('input[name="weeks"]:checked')?.value || '4';
-    if (!subject) { alert('과목을 선택해 주세요.'); return; }
-
-    document.getElementById('loading').style.display   = 'block';
-    document.getElementById('result').style.display    = 'none';
-    document.getElementById('error-msg').style.display = 'none';
-
-    const formData = new FormData();
-    formData.append('subject', subject);
-    formData.append('weeks', weeks);
-
-    try {
-      const res  = await fetch('/ai-plan/analyze', { method: 'POST', body: formData });
-      const data = await res.json();
-      document.getElementById('loading').style.display = 'none';
-      if (!data.success) {
-        document.getElementById('error-msg').textContent   = data.error;
-        document.getElementById('error-msg').style.display = 'block';
-        return;
-      }
-      renderResult(data.plan);
-    } catch(err) {
-      document.getElementById('loading').style.display   = 'none';
-      document.getElementById('error-msg').textContent   = '오류가 발생했습니다. 다시 시도해 주세요.';
-      document.getElementById('error-msg').style.display = 'block';
-    }
-  });
-
-  function renderResult(plan) {
-    document.getElementById('result-subject').textContent      = plan.subject + ' 학습 분석 결과';
-    document.getElementById('diagnosis-text').textContent      = plan.diagnosis;
-    document.getElementById('weekly-hours').innerHTML          = plan.weekly_goal_hours + '<span class="stat-unit">h</span>';
-    document.getElementById('total-plan-hours').innerHTML      = plan.total_plan_hours + '<span class="stat-unit">h</span>';
-    document.getElementById('plan-weeks').innerHTML            = plan.weeks.length + '<span class="stat-unit">주</span>';
-
-    const weeksList = document.getElementById('weeks-list');
-    weeksList.innerHTML = '';
-    plan.weeks.forEach((w, i) => {
-      const topics = w.topics.map(t => `<li>${t}</li>`).join('');
-      weeksList.innerHTML += `
-        <div class="aip-week-row" style="animation-delay:${i*0.07}s">
-          <div class="aip-week-header">
-            <span class="subject-badge subject-badge--${i%5}">${w.week}주차</span>
-            <span class="td-hours">${w.daily_hours}h / 일</span>
-          </div>
-          <div class="aip-week-theme">${w.theme}</div>
-          <ul class="aip-week-topics">${topics}</ul>
-          <div class="aip-week-check"><span class="aip-check-label">✓ 점검</span>${w.checkpoint}</div>
-        </div>`;
-    });
-
-    const tipsList = document.getElementById('tips-list');
-    tipsList.innerHTML = '';
-    plan.tips.forEach((tip, i) => {
-      tipsList.innerHTML += `
-        <div class="subject-row aip-tip-row" style="animation-delay:${i*0.06}s">
-          <div class="subject-info">
-            <span class="subject-dot subject-dot--${i%5}"></span>
-            <span class="aip-tip-num">${String(i+1).padStart(2,'0')}</span>
-          </div>
-          <span class="aip-tip-text">${tip}</span>
-        </div>`;
-    });
-
-    document.getElementById('result').style.display = 'block';
-    document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+document.getElementById('plan-form')?.addEventListener('submit',async function(e){
+  e.preventDefault();
+  const subject=document.querySelector('input[name="subject"]:checked')?.value;
+  const weeks=document.querySelector('input[name="weeks"]:checked')?.value||'4';
+  if(!subject){alert('과목을 선택해 주세요.');return;}
+  document.getElementById('loading').style.display='block';
+  document.getElementById('result').style.display='none';
+  document.getElementById('error-msg').style.display='none';
+  const formData=new FormData();
+  formData.append('subject',subject);
+  formData.append('weeks',weeks);
+  try{
+    const res=await fetch('/ai-plan/analyze',{method:'POST',body:formData});
+    const data=await res.json();
+    document.getElementById('loading').style.display='none';
+    if(!data.success){document.getElementById('error-msg').textContent=data.error;document.getElementById('error-msg').style.display='block';return;}
+    renderResult(data.plan);
+  }catch(err){
+    document.getElementById('loading').style.display='none';
+    document.getElementById('error-msg').textContent='오류가 발생했습니다. 다시 시도해 주세요.';
+    document.getElementById('error-msg').style.display='block';
   }
-  </script>
-</body>
-</html>
+});
+
+function renderResult(plan){
+  document.getElementById('result-subject').textContent=plan.subject+' 학습 분석 결과';
+  document.getElementById('diagnosis-text').textContent=plan.diagnosis;
+  document.getElementById('weekly-hours').innerHTML=plan.weekly_goal_hours+'<span class="stat-unit">h</span>';
+  document.getElementById('total-plan-hours').innerHTML=plan.total_plan_hours+'<span class="stat-unit">h</span>';
+  document.getElementById('plan-weeks').innerHTML=plan.weeks.length+'<span class="stat-unit">주</span>';
+  const weeksList=document.getElementById('weeks-list');
+  weeksList.innerHTML='';
+  plan.weeks.forEach((w,i)=>{
+    const topics=w.topics.map(t=>`<li>${t}</li>`).join('');
+    weeksList.innerHTML+=`<div class="aip-week-row" style="animation-delay:${i*0.07}s">
+      <div class="aip-week-header"><span class="subject-badge subject-badge--${i%5}">${w.week}주차</span><span class="td-hours">${w.daily_hours}h / 일</span></div>
+      <div class="aip-week-theme">${w.theme}</div>
+      <ul class="aip-week-topics">${topics}</ul>
+      <div class="aip-week-check"><span class="aip-check-label">✓ 점검</span>${w.checkpoint}</div>
+    </div>`;
+  });
+  const tipsList=document.getElementById('tips-list');
+  tipsList.innerHTML='';
+  plan.tips.forEach((tip,i)=>{
+    tipsList.innerHTML+=`<div class="subject-row aip-tip-row" style="animation-delay:${i*0.06}s">
+      <div class="subject-info"><span class="subject-dot subject-dot--${i%5}"></span><span class="aip-tip-num">${String(i+1).padStart(2,'0')}</span></div>
+      <span class="aip-tip-text">${tip}</span>
+    </div>`;
+  });
+  document.getElementById('result').style.display='block';
+  document.getElementById('result').scrollIntoView({behavior:'smooth'});
+}
+</script>
+{% endblock %}

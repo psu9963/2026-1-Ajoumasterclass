@@ -123,6 +123,7 @@ def kakao_callback():
 # ── 구글 로그인 ───────────────────────────────────
 @login_bp.route('/login/google')
 def google_login():
+    print("REDIRECT:", GOOGLE_REDIRECT_URI)
     google_auth_url = (
         f"https://accounts.google.com/o/oauth2/v2/auth"
         f"?client_id={GOOGLE_CLIENT_ID}"
