@@ -4,6 +4,7 @@ from views.dashboard import dashboard_bp
 from views.study_history import study_history_bp
 from views.ai_plan import ai_plan_bp
 from views.analysis import analysis_bp
+from views.mypage import mypage_bp
 from models import db, User
 from flask_login import login_user, LoginManager
 import requests
@@ -52,6 +53,7 @@ app.register_blueprint(dashboard_bp)
 app.register_blueprint(study_history_bp)
 app.register_blueprint(ai_plan_bp)
 app.register_blueprint(analysis_bp)
+app.register_blueprint(mypage_bp)
 
 # ── 홈 ───────────────────────────────────────────
 @app.route('/')
@@ -64,4 +66,6 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5001)))
+
+    
