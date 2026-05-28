@@ -1,238 +1,143 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ subject }}의 학습 기록 — StudyAI</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
-</head>
-<body>
+{% extends "base.html" %}
+{% set active_menu = 'study_history' %}
+{% block title %}{{ subject }} 학습 기록 — A+ 스터디 플래너{% endblock %}
 
-
-  <!-- ────────────────────────────────────
-       사이드바 (기존과 동일하게 유지)
-  ──────────────────────────────────────── -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <span class="logo-mark">S</span>
-      <span class="logo-text">StudyAI</span>
-    </div>
-
-    <nav class="sidebar-nav">
-      <a href="{{ url_for('dashboard.dashboard') }}" class="nav-item">
-        <span class="nav-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/>
-            <rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/>
-          </svg>
-        </span>
-        <span class="nav-label">대시보드</span>
-      </a>
-
-      <!-- 학습 기록 메뉴가 선택된 상태 -->
-      <a href="{{ url_for('study_history.history') }}" class="nav-item active">
-        <span class="nav-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 5v14M5 12h14"/>
-          </svg>
-        </span>
-        <span class="nav-label">학습 기록</span>
-      </a>
-
-      <a href="{{ url_for('analysis.analysis') }}" class="nav-item">
-        <span class="nav-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-          </svg>
-        </span>
-        <span class="nav-label">학습 분석</span>
-      </a>
-
-      <a href="{{ url_for('ai_plan.ai_plan') }}" class="nav-item">
-        <span class="nav-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M12 16v-4M12 8h.01"/>
-          </svg>
-        </span>
-        <span class="nav-label">AI 학습 계획</span>
-      </a>
-    </nav>
-
-    <div class="sidebar-footer">
-      <div class="user-chip">
-        <div class="user-avatar">{{ username[0] | upper }}</div>
-        <div class="user-info">
-          <span class="user-name">{{ username }}</span>
-          <span class="user-role">학습자</span>
-        </div>
-      </div>
-      <a href="{{ url_for('login.logout') }}" class="logout-btn" title="로그아웃">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      </a>
-    </div>
-  </aside>
-
-  <!-- ────────────────────────────────────
-       메인 콘텐츠 (과목 상세)
-  ──────────────────────────────────────── -->
-
-   <main class="main">
-
-    <!-- 1. 헤더 (과목 삭제 버튼 추가) -->
-    <div style="margin-bottom: 20px;">
-        <a href="{{ url_for('study_history.history') }}" style="text-decoration: none; color: #777; font-weight: bold;">
-            ← 과목 목록으로 돌아가기
-        </a>
-    </div>
-    <div class="header" style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
-            <h1>{{ subject }}의 학습 기록</h1>
-            <p style="color: #777;">이 과목에서 진행한 세부 학습 내역입니다.</p>
-        </div>
-        <div style="display: flex; gap: 10px;">
-            <!-- 🌟 과목 전체 삭제 버튼 -->
-            <form method="POST" action="{{ url_for('study_history.delete_subject', subject=subject) }}" onsubmit="return confirm('정말 이 과목과 모든 기록을 삭제하시겠습니까? (복구 불가)');" style="margin: 0;">
-                <button type="submit" style="padding: 10px 15px; background-color: #fff; color: #ff4d4f; border: 1px solid #ff4d4f; border-radius: 8px; cursor: pointer; font-weight: bold;">
-                    과목 삭제
-                </button>
-            </form>
-            <button onclick="openModal()" class="btn-primary" style="padding: 10px 20px; background-color: #333; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
-                + 새 기록 추가
-            </button>
-        </div>
-    </div>
-    
-    <!-- 2. 상세 기록 테이블 (수정 버튼 추가) -->
-    <section style="margin-top: 30px;">
-      <div class="card" style="padding: 30px; width: 100%; box-sizing: border-box;">
-        {% if records %}
-          <table style="width: 100%; text-align: left; border-collapse: collapse;">
-            <thead>
-              <tr style="border-bottom: 2px solid #eee;">
-                <th style="padding-bottom: 10px;">학습 시간</th>
-                <th style="padding-bottom: 10px;">날짜</th>
-                <th style="padding-bottom: 10px;">학습 내용</th>
-                <th style="padding-bottom: 10px; width: 100px;"></th> 
-              </tr>
-            </thead>
-            <tbody>
-              {% for r in records %}
-              <tr style="border-bottom: 1px solid #f5f5f5;">
-                <td style="padding: 15px 0; font-weight: bold;">{{ r.duration_hours }}시간</td>
-                <td style="padding: 15px 0;">{{ r.study_date }}</td>
-                <td style="padding: 15px 0; color: #666; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                  {{ r.memo or '내용 없음' }}
-                </td>
-                <td style="padding: 15px 0; text-align: right; display: flex; gap: 5px; justify-content: flex-end;">
-                  <!-- 🌟 수정 버튼 (수정 팝업창을 띄우면서 기존 데이터를 채워줍니다) -->
-                  <button onclick="openEditModal({{ r.id }}, {{ r.duration_hours }}, '{{ r.study_date }}', '{{ r.memo | replace("\n", " ") | replace("'", "\\'") }}')" style="background: none; border: none; color: #4a90e2; font-weight: bold; cursor: pointer; padding: 5px;">수정</button>
-                  
-                  <form method="POST" action="{{ url_for('study_history.delete_record', record_id=r.id) }}" onsubmit="return confirm('이 기록을 삭제하시겠습니까?');" style="margin: 0;">
-                    <button type="submit" style="background: none; border: none; color: #ff4d4f; font-weight: bold; cursor: pointer; padding: 5px;">삭제</button>
-                  </form>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        {% else %}
-          <div class="empty-state" style="text-align: center; padding: 80px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-            <!-- 🌟 디자인 통일성을 위한 아이콘 추가 -->
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ddd" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 15px;">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-              <line x1="16" y1="13" x2="8" y2="13"></line>
-              <line x1="16" y1="17" x2="8" y2="17"></line>
-              <polyline points="10 9 9 9 8 9"></polyline>
-            </svg>
-            <p style="color: #777; font-size: 1.05rem; margin-bottom: 20px;">아직 이 과목에 등록된 상세 학습이 없습니다.</p>
-            <!-- 🌟 바로 기록을 추가할 수 있는 버튼 배치 -->
-            <button onclick="openModal()" class="btn-primary" style="padding: 10px 24px; background-color: #333; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
-                첫 기록 추가하기
-            </button>
-          </div>
-        {% endif %}
-
-      </div>
-    </section>
-
-  </div> <!-- main-content 끝 -->
-
-  <!-- 🌟 3. 상세 기록 추가 팝업창 -->
-  <div id="recordModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
-      <div style="background-color: white; padding: 40px; border-radius: 16px; width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-          
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-              <!-- 자동으로 제목에 과목 이름이 들어갑니다 -->
-              <h2 style="margin: 0;">[{{ subject }}] 새 기록</h2>
-              <button onclick="closeModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #999;">&times;</button>
-          </div>
-
-          <form method="POST" style="display: flex; flex-direction: column; gap: 20px;">
-              <!-- 💡 과목명은 폴더 이름(URL)에서 알아서 파이썬으로 넘어가니, 여기서는 시간, 날짜, 내용만 입력받습니다! -->
-              <div style="display: flex; gap: 15px;">
-                  <div style="flex: 1;">
-                      <label style="display: block; font-weight: bold; margin-bottom: 8px;">시간</label>
-                      <input type="number" step="0.1" name="duration" placeholder="예: 1.5" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
-                  </div>
-                  <div style="flex: 1;">
-                      <label style="display: block; font-weight: bold; margin-bottom: 8px;">날짜</label>
-                      <input type="date" name="date" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
-                  </div>
-              </div>
-
-              <div>
-                  <label style="display: block; font-weight: bold; margin-bottom: 8px;">학습 내용</label>
-                  <textarea name="memo" rows="5" placeholder="오늘 어떤 개념을 배웠는지, 어떤 점이 어려웠는지 구체적으로 적어주세요. AI가 이 내용을 바탕으로 맞춤 분석을 해줍니다!")" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; resize: vertical;"></textarea>
-              </div>
-
-              <button type="submit" style="margin-top: 10px; width: 100%; padding: 14px; background-color: #333; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;">
-                  기록 저장
-              </button>
-          </form>
-      </div>
-  </div>
-  <!-- 🌟 4. (추가) 기록 수정용 팝업 -->
-  <div id="editModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
-      <div style="background-color: white; padding: 40px; border-radius: 16px; width: 450px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-              <h2 style="margin: 0;">기록 수정</h2>
-              <button onclick="closeEditModal()" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
-          </div>
-          <form id="editForm" method="POST" style="display: flex; flex-direction: column; gap: 20px;">
-              <div style="display: flex; gap: 15px;">
-                  <div style="flex: 1;"><label style="display: block; margin-bottom: 8px;">시간</label><input type="number" step="0.1" name="duration" id="editDuration" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;"></div>
-                  <div style="flex: 1;"><label style="display: block; margin-bottom: 8px;">날짜</label><input type="date" name="date" id="editDate" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;"></div>
-              </div>
-              <div><label style="display: block; margin-bottom: 8px;">학습 내용</label><textarea name="memo" id="editMemo" rows="5" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;"></textarea></div>
-              <button type="submit" style="width: 100%; padding: 14px; background-color: #4a90e2; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">수정 완료</button>
-          </form>
-      </div>
-  </div>
-
-
-  <script>
-      function openModal() { document.getElementById('recordModal').style.display = 'flex'; }
-      function closeModal() { document.getElementById('recordModal').style.display = 'none'; }
-
-      function openEditModal(id, duration, date, memo) {
-          document.getElementById('editModal').style.display = 'flex';
-          document.getElementById('editForm').action = "/study-history/edit/" + id;
-          document.getElementById('editDuration').value = duration;
-          document.getElementById('editDate').value = date;
-          document.getElementById('editMemo').value = memo !== 'None' ? memo : '';
-      }
-      function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
-
-        window.onclick = function(event) { 
-          if (event.target == document.getElementById('recordModal')) closeModal(); 
-          if (event.target == document.getElementById('editModal')) closeEditModal(); 
-      }  </script>
-
+{% block content %}
+<div style="margin-bottom:16px;">
+  <a href="{{ url_for('study_history.history') }}" style="font-size:13px; color:var(--text-3); font-weight:500; display:inline-flex; align-items:center; gap:4px;">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+    과목 목록으로
+  </a>
 </div>
-</body>
-</html>
+
+<header class="topbar">
+  <div class="topbar-left">
+    <h1 class="page-title">{{ subject }}</h1>
+    <p class="page-sub">이 과목에서 진행한 세부 학습 내역이에요</p>
+  </div>
+  <div style="display:flex; gap:10px;">
+    <form method="POST" action="{{ url_for('study_history.delete_subject', subject=subject) }}"
+          onsubmit="return confirm('정말 이 과목과 모든 기록을 삭제하시겠습니까?');" style="margin:0;">
+      <button type="submit" style="padding:10px 16px; background:#fff; color:#c0392b; border:1.5px solid #f5c6cb; border-radius:var(--radius-md); cursor:pointer; font-size:13px; font-weight:500; font-family:'Noto Sans KR',sans-serif;">
+        과목 삭제
+      </button>
+    </form>
+    <button onclick="openModal()" class="btn-primary">+ 새 기록 추가</button>
+  </div>
+</header>
+
+<div class="card">
+  {% if records %}
+  <table class="record-table">
+    <thead>
+      <tr><th>학습 시간</th><th>날짜</th><th>학습 내용</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for r in records %}
+      <tr class="record-row">
+        <td class="td-hours">{{ r.duration_hours }}h</td>
+        <td class="td-date">{{ r.study_date }}</td>
+        <td class="td-memo" style="max-width:300px;">{{ r.memo or '내용 없음' }}</td>
+        <td style="text-align:right;">
+          <div style="display:flex; gap:4px; justify-content:flex-end;">
+            <button onclick="openEditModal({{ r.id }}, {{ r.duration_hours }}, '{{ r.study_date }}', '{{ r.memo | replace('\n',' ') | replace("'","\\'") }}')"
+                    style="background:none; border:none; color:var(--c3); font-weight:500; cursor:pointer; font-size:13px; padding:4px 8px; border-radius:var(--radius-sm); transition:background .15s;"
+                    onmouseover="this.style.background='var(--c3b)'" onmouseout="this.style.background='none'">수정</button>
+            <form method="POST" action="{{ url_for('study_history.delete_record', record_id=r.id) }}"
+                  onsubmit="return confirm('이 기록을 삭제하시겠습니까?');" style="margin:0;">
+              <button type="submit" class="del-btn">삭제</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+    <p>아직 등록된 학습 기록이 없어요</p>
+    <button onclick="openModal()" class="btn-primary btn-sm">첫 기록 추가하기</button>
+  </div>
+  {% endif %}
+</div>
+
+<!-- 기록 추가 팝업 -->
+<div id="recordModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+  <div style="background:var(--surface); padding:36px; border-radius:var(--radius-lg); width:450px; box-shadow:0 10px 30px rgba(0,0,0,0.15);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+      <h2 style="margin:0; font-family:'Syne',sans-serif; font-weight:800;">[{{ subject }}] 새 기록</h2>
+      <button onclick="closeModal()" style="background:none; border:none; font-size:22px; cursor:pointer; color:var(--text-3);">&times;</button>
+    </div>
+    <form method="POST" style="display:flex; flex-direction:column; gap:18px;">
+      <div style="display:flex; gap:14px;">
+        <div style="flex:1;">
+          <label style="display:block; font-size:12px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px;">시간</label>
+          <input type="number" step="0.1" name="duration" placeholder="예: 1.5" required
+                 style="width:100%; padding:11px 13px; border:1.5px solid var(--border); border-radius:var(--radius-md); font-size:14px; outline:none; box-sizing:border-box;">
+        </div>
+        <div style="flex:1;">
+          <label style="display:block; font-size:12px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px;">날짜</label>
+          <input type="date" name="date" required
+                 style="width:100%; padding:11px 13px; border:1.5px solid var(--border); border-radius:var(--radius-md); font-size:14px; outline:none; box-sizing:border-box;">
+        </div>
+      </div>
+      <div>
+        <label style="display:block; font-size:12px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px;">학습 내용</label>
+        <textarea name="memo" rows="4" placeholder="오늘 학습한 내용을 기록해 주세요. AI 분석에 활용돼요!"
+                  style="width:100%; padding:11px 13px; border:1.5px solid var(--border); border-radius:var(--radius-md); font-size:14px; outline:none; resize:vertical; box-sizing:border-box; font-family:'Noto Sans KR',sans-serif;"></textarea>
+      </div>
+      <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:12px;">기록 저장</button>
+    </form>
+  </div>
+</div>
+
+<!-- 기록 수정 팝업 -->
+<div id="editModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+  <div style="background:var(--surface); padding:36px; border-radius:var(--radius-lg); width:450px; box-shadow:0 10px 30px rgba(0,0,0,0.15);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+      <h2 style="margin:0; font-family:'Syne',sans-serif; font-weight:800;">기록 수정</h2>
+      <button onclick="closeEditModal()" style="background:none; border:none; font-size:22px; cursor:pointer; color:var(--text-3);">&times;</button>
+    </div>
+    <form id="editForm" method="POST" style="display:flex; flex-direction:column; gap:18px;">
+      <div style="display:flex; gap:14px;">
+        <div style="flex:1;">
+          <label style="display:block; font-size:12px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px;">시간</label>
+          <input type="number" step="0.1" name="duration" id="editDuration" required
+                 style="width:100%; padding:11px 13px; border:1.5px solid var(--border); border-radius:var(--radius-md); font-size:14px; outline:none; box-sizing:border-box;">
+        </div>
+        <div style="flex:1;">
+          <label style="display:block; font-size:12px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px;">날짜</label>
+          <input type="date" name="date" id="editDate" required
+                 style="width:100%; padding:11px 13px; border:1.5px solid var(--border); border-radius:var(--radius-md); font-size:14px; outline:none; box-sizing:border-box;">
+        </div>
+      </div>
+      <div>
+        <label style="display:block; font-size:12px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px;">학습 내용</label>
+        <textarea name="memo" id="editMemo" rows="4"
+                  style="width:100%; padding:11px 13px; border:1.5px solid var(--border); border-radius:var(--radius-md); font-size:14px; outline:none; resize:vertical; box-sizing:border-box; font-family:'Noto Sans KR',sans-serif;"></textarea>
+      </div>
+      <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:12px;">수정 완료</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function openModal()  { document.getElementById('recordModal').style.display = 'flex'; }
+  function closeModal() { document.getElementById('recordModal').style.display = 'none'; }
+  function openEditModal(id, duration, date, memo) {
+    document.getElementById('editModal').style.display = 'flex';
+    document.getElementById('editForm').action = '/study-history/edit/' + id;
+    document.getElementById('editDuration').value = duration;
+    document.getElementById('editDate').value = date;
+    document.getElementById('editMemo').value = memo !== 'None' ? memo : '';
+  }
+  function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
+  window.addEventListener('click', e => {
+    if(e.target === document.getElementById('recordModal')) closeModal();
+    if(e.target === document.getElementById('editModal')) closeEditModal();
+  });
+</script>
+{% endblock %}

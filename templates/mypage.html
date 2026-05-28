@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% set active_menu = 'mypage' %}
+{% block title %}마이페이지 — A+ 스터디 플래너{% endblock %}
+
+{% block extra_css %}
+<style>
+  .mp-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .mp-profile-body { padding:32px 22px; display:flex; flex-direction:column; align-items:center; gap:12px; }
+  .mp-avatar { width:72px; height:72px; border-radius:50%; background:var(--accent); color:#fff; font-family:'Syne',sans-serif; font-weight:800; font-size:28px; display:flex; align-items:center; justify-content:center; }
+  .mp-username { font-family:'Syne',sans-serif; font-size:20px; font-weight:700; color:var(--text-1); }
+  .mp-provider-badge { padding:5px 14px; border-radius:20px; font-size:12px; font-weight:500; background:var(--surface-2); color:var(--text-2); border:1px solid var(--border); }
+  .mp-stats-body { padding:16px 22px 20px; }
+  .mp-stat-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); margin-bottom:14px; }
+  .mp-stat-label { font-size:13px; color:var(--text-2); }
+  .mp-stat-value { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; color:var(--text-1); }
+  .mp-subjects { display:flex; flex-wrap:wrap; gap:8px; }
+  .mp-pw-body { padding:20px 22px; }
+  .mp-input { width:100%; padding:10px 13px; border:1.5px solid var(--border); border-radius:var(--radius-md); font-size:14px; outline:none; font-family:'Noto Sans KR',sans-serif; box-sizing:border-box; transition:border-color .15s; }
+  .mp-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(45,45,45,0.08); }
+  .mp-delete-body { padding:20px 22px; }
+  .mp-delete-desc { font-size:13px; color:var(--text-2); line-height:1.6; margin-bottom:16px; }
+  .mp-delete-btn { padding:9px 20px; background:#fef0f0; color:#c0392b; border:1px solid #f5c6cb; border-radius:var(--radius-md); font-size:13px; font-weight:500; cursor:pointer; transition:background .15s; font-family:'Noto Sans KR',sans-serif; }
+  .mp-delete-btn:hover { background:#fde0e0; }
+  @media(max-width:700px){ .mp-grid{grid-template-columns:1fr} }
+</style>
+{% endblock %}
+
+{% block content %}
+<header class="topbar">
+  <div>
+    <h1 class="page-title">마이페이지</h1>
+    <p class="page-sub">내 계정 정보를 확인하고 관리해요</p>
+  </div>
+</header>
+
+<div class="mp-grid">
+
+  <!-- 프로필 카드 -->
+  <div class="card">
+    <div class="card-head"><h2 class="card-title">프로필</h2></div>
+    <div class="mp-profile-body">
+      <div class="mp-avatar">{{ current_user.username[0] | upper }}</div>
+      <div class="mp-username">{{ current_user.username }}</div>
+      <div class="mp-provider-badge">
+        {% if current_user.provider == 'kakao' %}
+        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e3/KakaoTalk_logo.svg"
+                   alt="카카오" style="width:14px; height:14px;"> 카카오 로그인
+        {% elif current_user.provider == 'google' %}
+        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
+                   alt="구글" style="width:14px; height:14px;"> 구글 로그인
+        {% else %}🔒 일반 로그인{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 학습 현황 카드 -->
+  <div class="card">
+    <div class="card-head">
+      <h2 class="card-title">학습 현황</h2>
+      <a href="{{ url_for('study_history.history') }}" class="card-link">기록 보기</a>
+    </div>
+    <div class="mp-stats-body">
+      <div class="mp-stat-row">
+        <span class="mp-stat-label">학습 중인 과목</span>
+        <span class="mp-stat-value">{{ subject_count }}개</span>
+      </div>
+      {% if subjects %}
+      <div class="mp-subjects">
+        {% for s in subjects %}
+        <span class="subject-badge subject-badge--{{ loop.index%5 }}">{{ s }}</span>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state" style="padding:24px 0;">
+        <p>아직 학습 기록이 없어요</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- 비밀번호 변경 카드 -->
+  <div class="card">
+    <div class="card-head"><h2 class="card-title">비밀번호 변경</h2></div>
+    <div class="mp-pw-body">
+      {% if not is_social %}
+      <form method="POST" action="{{ url_for('mypage.change_password') }}"
+            style="display:flex; flex-direction:column; gap:14px;">
+        <div>
+          <label style="display:block; font-size:11px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:.5px; margin-bottom:7px;">현재 비밀번호</label>
+          <input type="password" name="current_password" class="mp-input" placeholder="현재 비밀번호 입력" required>
+        </div>
+        <div>
+          <label style="display:block; font-size:11px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:.5px; margin-bottom:7px;">새 비밀번호</label>
+          <input type="password" name="new_password" class="mp-input" placeholder="새 비밀번호 (6자 이상)" required minlength="6">
+        </div>
+        <div>
+          <label style="display:block; font-size:11px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:.5px; margin-bottom:7px;">새 비밀번호 확인</label>
+          <input type="password" name="confirm_password" class="mp-input" placeholder="새 비밀번호 다시 입력" required minlength="6">
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:11px; margin-top:4px;">
+          비밀번호 변경
+        </button>
+      </form>
+      {% else %}
+      <div class="empty-state" style="padding:32px 0;">
+        <div class="empty-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <p>소셜 로그인 계정은<br>비밀번호를 변경할 수 없어요</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- 회원 탈퇴 카드 -->
+  <div class="card">
+    <div class="card-head"><h2 class="card-title" style="color:#c0392b;">회원 탈퇴</h2></div>
+    <div class="mp-delete-body">
+      <p class="mp-delete-desc">탈퇴 시 모든 학습 기록과 AI 계획이 삭제되며 복구할 수 없어요.</p>
+      <button onclick="document.getElementById('deleteModal').style.display='flex'" class="mp-delete-btn">
+        회원 탈퇴
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- 회원 탈퇴 확인 모달 -->
+<div id="deleteModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+  <div style="background:var(--surface); padding:36px; border-radius:var(--radius-lg); width:380px; box-shadow:0 10px 30px rgba(0,0,0,0.15);">
+    <h3 style="font-family:'Syne',sans-serif; font-size:18px; font-weight:800; margin-bottom:12px;">정말 탈퇴하시겠어요?</h3>
+    <p style="font-size:13px; color:var(--text-2); line-height:1.7; margin-bottom:24px;">모든 학습 기록, AI 계획이 영구 삭제돼요.<br>이 작업은 되돌릴 수 없어요.</p>
+    <div style="display:flex; gap:10px;">
+      <button onclick="document.getElementById('deleteModal').style.display='none'"
+              class="btn-primary" style="flex:1; justify-content:center; background:var(--surface-2); color:var(--text-1); box-shadow:none;">
+        취소
+      </button>
+      <form method="POST" action="{{ url_for('mypage.delete_account') }}" style="flex:1;">
+        <button type="submit" class="mp-delete-btn" style="width:100%; padding:10px;">탈퇴하기</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
