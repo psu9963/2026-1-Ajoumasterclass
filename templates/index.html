@@ -1,31 +1,281 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>아주마스터클래스 - 당신만을 위한 A+ 스터디 플래너</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI 학습 설계 — 당신만을 위한 스마트 학습 플래너</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"/>
 </head>
 <body>
-    <!-- 1. 상단 고정 네비게이션 바 (헤더) -->
-    <header class="navbar">
-        <div class="logo">S+로고이쁘게한번해봐</div>
-        <div class="nav-links">
-            <a href="/login" class="btn-login-nav">로그인</a>
+
+<!-- ══════════════════════════════
+     NAVIGATION
+══════════════════════════════ -->
+<header class="navbar">
+  <div class="navbar-inner">
+    <div class="navbar-logo">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
+        <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>
+      </svg>
+      <span class="navbar-logo-text">A+ 스터디 플래너
+      </span>
+    </div>
+    <nav class="navbar-links">
+      <a href="#features">기능</a>
+      <a href="#about">소개</a>
+      <a href="/login" class="btn-nav-login">로그인</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ══════════════════════════════
+     HERO SECTION
+══════════════════════════════ -->
+<section class="hero-section">
+  <div class="hero-grid">
+    <div class="hero-content">
+      <span class="badge badge--blue">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3l1.88 5.76a1 1 0 0 0 .95.69h6.06l-4.91 3.57a1 1 0 0 0-.36 1.12L17.5 20l-4.91-3.57a1 1 0 0 0-1.18 0L6.5 20l1.88-5.86a1 1 0 0 0-.36-1.12L3.11 9.45h6.06a1 1 0 0 0 .95-.69L12 3z"/>
+        </svg>
+        AI 기반 맞춤형 학습
+      </span>
+
+      <h1 class="hero-title">
+        AI와 함께하는<br/>
+        스마트 학습 설계
+      </h1>
+
+      <p class="hero-desc">
+        에스플이 당신만을 위한 완벽한 학습 계획을 설계합니다.
+        효율적이고 효과적인 학습으로 목표를 달성하세요.
+      </p>
+
+      <div class="hero-btns">
+        <a href="/login" class="btn-primary">
+          시작하기
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </a>
+        <a href="#features" class="btn-outline">더 알아보기</a>
+      </div>
+    </div>
+
+    <div class="hero-image-wrap">
+      <div class="hero-image-blur"></div>
+      <img
+        src="https://i.namu.wiki/i/gAmGz8tEHylNM1qcnUCVlJUXiDl4O4RPZ5LXG6Mk4QEgpdbqsC5_zK7MU5CLAJap5EzpqDx8yEB4-U1gE9KqoA.webp"
+        alt="AI Learning Platform"
+        onerror="this.style.display='none'"
+      />
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════
+     FEATURES SECTION
+══════════════════════════════ -->
+<section id="features" class="features-section">
+  <div class="features-inner">
+    <div class="section-header">
+      <h2 class="section-title">A+ 스터디 플래너의 핵심 기능</h2>
+      <p class="section-desc">AI 기술로 당신의 학습을 혁신합니다</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
+            <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>
+          </svg>
         </div>
-    </header>
+        <h3 class="feature-title">AI 기반 학습 설계</h3>
+        <p class="feature-desc">AI가 학습자의 수준과 목표에 맞는 맞춤형 커리큘럼을 자동으로 생성합니다.</p>
+      </div>
 
-    <!-- 2. 본문 내용 (스크롤 영역) -->
-    <main>
-        <!-- 첫 번째 화면 (메인 배너) -->
-        <section class="hero-section">
-            <h1 class="fade-in-up">당신만의 AI 학습 플래너, 에스플</h1>
-            <!-- <p class="fade-in-up delay" style="margin-bottom: 0;">당신만을 위한 A+ 스터디 플래너</p> -->
-            <p class="fade-in-up delay" style="margin-top: 0;">A+ 스터디 플래너로 모든 학습 계획과 데이터 분석을 한 곳에서 완벽하게.</p>
-            <p class="fade-in-up delay" style="margin-top: 0;">여기 이쁘게 좀 꾸며야돼 어케할래.</p>
-            <a href="/login" class="btn-start fade-in-up delay">무료로 시작하기</a>
-        </section>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+            <polyline points="16 7 22 7 22 13"/>
+          </svg>
+        </div>
+        <h3 class="feature-title">실시간 학습 분석</h3>
+        <p class="feature-desc">학습 진행 상황을 실시간으로 분석하고 개선점을 제안합니다.</p>
+      </div>
 
-    </main>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <h3 class="feature-title">협업 학습 환경</h3>
+        <p class="feature-desc">동료 학습자들과 함께 지식을 공유하고 성장하세요.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          </svg>
+        </div>
+        <h3 class="feature-title">빠른 학습 최적화</h3>
+        <p class="feature-desc">AI가 가장 효과적인 학습 경로를 찾아 학습 시간을 단축시킵니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════
+     AI TECHNOLOGY SECTION
+══════════════════════════════ -->
+<section id="about" class="ai-section">
+  <div class="ai-inner">
+    <div class="ai-grid">
+      <div class="ai-image">
+        <img
+          src="https://images.unsplash.com/photo-1770233621425-5d9ee7a0a700?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800"
+          alt="AI Technology"
+          onerror="this.style.display='none'"
+        />
+      </div>
+
+      <div class="ai-content">
+        <span class="badge badge--purple">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+          </svg>
+          혁신적인 학습 경험
+        </span>
+
+        <h2 class="ai-title">
+          AI가 만드는<br/>
+          개인 맞춤형 학습
+        </h2>
+
+        <p class="ai-desc">
+          최신 AI 기술을 활용하여 각 학습자의 수준, 학습 스타일,
+          목표에 완벽하게 맞춘 학습 경로를 제공합니다.
+          데이터 기반 분석으로 지속적으로 최적화되는 학습 경험을 만나보세요.
+        </p>
+
+        <ul class="check-list">
+          <li class="check-item">
+            <span class="check-dot"></span>
+            개인화된 학습 콘텐츠 추천
+          </li>
+          <li class="check-item">
+            <span class="check-dot"></span>
+            실시간 학습 피드백 제공
+          </li>
+          <li class="check-item">
+            <span class="check-dot"></span>
+            학습 목표 달성률 자동 추적
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════
+     CTA SECTION
+══════════════════════════════ -->
+<section class="cta-section">
+  <div class="cta-inner">
+    <h2 class="cta-title">지금 바로 에스플을 시작하세요</h2>
+    <p class="cta-desc">무료로 가입하고 당신만을 위한 학습 계획을 받아보세요</p>
+    <a href="/login" class="btn-cta">
+      무료로 시작하기
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <line x1="5" y1="12" x2="19" y2="12"/>
+        <polyline points="12 5 19 12 12 19"/>
+      </svg>
+    </a>
+  </div>
+</section>
+
+<!-- ══════════════════════════════
+     FOOTER
+══════════════════════════════ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
+            <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>
+          </svg>
+          AI 학습 설계
+        </div>
+        <p class="footer-brand-desc">AI 기술로 학습의 미래를 만들어갑니다</p>
+      </div>
+
+      <div class="footer-col">
+        <h4>제품</h4>
+        <ul>
+          <li><a href="#">기능</a></li>
+          <li><a href="#">가격</a></li>
+          <li><a href="#">고객 사례</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>팀</h4>
+        <ul>
+          <li><a href="#">소개</a></li>
+          <li><a href="#">팀원</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>지원</h4>
+        <ul>
+          <li><a href="#">이용법</a></li>
+          <li><a href="#">문의하기</a></li>
+          <li><a href="#">FAQ</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2026 AI 학습 설계. All rights reserved. 2026 아주마스터 클래스 Team. 상욱이랑 동원이랑</p>
+    </div>
+  </div>
+</footer>
+
 </body>
 </html>
