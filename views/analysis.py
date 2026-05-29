@@ -176,7 +176,7 @@ def analysis():
         username       = current_user.username,
         has_data       = len(records) > 0,
         subjects       = subjects,
-        current_streak = current_streak,
+        streak = current_streak,
         best_streak    = best_streak,
         gap_warnings   = gap_warnings,
         this_week_h    = this_week_h,
