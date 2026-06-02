@@ -48,7 +48,8 @@
 /* ── 리셋 & 기본 ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 
+               'Segoe UI', sans-serif;
   background: var(--gray-50);
   color: var(--gray-900);
   font-size: 16px;
@@ -93,8 +94,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .header-logo-text {
   font-size: 20px;
   font-weight: 700;
-  color: var(--gray-900);
-  font-family: 'Syne', sans-serif;
+  font-family: 'Pretendard', -apple-system, sans-serif;
 }
 
 /* 네비게이션 */
@@ -175,7 +175,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   font-weight: 700;
   color: var(--gray-900);
   margin-bottom: 8px;
-  font-family: 'Syne', sans-serif;
+  font-family: 'Pretendard', -apple-system, sans-serif;
 }
 .welcome p {
   font-size: 16px;
@@ -197,6 +197,11 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   padding: 24px;
   box-shadow: var(--shadow-sm);
   transition: box-shadow .2s;
+
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 .stat-card:hover { box-shadow: var(--shadow-md); }
 
@@ -207,6 +212,22 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   margin-bottom: 16px;
 }
 .stat-icon-wrap svg { width: 24px; height: 24px; }
+
+.stat-card .stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: 4px;
+  font-family: 'Pretendard', -apple-system, sans-serif;
+}
+
+/* 값 없는 카드 텍스트 */
+.stat-card .stat-label {
+  font-size: 14px;
+  color: var(--gray-500);
+  margin-top: auto;  /* 아이콘 아래 붙이기 */
+}
+
 
 /* 아이콘 색상 */
 .stat-icon-wrap--blue   { background: var(--blue-50);   color: var(--blue-600); }
@@ -219,7 +240,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   font-weight: 700;
   color: var(--gray-900);
   margin-bottom: 4px;
-  font-family: 'Syne', sans-serif;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 .stat-label {
   font-size: 14px;
@@ -256,7 +277,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   font-size: 20px;
   font-weight: 700;
   color: var(--gray-900);
-  font-family: 'Syne', sans-serif;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 .card-link {
   font-size: 14px;
@@ -404,7 +425,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   font-size: 30px;
   font-weight: 700;
   margin-bottom: 4px;
-  font-family: 'Syne', sans-serif;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 .goal-sub {
   font-size: 14px;
@@ -547,7 +568,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   .mobile-header-logo span {
     font-size: 15px; font-weight: 700;
     color: var(--gray-900);
-    font-family: 'Syne', sans-serif;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
   }
   .mobile-header-user {
     display: flex; align-items: center; gap: 8px;
