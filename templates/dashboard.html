@@ -4,8 +4,8 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>대시보드 — AI 학습 설계</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.min.css"/>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}"/>
 </head>
 <body>
@@ -41,7 +41,7 @@
         <path d="M12 2a9 9 0 0 1 9 9c0 3.18-1.65 5.97-4.13 7.56L16 21H8l-.87-2.44A9 9 0 0 1 12 2z"/>
         <path d="M9 12h6M9 9h6M9 15h4"/>
       </svg>
-      <span class="header-logo-text">AI 학습 설계</span>
+      <span class="header-logo-text">A+ 스터디 플래너</span>
     </div>
 
     <!-- 네비 -->
@@ -270,9 +270,9 @@
       <!-- AI 플랜 배너 -->
       <div class="card" style="background:linear-gradient(135deg,#030213,#1e1b4b); border:none;">
         <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-          <span style="font-size:10px; font-weight:700; letter-spacing:1.5px; color:rgba(255,255,255,0.6); font-family:'Syne',sans-serif;">AI</span>
+          <span style="font-size:10px; font-weight:700; letter-spacing:1.5px; color:rgba(255,255,255,0.6); font-family:'pretendard',sans-serif;">AI</span>
         </div>
-        <h3 style="font-size:16px; font-weight:700; color:#fff; margin-bottom:6px; font-family:'Syne',sans-serif;">맞춤 학습 계획을 받아보세요</h3>
+        <h3 style="font-size:16px; font-weight:700; color:#fff; margin-bottom:6px; font-family:'pretendard',sans-serif;">맞춤 학습 계획을 받아보세요</h3>
         <p style="font-size:13px; color:rgba(255,255,255,0.6); margin-bottom:16px;">학습 패턴을 분석하여 AI가 최적의 계획을 생성해드립니다.</p>
         <a href="{{ url_for('ai_plan.ai_plan') }}"
            style="display:block; width:100%; padding:11px; background:#fff; color:#030213; border-radius:var(--radius-lg); font-size:13px; font-weight:600; text-align:center; transition:opacity .15s;">
