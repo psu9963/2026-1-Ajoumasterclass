@@ -1,104 +1,68 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}A+ 스터디 플래너{% endblock %}</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/ai_plan.css') }}">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}AI 학습 설계{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}"/>
   {% block extra_css %}{% endblock %}
 </head>
 <body>
 
-  <!-- ══════════════════════════════════
-       공통 사이드바
-  ══════════════════════════════════════ -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <span class="logo-mark">S+</span>
-      <span class="logo-text">A+ 스터디 플래너</span>
+<header class="mobile-header">
+  <div class="mobile-header-logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2a9 9 0 0 1 9 9c0 3.18-1.65 5.97-4.13 7.56L16 21H8l-.87-2.44A9 9 0 0 1 12 2z"/>
+      <path d="M9 12h6M9 9h6M9 15h4"/>
+    </svg>
+    <span>A+ 스터디 플래너</span>
+  </div>
+  <div class="mobile-header-user">
+    <img src="https://ui-avatars.com/api/?name={{ current_user.username }}&background=2563eb&color=fff" alt="user" class="mobile-avatar"/>
+    <a href="{{ url_for('login.logout') }}" class="mobile-logout header-icon-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+    </a>
+  </div>
+</header>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="header-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2a9 9 0 0 1 9 9c0 3.18-1.65 5.97-4.13 7.56L16 21H8l-.87-2.44A9 9 0 0 1 12 2z"/>
+        <path d="M9 12h6M9 9h6M9 15h4"/>
+      </svg>
+      <span class="header-logo-text">AI 학습 설계</span>
     </div>
 
-    <nav class="sidebar-nav">
-      <a href="{{ url_for('dashboard.dashboard') }}"
-         class="nav-item {% if active_menu == 'dashboard' %}active{% endif %}">
-        <span class="nav-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/>
-            <rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/>
-          </svg>
-        </span>
-        <span class="nav-label">대시보드</span>
-      </a>
-
-      <a href="{{ url_for('study_history.history') }}"
-         class="nav-item {% if active_menu == 'study_history' %}active{% endif %}">
-        <span class="nav-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 5v14M5 12h14"/>
-          </svg>
-        </span>
-        <span class="nav-label">학습 기록</span>
-      </a>
-
-      <a href="{{ url_for('analysis.analysis') }}"
-         class="nav-item {% if active_menu == 'analysis' %}active{% endif %}">
-        <span class="nav-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-          </svg>
-        </span>
-        <span class="nav-label">학습 분석</span>
-      </a>
-
-      <!-- AI 학습 계획 서브메뉴 -->
-      <div class="nav-group">
-        <div class="nav-item nav-item--parent {% if active_menu == 'ai_plan' %}active{% endif %}">
-          <span class="nav-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
-            </svg>
-          </span>
-          <span class="nav-label">AI 학습 계획</span>
-        </div>
-        <div class="nav-submenu">
-          <a href="{{ url_for('ai_plan.ai_plan') }}"
-             class="nav-sub-item {% if active_sub == 'ai_plan_create' %}active{% endif %}">
-            <span class="sub-dot"></span>계획 생성하기
-          </a>
-          <a href="{{ url_for('ai_plan.plan_history') }}"
-             class="nav-sub-item {% if active_sub == 'ai_plan_history' %}active{% endif %}">
-            <span class="sub-dot"></span>계획 확인하기
-          </a>
-        </div>
-      </div>
+    <nav class="header-nav">
+      <a href="{{ url_for('dashboard.dashboard') }}" class="{% if active_menu == 'dashboard' %}active{% endif %}">대시보드</a>
+      <a href="{{ url_for('study_history.history') }}" class="{% if active_menu == 'study_history' %}active{% endif %}">학습 기록</a>
+      <a href="{{ url_for('analysis.analysis') }}" class="{% if active_menu == 'analysis' %}active{% endif %}">학습 분석</a>
+      <a href="{{ url_for('ai_plan.ai_plan') }}" class="{% if active_menu == 'ai_plan' %}active{% endif %}">AI 학습 계획</a>
     </nav>
 
-    <!-- 사이드바 하단 유저 팝업 -->
-    <div class="sidebar-footer" style="position:relative;">
-      <div class="user-chip" id="user-chip-btn"
-           onclick="toggleUserMenu()"
-           style="cursor:pointer; flex:1;">
-        <div class="user-avatar">{{ current_user.username[0] | upper }}</div>
-        <div class="user-info">
-          <span class="user-name" style="display:flex; align-items:center; gap:5px;">
-            {{ current_user.username }}
-            {% if current_user.provider == 'kakao' %}
-              <img src="https://upload.wikimedia.org/wikipedia/commons/e/e3/KakaoTalk_logo.svg"
-                   alt="카카오" style="width:14px; height:14px;">
-            {% elif current_user.provider == 'google' %}
-              <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
-                   alt="구글" style="width:14px; height:14px;">
-            {% endif %}
-          </span>
-          <span class="user-role">학습자</span>
-        </div>
+    <div class="header-user">
+      <button class="header-icon-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
+      <div class="header-user-divider"></div>
+      <img src="https://ui-avatars.com/api/?name={{ current_user.username }}&background=2563eb&color=fff" alt="avatar" class="header-avatar"/>
+      <div class="header-user-info">
+        <span class="header-user-name">{{ current_user.username }}</span>
+        <span class="header-user-email">{{ current_user.email if current_user.email else '' }}</span>
       </div>
-      <a href="{{ url_for('login.logout') }}" class="logout-btn" title="로그아웃">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <a href="{{ url_for('login.logout') }}" class="header-icon-btn" title="로그아웃">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
           <polyline points="16 17 21 12 16 7"/>
           <line x1="21" y1="12" x2="9" y2="12"/>
@@ -125,25 +89,20 @@
         </a>
       </div>
     </div>
-  </aside>
+  </div>
+</header>
 
-  <!-- ══════════════════════════════════
-       메인 콘텐츠 영역
-  ══════════════════════════════════════ -->
-  <main class="main">
+<main class="main">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+      <div class="flash flash-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
 
-    <!-- 플래시 메시지 -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-        <div class="flash flash-{{ category }}">{{ message }}</div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-
-    {% block content %}{% endblock %}
-
-  </main>
+  {% block content %}{% endblock %}
+</main>
 
   <!-- ══════════════════════════════════
        공통 CSS / JS
@@ -184,7 +143,6 @@
   });
   </script>
 
-  {% block extra_js %}{% endblock %}
-
+{% block extra_js %}{% endblock %}
 </body>
 </html>
