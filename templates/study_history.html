@@ -19,7 +19,7 @@
         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:14px;">
           <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
         </svg>
-        <h2 style="margin:0; font-size:1.1rem; font-family:'Syne',sans-serif; font-weight:700;">{{ s }}</h2>
+        <h2 style="margin:0; font-size:1.1rem; font-family:'pretendard',sans-serif; font-weight:700;">{{ s }}</h2>
       </div>
     </a>
     {% endfor %}
@@ -38,14 +38,14 @@
 <div id="recordModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
   <div style="background:var(--surface); padding:36px; border-radius:var(--radius-lg); width:400px; box-shadow:0 10px 30px rgba(0,0,0,0.15);">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
-      <h2 style="margin:0; font-family:'Syne',sans-serif; font-weight:800;">새 과목 만들기</h2>
+      <h2 style="margin:0; font-family:'pretendard',sans-serif; font-weight:800;">새 과목 만들기</h2>
       <button onclick="closeModal()" style="background:none; border:none; font-size:22px; cursor:pointer; color:var(--text-3);">&times;</button>
     </div>
     <form method="POST" style="display:flex; flex-direction:column; gap:18px;">
       <div>
         <label style="display:block; font-size:12px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px;">과목명</label>
         <input type="text" name="subject" placeholder="예: 데이터베이스" required
-               style="width:100%; padding:11px 13px; border:1.5px solid var(--border); border-radius:var(--radius-md); font-size:14px; outline:none; font-family:'Noto Sans KR',sans-serif; box-sizing:border-box;">
+               style="width:100%; padding:11px 13px; border:1.5px solid var(--border); border-radius:var(--radius-md); font-size:14px; outline:none; font-family:'pretendard',sans-serif; box-sizing:border-box;">
       </div>
       <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:12px;">과목 생성하기</button>
     </form>

@@ -6,20 +6,20 @@
 <style>
   .mp-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
   .mp-profile-body { padding:32px 22px; display:flex; flex-direction:column; align-items:center; gap:12px; }
-  .mp-avatar { width:72px; height:72px; border-radius:50%; background:var(--accent); color:#fff; font-family:'Syne',sans-serif; font-weight:800; font-size:28px; display:flex; align-items:center; justify-content:center; }
-  .mp-username { font-family:'Syne',sans-serif; font-size:20px; font-weight:700; color:var(--text-1); }
+  .mp-avatar { width:72px; height:72px; border-radius:50%; background:var(--accent); color:#fff; font-family:'pretendard',sans-serif; font-weight:800; font-size:28px; display:flex; align-items:center; justify-content:center; }
+  .mp-username { font-family:'pretendard',sans-serif; font-size:20px; font-weight:700; color:var(--text-1); }
   .mp-provider-badge { padding:5px 14px; border-radius:20px; font-size:12px; font-weight:500; background:var(--surface-2); color:var(--text-2); border:1px solid var(--border); }
   .mp-stats-body { padding:16px 22px 20px; }
   .mp-stat-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); margin-bottom:14px; }
   .mp-stat-label { font-size:13px; color:var(--text-2); }
-  .mp-stat-value { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; color:var(--text-1); }
+  .mp-stat-value { font-family:'pretendard',sans-serif; font-size:16px; font-weight:700; color:var(--text-1); }
   .mp-subjects { display:flex; flex-wrap:wrap; gap:8px; }
   .mp-pw-body { padding:20px 22px; }
-  .mp-input { width:100%; padding:10px 13px; border:1.5px solid var(--border); border-radius:var(--radius-md); font-size:14px; outline:none; font-family:'Noto Sans KR',sans-serif; box-sizing:border-box; transition:border-color .15s; }
+  .mp-input { width:100%; padding:10px 13px; border:1.5px solid var(--border); border-radius:var(--radius-md); font-size:14px; outline:none; font-family:'pretendard',sans-serif; box-sizing:border-box; transition:border-color .15s; }
   .mp-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(45,45,45,0.08); }
   .mp-delete-body { padding:20px 22px; }
   .mp-delete-desc { font-size:13px; color:var(--text-2); line-height:1.6; margin-bottom:16px; }
-  .mp-delete-btn { padding:9px 20px; background:#fef0f0; color:#c0392b; border:1px solid #f5c6cb; border-radius:var(--radius-md); font-size:13px; font-weight:500; cursor:pointer; transition:background .15s; font-family:'Noto Sans KR',sans-serif; }
+  .mp-delete-btn { padding:9px 20px; background:#fef0f0; color:#c0392b; border:1px solid #f5c6cb; border-radius:var(--radius-md); font-size:13px; font-weight:500; cursor:pointer; transition:background .15s; font-family:'pretendard',sans-serif; }
   .mp-delete-btn:hover { background:#fde0e0; }
   @media(max-width:700px){ .mp-grid{grid-template-columns:1fr} }
 </style>
@@ -128,7 +128,7 @@
 <!-- 회원 탈퇴 확인 모달 -->
 <div id="deleteModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
   <div style="background:var(--surface); padding:36px; border-radius:var(--radius-lg); width:380px; box-shadow:0 10px 30px rgba(0,0,0,0.15);">
-    <h3 style="font-family:'Syne',sans-serif; font-size:18px; font-weight:800; margin-bottom:12px;">정말 탈퇴하시겠어요?</h3>
+    <h3 style="font-family:'pretendard',sans-serif; font-size:18px; font-weight:800; margin-bottom:12px;">정말 탈퇴하시겠어요?</h3>
     <p style="font-size:13px; color:var(--text-2); line-height:1.7; margin-bottom:24px;">모든 학습 기록, AI 계획이 영구 삭제돼요.<br>이 작업은 되돌릴 수 없어요.</p>
     <div style="display:flex; gap:10px;">
       <button onclick="document.getElementById('deleteModal').style.display='none'"

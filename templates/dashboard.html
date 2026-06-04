@@ -35,24 +35,21 @@
 <!-- ── PC 상단 헤더 ── -->
 <header class="header">
   <div class="header-inner">
-    <!-- 로고 -->
     <div class="header-logo">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 2a9 9 0 0 1 9 9c0 3.18-1.65 5.97-4.13 7.56L16 21H8l-.87-2.44A9 9 0 0 1 12 2z"/>
         <path d="M9 12h6M9 9h6M9 15h4"/>
       </svg>
-      <span class="header-logo-text">A+ 스터디 플래너</span>
+      <span class="header-logo-text">AI 학습 설계</span>
     </div>
 
-    <!-- 네비 -->
     <nav class="header-nav">
       <a href="{{ url_for('dashboard.dashboard') }}" class="active">대시보드</a>
-      <a href="#">내 학습</a>
-      <a href="#">탐색</a>
-      <a href="{{ url_for('analysis.analysis') }}">분석</a>
+      <a href="{{ url_for('study_history.history') }}">학습 기록</a>
+      <a href="{{ url_for('analysis.analysis') }}">학습 분석</a>
+      <a href="{{ url_for('ai_plan.ai_plan') }}">AI 학습 계획</a>
     </nav>
 
-    <!-- 유저 -->
     <div class="header-user">
       <button class="header-icon-btn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -87,7 +84,7 @@
     <p>오늘도 목표를 향해 한 걸음 더 나아가볼까요?</p>
   </div>
 
-  <!-- 통계 카드 -->
+  <!-- 통계 카드  -->
   <div class="stat-grid">
     <div class="stat-card">
       <div class="stat-icon-wrap stat-icon-wrap--blue">
@@ -134,89 +131,79 @@
   <!-- 콘텐츠 그리드 -->
   <div class="content-grid">
 
-    <!-- 왼쪽 -->
+    <!-- 왼쪽: 빠른 학습 이동 + AI 추천 -->
     <div class="content-left">
 
-      <!-- 최근 학습 기록 -->
+      <!-- 빠른 이동 카드 -->
       <div class="card">
         <div class="card-header">
-          <h2 class="card-title">최근 학습 기록</h2>
-          <a href="{{ url_for('study_history.history') }}" class="card-link">전체 보기 →</a>
+          <h2 class="card-title">바로가기</h2>
         </div>
-        <div class="course-list">
-          {% for r in recent_records %}
-          <div class="course-item">
-            <div class="course-top">
-              <div class="course-info">
-                <p class="course-title">{{ r['subject'] }}</p>
-                <p class="course-next">{{ r['memo'] or '메모 없음' }}</p>
-                <p class="course-last">{{ r['study_date'] }}</p>
-              </div>
-              <span class="course-badge">{{ r['duration_hours'] }}h</span>
+        <div style="display:flex; flex-direction:column; gap:12px; padding: 4px 0;">
+          <a href="{{ url_for('study_history.history') }}"
+             style="display:flex; align-items:center; gap:14px; padding:16px; background:var(--input-bg); border-radius:var(--radius-lg); text-decoration:none; transition:background .15s;"
+             onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='var(--input-bg)'">
+            <div style="width:42px; height:42px; background:#eff6ff; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
             </div>
-            <div class="progress-wrap">
-              <div class="progress-track">
-                <div class="progress-fill" style="width: {{ [r['duration_hours'] * 10, 100] | min }}%"></div>
-              </div>
+            <div>
+              <p style="font-size:14px; font-weight:600; color:var(--gray-900); margin-bottom:2px;">학습 기록 추가</p>
+              <p style="font-size:12px; color:var(--gray-500);">오늘 학습한 내용을 기록하세요</p>
             </div>
-            <form method="POST" action="{{ url_for('home', record_id=r['id']) }}"
-                  onsubmit="return confirm('삭제하시겠습니까?')"
-                  style="display:flex; gap:8px;">
-              <button type="submit" class="btn-course" style="background:var(--destructive); flex:0 0 auto; width:auto; padding:10px 16px;">
-                삭제
-              </button>
-            </form>
-          </div>
-          {% else %}
-          <div style="text-align:center; padding:40px 0; color:var(--muted-foreground);">
-            <p>아직 학습 기록이 없어요</p>
-          </div>
-          {% endfor %}
+            <svg style="margin-left:auto; flex-shrink:0;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+          </a>
+
+          <a href="{{ url_for('analysis.analysis') }}"
+             style="display:flex; align-items:center; gap:14px; padding:16px; background:var(--input-bg); border-radius:var(--radius-lg); text-decoration:none; transition:background .15s;"
+             onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background='var(--input-bg)'">
+            <div style="width:42px; height:42px; background:#f0fdf4; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+              </svg>
+            </div>
+            <div>
+              <p style="font-size:14px; font-weight:600; color:var(--gray-900); margin-bottom:2px;">학습 분석 보기</p>
+              <p style="font-size:12px; color:var(--gray-500);">내 학습 패턴과 통계를 확인하세요</p>
+            </div>
+            <svg style="margin-left:auto; flex-shrink:0;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+          </a>
+
+          <a href="{{ url_for('ai_plan.ai_plan') }}"
+             style="display:flex; align-items:center; gap:14px; padding:16px; background:var(--input-bg); border-radius:var(--radius-lg); text-decoration:none; transition:background .15s;"
+             onmouseover="this.style.background='#faf5ff'" onmouseout="this.style.background='var(--input-bg)'">
+            <div style="width:42px; height:42px; background:#faf5ff; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 16v-4M12 8h.01"/>
+              </svg>
+            </div>
+            <div>
+              <p style="font-size:14px; font-weight:600; color:var(--gray-900); margin-bottom:2px;">AI 학습 계획</p>
+              <p style="font-size:12px; color:var(--gray-500);">AI가 맞춤 학습 계획을 생성해드려요</p>
+            </div>
+            <svg style="margin-left:auto; flex-shrink:0;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+          </a>
+
+          <a href="{{ url_for('mypage.mypage') }}"
+             style="display:flex; align-items:center; gap:14px; padding:16px; background:var(--input-bg); border-radius:var(--radius-lg); text-decoration:none; transition:background .15s;"
+             onmouseover="this.style.background='#fff7ed'" onmouseout="this.style.background='var(--input-bg)'">
+            <div style="width:42px; height:42px; background:#fff7ed; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </div>
+            <div>
+              <p style="font-size:14px; font-weight:600; color:var(--gray-900); margin-bottom:2px;">마이페이지</p>
+              <p style="font-size:12px; color:var(--gray-500);">계정 정보와 설정을 관리하세요</p>
+            </div>
+            <svg style="margin-left:auto; flex-shrink:0;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+          </a>
         </div>
       </div>
 
-      <!-- 학습 기록 추가 폼 -->
-      <div class="card">
-        <div class="card-header">
-          <h2 class="card-title">학습 기록 추가</h2>
-        </div>
-        <form method="POST" action="{{ url_for('home') }}" style="display:flex; flex-direction:column; gap:16px;">
-          <div>
-            <label style="font-size:14px; font-weight:500; color:var(--gray-900); display:block; margin-bottom:6px;">과목</label>
-            <input type="text" name="subject" placeholder="예: 자료구조" required
-              style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-lg); background:var(--input-bg); font-size:14px; color:var(--gray-900); outline:none; transition:border-color .15s;"
-              onfocus="this.style.borderColor='var(--blue-600)'"
-              onblur="this.style.borderColor='var(--border)'"/>
-          </div>
-          <div>
-            <label style="font-size:14px; font-weight:500; color:var(--gray-900); display:block; margin-bottom:6px;">학습 시간 (시간)</label>
-            <input type="number" name="duration_hours" step="0.5" min="0.5" max="24" placeholder="예: 2.5" required
-              style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-lg); background:var(--input-bg); font-size:14px; color:var(--gray-900); outline:none; transition:border-color .15s;"
-              onfocus="this.style.borderColor='var(--blue-600)'"
-              onblur="this.style.borderColor='var(--border)'"/>
-          </div>
-          <div>
-            <label style="font-size:14px; font-weight:500; color:var(--gray-900); display:block; margin-bottom:6px;">날짜</label>
-            <input type="date" name="study_date" required
-              style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-lg); background:var(--input-bg); font-size:14px; color:var(--gray-900); outline:none; transition:border-color .15s;"
-              onfocus="this.style.borderColor='var(--blue-600)'"
-              onblur="this.style.borderColor='var(--border)'"/>
-          </div>
-          <div>
-            <label style="font-size:14px; font-weight:500; color:var(--gray-900); display:block; margin-bottom:6px;">메모 (선택)</label>
-            <input type="text" name="memo" placeholder="오늘 배운 내용..."
-              style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:var(--radius-lg); background:var(--input-bg); font-size:14px; color:var(--gray-900); outline:none; transition:border-color .15s;"
-              onfocus="this.style.borderColor='var(--blue-600)'"
-              onblur="this.style.borderColor='var(--border)'"/>
-          </div>
-          <button type="submit" class="btn-course">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            기록 추가
-          </button>
-        </form>
-      </div>
     </div>
 
     <!-- 오른쪽 -->
@@ -275,7 +262,7 @@
         <h3 style="font-size:16px; font-weight:700; color:#fff; margin-bottom:6px; font-family:'pretendard',sans-serif;">맞춤 학습 계획을 받아보세요</h3>
         <p style="font-size:13px; color:rgba(255,255,255,0.6); margin-bottom:16px;">학습 패턴을 분석하여 AI가 최적의 계획을 생성해드립니다.</p>
         <a href="{{ url_for('ai_plan.ai_plan') }}"
-           style="display:block; width:100%; padding:11px; background:#fff; color:#030213; border-radius:var(--radius-lg); font-size:13px; font-weight:600; text-align:center; transition:opacity .15s;">
+           style="display:block; width:100%; padding:11px; background:#fff; color:#030213; border-radius:var(--radius-lg); font-size:13px; font-weight:600; text-align:center; transition:opacity .15s; text-decoration:none;">
           계획 생성하기 →
         </a>
       </div>
@@ -303,7 +290,7 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
     </svg>
-    <span>분석</span>
+    <span>학습 분석</span>
   </a>
   <a href="{{ url_for('ai_plan.ai_plan') }}" class="tab-item">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
