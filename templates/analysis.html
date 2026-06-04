@@ -6,7 +6,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
   .tab-bar { display:flex; gap:4px; background:var(--surface-2); border-radius:var(--radius-md); padding:4px; margin-bottom:28px; width:fit-content; animation:fadeUp .3s ease both; }
-  .tab-btn { padding:8px 24px; border:none; background:none; border-radius:calc(var(--radius-md) - 2px); font-size:13.5px; font-weight:500; color:var(--text-2); cursor:pointer; transition:background .15s,color .15s; font-family:'Noto Sans KR',sans-serif; }
+  .tab-btn { padding:8px 24px; border:none; background:none; border-radius:calc(var(--radius-md) - 2px); font-size:13.5px; font-weight:500; color:var(--text-2); cursor:pointer; transition:background .15s,color .15s; font-family:'pretendard',sans-serif; }
   .tab-btn.active { background:var(--surface); color:var(--text-1); box-shadow:0 1px 4px rgba(0,0,0,0.08); }
   .tab-panel { display:none; }
   .tab-panel.active { display:block; }
@@ -15,17 +15,17 @@
   .chart-body { padding:20px 22px; }
   .chart-full { grid-column:1/-1; }
   .subject-chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:24px; animation:fadeUp .3s ease both; }
-  .s-chip { padding:8px 18px; border:1.5px solid var(--border); border-radius:20px; background:var(--surface); font-size:13px; color:var(--text-2); cursor:pointer; transition:all .15s; font-family:'Noto Sans KR',sans-serif; }
+  .s-chip { padding:8px 18px; border:1.5px solid var(--border); border-radius:20px; background:var(--surface); font-size:13px; color:var(--text-2); cursor:pointer; transition:all .15s; font-family:'pretendard'',sans-serif; }
   .s-chip:hover { border-color:var(--border-hover); color:var(--text-1); }
   .s-chip.active { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:500; }
   .detail-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px; }
   .detail-stat { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px; animation:fadeUp .35s ease both; transition:box-shadow .2s,transform .2s; }
   .detail-stat:hover { box-shadow:0 4px 14px rgba(0,0,0,.06); transform:translateY(-2px); }
   .detail-stat__label { font-size:11px; font-weight:500; color:var(--text-3); text-transform:uppercase; letter-spacing:.6px; margin-bottom:8px; }
-  .detail-stat__value { font-family:'Syne',sans-serif; font-size:24px; font-weight:700; color:var(--text-1); }
+  .detail-stat__value { font-family:'pretendard',sans-serif; font-size:24px; font-weight:700; color:var(--text-1); }
   .ai-feedback-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; animation:fadeUp .45s ease both; }
   .ai-feedback-body { padding:24px; }
-  .feedback-btn { display:inline-flex; align-items:center; gap:8px; padding:11px 24px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius-md); font-size:13px; font-weight:500; cursor:pointer; transition:background .15s; font-family:'Noto Sans KR',sans-serif; }
+  .feedback-btn { display:inline-flex; align-items:center; gap:8px; padding:11px 24px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius-md); font-size:13px; font-weight:500; cursor:pointer; transition:background .15s; font-family:'pretendard',sans-serif; }
   .feedback-btn:hover { background:var(--accent-hover); }
   .feedback-btn:disabled { opacity:.5; cursor:not-allowed; }
   .feedback-result { margin-top:20px; display:none; }
