@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
+from datetime import date
 
 # 데이터베이스 객체 생성
 db = SQLAlchemy()
@@ -34,3 +35,24 @@ class AIFeedback(db.Model):
     subject = db.Column(db.String(100), nullable=False)
     feedback_content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.String(30), nullable=False)
+
+class WeeklyGoal(db.Model):
+    id         = db.Column(db.Integer, primary_key=True)
+    user_id    = db.Column(db.Integer, nullable=False)
+    goal_hours = db.Column(db.Float, nullable=False, default=10.0)
+    week_start = db.Column(db.String(20), nullable=False)  # '2024-05-20'
+
+class DailyGoal(db.Model):
+    id        = db.Column(db.Integer, primary_key=True)
+    user_id   = db.Column(db.Integer, nullable=False)
+    goal_date = db.Column(db.String(20), nullable=False)   # '2024-05-20'
+    goal_text = db.Column(db.String(200), nullable=False)
+    is_done   = db.Column(db.Boolean, default=False)
+
+class WeeklyCoaching(db.Model):
+    id         = db.Column(db.Integer, primary_key=True)
+    user_id    = db.Column(db.Integer, nullable=False)
+    week_start = db.Column(db.String(20), nullable=False)  # '2024-05-20' (월요일)
+    content    = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.String(30), nullable=False)
+
