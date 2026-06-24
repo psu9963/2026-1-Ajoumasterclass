@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for
 from functools import wraps
-from models import db, StudyRecord, AIFeedback
+from models import db, StudyRecord, AIFeedback, AIPlan, WeeklyGoal, WeeklyCoaching
 from datetime import datetime, timedelta
 from collections import defaultdict
 from openai import OpenAI
@@ -10,6 +10,7 @@ from flask_login import login_required, current_user
 
 analysis_bp = Blueprint('analysis', __name__)
 
+MIN_RECORDS_FOR_COACHING = 3  # 코칭 생성에 필요한 최소 기록 수
 
 
 def get_streaks(records):
@@ -23,7 +24,6 @@ def get_streaks(records):
 
     today = datetime.now().date()
 
-    # 현재 스트릭
     current = 0
     for i, d in enumerate(dates):
         if d == today - timedelta(days=i):
@@ -31,7 +31,6 @@ def get_streaks(records):
         else:
             break
 
-    # 최고 스트릭
     best = 1
     temp = 1
     sorted_asc = sorted(dates)
@@ -102,6 +101,12 @@ def get_this_week_story(records):
     story.sort(key=lambda x: ['월','화','수','목','금','토','일'].index(x['day']))
     return story
 
+def _make_openai_client():
+    return OpenAI(
+        api_key=os.environ.get("AJOU_API_KEY"),
+        base_url="https://factchat-cloud.mindlogic.ai/v1/gateway"
+    )
+
 @analysis_bp.route('/analysis')
 @login_required
 def analysis():
@@ -113,35 +118,68 @@ def analysis():
 
     subjects = list(set(r.subject for r in records))
 
-    # 스트릭
+    # ── 스트릭
     current_streak, best_streak = get_streaks(records)
 
-    # 공백 경고
+    # ── 공백 경고
     gap_warnings = get_gap_warnings(records, subjects)
 
-    # 주간 페이스
+    # ── 주간 페이스
     this_week_h, last_week_h, pace_pct = get_week_pace(records)
 
-    # 레이더 차트 (과목별 시간 → 0~100 정규화)
-    subject_hours = {s: 0.0 for s in subjects}
+    # ── 전체 누적 시간
+    total_hours = round(sum(r.duration_hours for r in records), 1)
+
+    # ── 과목별 시간 (도넛 차트 + 레이더)
+    subject_hours = defaultdict(float)
     for r in records:
         subject_hours[r.subject] += r.duration_hours
-    max_h = max(subject_hours.values()) if subject_hours else 1
-    radar_labels = list(subject_hours.keys())
-    radar_values = [round(v / max_h * 100, 1) for v in subject_hours.values()]
-    radar_raw    = [round(v, 1) for v in subject_hours.values()]
+    s_labels = list(subject_hours.keys())
+    s_raw    = [round(v, 1) for v in subject_hours.values()]
+    max_h    = max(s_raw) if s_raw else 1
+    radar_values = [round(v / max_h * 100, 1) for v in s_raw]
 
-    # 이번 주 스토리 데이터
+    # ── 최근 8주 주간 추이
+    today           = datetime.now().date()
+    week_start_date = today - timedelta(days=today.weekday())
+    weekly_labels_list = []
+    weekly_values_list = []
+    for i in range(7, -1, -1):
+        ws = week_start_date - timedelta(weeks=i)
+        we = ws + timedelta(days=6)
+        wh = sum(
+            r.duration_hours for r in records
+            if r.study_date and ws <= datetime.strptime(r.study_date, '%Y-%m-%d').date() <= we
+        )
+        weekly_labels_list.append(ws.strftime('%m/%d'))
+        weekly_values_list.append(round(wh, 1))
+
+    # ── 요일별 패턴
+    day_totals = [0.0] * 7
+    for r in records:
+        if r.study_date:
+            day_totals[datetime.strptime(r.study_date, '%Y-%m-%d').date().weekday()] += r.duration_hours
+    day_names_list  = ['월', '화', '수', '목', '금', '토', '일']
+    day_values_list = [round(v, 1) for v in day_totals]
+
+    # ── 이번 주 스토리
     week_story = get_this_week_story(records)
 
-    # 과목별 상세 (과목별 탭용)
+    # ── 주간 목표 달성률
+    week_start_str = week_start_date.strftime('%Y-%m-%d')
+    weekly_goal    = WeeklyGoal.query.filter_by(user_id=user_id, week_start=week_start_str).first()
+    goal_hours     = weekly_goal.goal_hours if weekly_goal else 10.0
+    goal_pct       = min(round(this_week_h / goal_hours * 100), 100) if goal_hours > 0 else 0
+    goal_diff      = round(this_week_h - last_week_h, 1)
+
+    # ── 과목별 상세 (과목별 탭용)
     subject_details = {}
     for subject in subjects:
         s_recs = [r for r in records if r.subject == subject]
-        total = round(sum(r.duration_hours for r in s_recs), 1)
-        count = len(s_recs)
-        avg   = round(total / count, 1) if count else 0
-        last  = s_recs[0].study_date if s_recs else '-'
+        total  = round(sum(r.duration_hours for r in s_recs), 1)
+        count  = len(s_recs)
+        avg    = round(total / count, 1) if count else 0
+        last   = s_recs[0].study_date if s_recs else '-'
 
         monthly = defaultdict(float)
         for r in s_recs:
@@ -159,10 +197,9 @@ def analysis():
             'monthly_values': [round(m[1], 1) for m in sorted_m],
         }
 
-    # 저장된 AI 피드백 (과목별)
+    # ── 저장된 AI 피드백
     saved_feedbacks = {}
-    feedbacks = AIFeedback.query.filter_by(user_id=user_id)\
-                                .order_by(AIFeedback.id.desc()).all()
+    feedbacks = AIFeedback.query.filter_by(user_id=user_id).order_by(AIFeedback.id.desc()).all()
     for f in feedbacks:
         if f.subject not in saved_feedbacks:
             saved_feedbacks[f.subject] = []
@@ -172,23 +209,132 @@ def analysis():
             'created_at': f.created_at
         })
 
+    # ── AI 학습 계획
+    ai_plans_raw  = AIPlan.query.filter_by(user_id=user_id).order_by(AIPlan.id.desc()).all()
+    ai_plans_data = [{'id':p.id,'subject':p.subject,'goal_weeks':p.goal_weeks,'created_at':p.created_at,'plan':json.loads(p.plan_content)} for p in ai_plans_raw]
+
+    # ── 주간 코칭 캐시
+    has_enough_data   = len(records) >= MIN_RECORDS_FOR_COACHING
+    cached_coaching   = WeeklyCoaching.query.filter_by(user_id=user_id, week_start=week_start_str).first()
+    coaching_content  = cached_coaching.content    if cached_coaching else None
+    coaching_created  = cached_coaching.created_at if cached_coaching else None
+
     return render_template('analysis.html',
-        username       = current_user.username,
-        has_data       = len(records) > 0,
-        subjects       = subjects,
-        streak = current_streak,
-        best_streak    = best_streak,
-        gap_warnings   = gap_warnings,
-        this_week_h    = this_week_h,
-        last_week_h    = last_week_h,
-        pace_pct       = pace_pct,
-        radar_labels   = json.dumps(radar_labels, ensure_ascii=False),
-        radar_values   = json.dumps(radar_values),
-        radar_raw      = json.dumps(radar_raw),
-        week_story     = week_story,
-        subject_details   = json.dumps(subject_details, ensure_ascii=False),
-        saved_feedbacks   = json.dumps(saved_feedbacks, ensure_ascii=False),
+        username        = current_user.username,
+        has_data        = len(records) > 0,
+        subjects        = subjects,
+        streak          = current_streak,
+        best_streak     = best_streak,
+        gap_warnings    = gap_warnings,
+        this_week_h     = this_week_h,
+        last_week_h     = last_week_h,
+        pace_pct        = pace_pct,
+        total_hours     = total_hours,
+        week_hours      = this_week_h,
+        weekly_labels   = json.dumps(weekly_labels_list),
+        weekly_values   = json.dumps(weekly_values_list),
+        subject_labels  = json.dumps(s_labels, ensure_ascii=False),
+        subject_values  = json.dumps(s_raw),
+        radar_labels    = json.dumps(s_labels, ensure_ascii=False),
+        radar_values    = json.dumps(radar_values),
+        radar_raw       = json.dumps(s_raw),
+        day_names       = json.dumps(day_names_list, ensure_ascii=False),
+        day_values      = json.dumps(day_values_list),
+        week_story      = week_story,
+        goal_hours      = goal_hours,
+        goal_pct        = goal_pct,
+        goal_diff       = goal_diff,
+        subject_details    = json.dumps(subject_details, ensure_ascii=False),
+        saved_feedbacks    = json.dumps(saved_feedbacks, ensure_ascii=False),
+        ai_plans           = json.dumps(ai_plans_data, ensure_ascii=False),
+        has_enough_data    = has_enough_data,
+        coaching_content   = coaching_content,
+        coaching_created   = coaching_created,
     )
+
+# ── 주간 코칭 리포트 생성 (버튼 클릭 시만 호출)
+@analysis_bp.route('/analysis/weekly-coaching', methods=['POST'])
+@login_required
+def weekly_coaching():
+    user_id = current_user.id
+
+    records = StudyRecord.query.filter(
+        StudyRecord.user_id == user_id,
+        StudyRecord.duration_hours > 0
+    ).all()
+
+    if len(records) < MIN_RECORDS_FOR_COACHING:
+        return jsonify({'error': 'insufficient_data'}), 400
+
+    today           = datetime.now().date()
+    week_start_date = today - timedelta(days=today.weekday())
+    week_start_str  = week_start_date.strftime('%Y-%m-%d')
+    last_week_start = week_start_date - timedelta(days=7)
+
+    this_week_recs = [r for r in records if r.study_date and datetime.strptime(r.study_date, '%Y-%m-%d').date() >= week_start_date]
+    last_week_recs = [r for r in records if r.study_date and last_week_start <= datetime.strptime(r.study_date, '%Y-%m-%d').date() < week_start_date]
+
+    this_week_h = round(sum(r.duration_hours for r in this_week_recs), 1)
+    last_week_h = round(sum(r.duration_hours for r in last_week_recs), 1)
+
+    subj_hours = defaultdict(float)
+    for r in this_week_recs:
+        subj_hours[r.subject] += r.duration_hours
+
+    weekly_goal = WeeklyGoal.query.filter_by(user_id=user_id, week_start=week_start_str).first()
+    goal_hours  = weekly_goal.goal_hours if weekly_goal else 10.0
+    goal_pct    = round(this_week_h / goal_hours * 100) if goal_hours > 0 else 0
+
+    subj_summary = ', '.join(f"{s}: {round(h,1)}h" for s, h in subj_hours.items()) or '없음'
+    diff = round(this_week_h - last_week_h, 1)
+    diff_str = ('+' if diff >= 0 else '') + str(diff) + 'h'
+
+    summary = (
+        f"이번 주 학습 요약:\n"
+        f"- 총 학습 시간: {this_week_h}h (주간 목표 {goal_hours}h 대비 {goal_pct}%)\n"
+        f"- 과목별: {subj_summary}\n"
+        f"- 지난주 대비: {diff_str}\n"
+        f"- 이번 주 학습 세션 수: {len(this_week_recs)}회"
+    )
+
+    client = _make_openai_client()
+    try:
+        response = client.chat.completions.create(
+            model="claude-sonnet-4-6",
+            max_tokens=250,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "당신은 대학생 학습 코치입니다. "
+                        "학생의 이번 주 학습 데이터를 보고 칭찬 1가지와 개선 제안 1~2가지를 "
+                        "자연스러운 한국어 2~3문장으로 말해주세요. "
+                        "과장하거나 이모지를 남발하지 마세요."
+                    )
+                },
+                {"role": "user", "content": summary}
+            ]
+        )
+        content  = response.choices[0].message.content.strip()
+        now_str  = datetime.now().strftime('%Y-%m-%d %H:%M')
+
+        coaching = WeeklyCoaching.query.filter_by(user_id=user_id, week_start=week_start_str).first()
+        if coaching:
+            coaching.content    = content
+            coaching.created_at = now_str
+        else:
+            coaching = WeeklyCoaching(
+                user_id    = user_id,
+                week_start = week_start_str,
+                content    = content,
+                created_at = now_str
+            )
+            db.session.add(coaching)
+        db.session.commit()
+
+        return jsonify({'success': True, 'content': content, 'created_at': now_str})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # ── AI 피드백 생성 + 저장
 @analysis_bp.route('/analysis/ai-feedback', methods=['POST'])
@@ -211,10 +357,7 @@ def ai_feedback():
     avg_hours     = round(total_hours / session_count, 1)
     dates         = [r.study_date for r in records[:10]]
 
-    client = OpenAI(
-        api_key=os.environ.get("AJOU_API_KEY"),
-        base_url="https://factchat-cloud.mindlogic.ai/v1/gateway"
-    )
+    client = _make_openai_client()
     prompt = f"""학생의 '{subject}' 과목 학습 데이터를 분석해주세요.
 
 [학습 데이터]
@@ -244,7 +387,6 @@ def ai_feedback():
                 raw = raw[4:]
         feedback = json.loads(raw.strip())
 
-        # DB 저장
         new_fb = AIFeedback(
             user_id          = user_id,
             subject          = subject,
@@ -283,10 +425,7 @@ def weekly_story():
         for s in story
     )
 
-    client = OpenAI(
-        api_key=os.environ.get("AJOU_API_KEY"),
-        base_url="https://factchat-cloud.mindlogic.ai/v1/gateway"
-    )
+    client = _make_openai_client()
     prompt = f"""이번 주 학생의 학습 기록입니다:
 {story_text}
 
