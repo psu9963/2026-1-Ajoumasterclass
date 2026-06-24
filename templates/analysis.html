@@ -5,8 +5,9 @@
 {% block extra_css %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
+  /* analysis 전용 스타일 */
   .tab-bar { display:flex; gap:4px; background:var(--surface-2); border-radius:var(--radius-md); padding:4px; margin-bottom:28px; width:fit-content; animation:fadeUp .3s ease both; }
-  .tab-btn { padding:8px 24px; border:none; background:none; border-radius:calc(var(--radius-md) - 2px); font-size:13.5px; font-weight:500; color:var(--text-2); cursor:pointer; transition:background .15s,color .15s; font-family:'pretendard',sans-serif; }
+  .tab-btn { padding:8px 24px; border:none; background:none; border-radius:calc(var(--radius-md) - 2px); font-size:13.5px; font-weight:500; color:var(--text-2); cursor:pointer; transition:background .15s,color .15s; font-family:'Pretendard',sans-serif; }
   .tab-btn.active { background:var(--surface); color:var(--text-1); box-shadow:0 1px 4px rgba(0,0,0,0.08); }
   .tab-panel { display:none; }
   .tab-panel.active { display:block; }
@@ -15,17 +16,17 @@
   .chart-body { padding:20px 22px; }
   .chart-full { grid-column:1/-1; }
   .subject-chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:24px; animation:fadeUp .3s ease both; }
-  .s-chip { padding:8px 18px; border:1.5px solid var(--border); border-radius:20px; background:var(--surface); font-size:13px; color:var(--text-2); cursor:pointer; transition:all .15s; font-family:'pretendard'',sans-serif; }
+  .s-chip { padding:8px 18px; border:1.5px solid var(--border); border-radius:20px; background:var(--surface); font-size:13px; color:var(--text-2); cursor:pointer; transition:all .15s; font-family:'Pretendard',sans-serif; }
   .s-chip:hover { border-color:var(--border-hover); color:var(--text-1); }
   .s-chip.active { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:500; }
   .detail-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px; }
   .detail-stat { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px; animation:fadeUp .35s ease both; transition:box-shadow .2s,transform .2s; }
   .detail-stat:hover { box-shadow:0 4px 14px rgba(0,0,0,.06); transform:translateY(-2px); }
   .detail-stat__label { font-size:11px; font-weight:500; color:var(--text-3); text-transform:uppercase; letter-spacing:.6px; margin-bottom:8px; }
-  .detail-stat__value { font-family:'pretendard',sans-serif; font-size:24px; font-weight:700; color:var(--text-1); }
+  .detail-stat__value { font-family:'Pretendard',sans-serif; font-size:24px; font-weight:700; color:var(--text-1); }
   .ai-feedback-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; animation:fadeUp .45s ease both; }
   .ai-feedback-body { padding:24px; }
-  .feedback-btn { display:inline-flex; align-items:center; gap:8px; padding:11px 24px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius-md); font-size:13px; font-weight:500; cursor:pointer; transition:background .15s; font-family:'pretendard',sans-serif; }
+  .feedback-btn { display:inline-flex; align-items:center; gap:8px; padding:11px 24px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius-md); font-size:13px; font-weight:500; cursor:pointer; transition:background .15s; font-family:'Pretendard',sans-serif; }
   .feedback-btn:hover { background:var(--accent-hover); }
   .feedback-btn:disabled { opacity:.5; cursor:not-allowed; }
   .feedback-result { margin-top:20px; display:none; }
@@ -36,10 +37,47 @@
   .feedback-tag { padding:5px 12px; border-radius:20px; font-size:12.5px; font-weight:500; }
   .feedback-tag--good { background:var(--c1b); color:var(--c1); }
   .feedback-tag--bad  { background:var(--c2b); color:var(--c2); }
-  .no-data-panel { text-align:center; padding:60px 24px; color:var(--text-3); }
-  .no-data-panel p { font-size:14px; color:var(--text-2); margin:12px 0 20px; }
-  @keyframes ldBounce { 0%,80%,100%{transform:scale(0.6);opacity:.3} 40%{transform:scale(1);opacity:1} }
   @media(max-width:900px){ .chart-grid{grid-template-columns:1fr} .detail-grid{grid-template-columns:repeat(2,1fr)} .chart-full{grid-column:1} }
+  .plan-card { border-radius:var(--radius-lg); background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--accent); margin-bottom:12px; overflow:hidden; animation:fadeUp .35s ease both; }
+  .plan-card-header { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--border); }
+  .plan-card-body { padding:16px 18px; }
+  .plan-diagnosis { font-size:13.5px; color:var(--text-2); line-height:1.7; margin-bottom:14px; }
+  .plan-weeks-list { display:flex; flex-direction:column; }
+  .plan-week-item { display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); }
+  .plan-week-item:last-child { border-bottom:none; }
+  .plan-week-theme { font-size:13.5px; font-weight:500; color:var(--text-1); }
+  .plan-week-topics { font-size:12px; color:var(--text-3); margin-top:3px; }
+  .plan-tips { margin-top:14px; }
+  .plan-tips summary { font-size:13px; color:var(--accent); cursor:pointer; padding:6px 0; font-family:'Pretendard',sans-serif; }
+  .plan-tips ul { padding-left:20px; margin:8px 0 0; }
+  .plan-tips li { font-size:13px; color:var(--text-2); line-height:1.6; margin-bottom:4px; }
+  /* ── 주간 코칭 카드 */
+  .coaching-card { border-radius:var(--radius-lg); background:var(--surface); border:1px solid var(--border); overflow:hidden; margin-bottom:20px; animation:fadeUp .35s ease both; }
+  .coaching-card-head { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--border); }
+  .coaching-card-body { padding:20px; }
+  .coaching-badge { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; background:#eff6ff; color:#2563eb; border-radius:20px; font-size:12px; font-weight:600; }
+  .coaching-text { font-size:14.5px; color:var(--text-1); line-height:1.85; margin:0 0 8px; }
+  .coaching-meta { font-size:12px; color:var(--text-3); margin:0; }
+  .coaching-empty { text-align:center; padding:8px 0 4px; }
+  .coaching-empty p { font-size:13.5px; color:var(--text-2); margin:0 0 14px; }
+  .coaching-btn { display:inline-flex; align-items:center; gap:7px; padding:9px 20px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius-md); font-size:13px; font-weight:500; cursor:pointer; transition:background .15s; font-family:'Pretendard',sans-serif; text-decoration:none; }
+  .coaching-btn:hover { background:var(--accent-hover); }
+  .coaching-btn:disabled { opacity:.5; cursor:not-allowed; }
+  .coaching-btn--sm { padding:7px 16px; background:none; border:1.5px solid var(--border); color:var(--text-2); font-size:12.5px; }
+  .coaching-btn--sm:hover { border-color:var(--accent); color:var(--accent); background:none; }
+  /* ── 주간 목표 달성률 */
+  .goal-card { border-radius:var(--radius-lg); background:var(--surface); border:1px solid var(--border); padding:16px 20px; margin-bottom:16px; animation:fadeUp .3s ease both; }
+  .goal-card-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .goal-label { font-size:11px; font-weight:500; color:var(--text-3); text-transform:uppercase; letter-spacing:.6px; }
+  .goal-pct { font-size:22px; font-weight:700; color:var(--accent); font-family:'Pretendard',sans-serif; }
+  .goal-pct.full { color:#16a34a; }
+  .goal-bar-wrap { height:8px; background:#f3f4f6; border-radius:4px; overflow:hidden; margin-bottom:10px; }
+  .goal-bar-fill { height:100%; background:var(--accent); border-radius:4px; transition:width .6s ease; }
+  .goal-bar-fill.full { background:#16a34a; }
+  .goal-diff { font-size:12.5px; color:var(--text-3); }
+  .goal-diff .up { color:#16a34a; font-weight:600; }
+  .goal-diff .down { color:#dc2626; font-weight:600; }
+  .goal-summary { font-size:13px; font-weight:500; color:var(--text-2); }
 </style>
 {% endblock %}
 
@@ -53,24 +91,83 @@
 
 {% if not has_data %}
 <div class="card">
-  <div class="no-data-panel">
-    <div class="empty-icon" style="justify-content:center;margin-bottom:12px;opacity:.35;">
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-    </div>
-    <p>아직 분석할 학습 기록이 없어요</p>
-    <a href="{{ url_for('study_history.history') }}" class="btn-primary btn-sm">학습 기록 추가하기</a>
+  <div class="empty-state">
+    <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+    </svg>
+    <p class="empty-state-title">아직 분석할 학습 기록이 없어요</p>
+    <p class="empty-state-desc">학습 기록이 쌓이면 패턴과 통계를 분석해드려요</p>
+    <a href="{{ url_for('study_history.history') }}" class="empty-state-btn">학습 기록 추가하기</a>
   </div>
 </div>
 
 {% else %}
+<!-- ── AI 주간 코칭 리포트 ── -->
+<div class="coaching-card" id="coaching-card">
+  <div class="coaching-card-head">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span class="coaching-badge">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        AI 주간 코칭
+      </span>
+      <span style="font-size:13px;font-weight:600;color:var(--text-1);">이번 주 학습 피드백</span>
+    </div>
+    {% if has_enough_data %}
+    <button class="coaching-btn coaching-btn--sm" id="coaching-regen-btn" onclick="generateCoaching()">다시 분석하기</button>
+    {% endif %}
+  </div>
+  <div class="coaching-card-body">
+    {% if coaching_content %}
+    <p class="coaching-text" id="coaching-text">{{ coaching_content }}</p>
+    <p class="coaching-meta" id="coaching-meta">{{ coaching_created }} 생성</p>
+    {% elif has_enough_data %}
+    <div class="coaching-empty" id="coaching-empty">
+      <p>이번 주 학습 데이터를 분석해 맞춤 코칭 멘트를 드릴게요.</p>
+      <button class="coaching-btn" onclick="generateCoaching()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        주간 코칭 받기
+      </button>
+    </div>
+    {% else %}
+    <div class="coaching-empty">
+      <p>기록이 3개 이상 쌓이면 코칭을 보여드릴게요.</p>
+      <a href="{{ url_for('study_history.history') }}" class="coaching-btn">학습 기록 추가하기</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
 <div class="tab-bar">
   <button class="tab-btn active" onclick="switchTab('overall',this)">전체 분석</button>
   <button class="tab-btn" onclick="switchTab('subject',this)">과목별 분석</button>
+  <button class="tab-btn" onclick="switchTab('aiplan',this)">AI 학습 계획</button>
 </div>
 
 <!-- 전체 분석 -->
 <div id="tab-overall" class="tab-panel active">
-  <div class="stat-grid" style="margin-bottom:16px;">
+
+  <!-- 주간 목표 달성률 -->
+  <div class="goal-card">
+    <div class="goal-card-row">
+      <span class="goal-label">이번 주 목표 달성률</span>
+      <span class="goal-pct {% if goal_pct >= 100 %}full{% endif %}">{{ goal_pct }}%</span>
+    </div>
+    <div class="goal-bar-wrap">
+      <div class="goal-bar-fill {% if goal_pct >= 100 %}full{% endif %}" style="width:{{ goal_pct }}%"></div>
+    </div>
+    <div class="goal-card-row" style="margin-bottom:0;">
+      <span class="goal-diff">
+        목표 <strong>{{ goal_hours|int }}h</strong> 중 <strong>{{ this_week_h }}h</strong> 달성
+        &nbsp;·&nbsp; 지난주 대비
+        {% if goal_diff > 0 %}<span class="up">+{{ goal_diff }}h</span>
+        {% elif goal_diff < 0 %}<span class="down">{{ goal_diff }}h</span>
+        {% else %}<span>변동 없음</span>{% endif %}
+      </span>
+      <span class="goal-summary">{{ this_week_h }} / {{ goal_hours|int }}h</span>
+    </div>
+  </div>
+
+  <div class="stat-grid" style="margin-bottom:16px; grid-template-columns:repeat(3,1fr);">
     <div class="stat-card">
       <div class="stat-card__icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
       <div class="stat-card__label">총 학습 시간</div>
@@ -119,12 +216,21 @@
   <div id="subject-detail"></div>
   {% else %}
   <div class="card">
-    <div class="no-data-panel">
-      <p>분석할 과목이 없어요</p>
-      <a href="{{ url_for('study_history.history') }}" class="btn-primary btn-sm">학습 기록 추가하기</a>
+    <div class="empty-state">
+      <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+      </svg>
+      <p class="empty-state-title">분석할 과목이 없어요</p>
+      <p class="empty-state-desc">학습 기록을 추가하면 과목별 분석이 시작돼요</p>
+      <a href="{{ url_for('study_history.history') }}" class="empty-state-btn">학습 기록 추가하기</a>
     </div>
   </div>
   {% endif %}
+</div>
+
+<!-- AI 학습 계획 탭 -->
+<div id="tab-aiplan" class="tab-panel">
+  <div id="aiplan-list"></div>
 </div>
 {% endif %}
 {% endblock %}
@@ -141,12 +247,12 @@ function switchTab(name,btn){
 
 const subjectDetails = {{ subject_details|safe }};
 let subjectChartInst = null;
-const COLORS = ['#2d2d2d','#2d6a4f','#8b5e3c','#4a5568','#6b4c7a'];
+const COLORS = ['#2563eb','#16a34a','#9333ea','#ea580c','#6b7280'];
 
 new Chart(document.getElementById('weeklyChart'),{
   type:'line',
-  data:{labels:{{ weekly_labels|safe }},datasets:[{label:'학습 시간(h)',data:{{ weekly_values|safe }},borderColor:'#2d2d2d',backgroundColor:'rgba(45,45,45,0.07)',borderWidth:2,pointBackgroundColor:'#2d2d2d',pointRadius:4,tension:0.4,fill:true}]},
-  options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f0f0ee'}},x:{grid:{display:false}}}}
+  data:{labels:{{ weekly_labels|safe }},datasets:[{label:'학습 시간(h)',data:{{ weekly_values|safe }},borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,0.07)',borderWidth:2,pointBackgroundColor:'#2563eb',pointRadius:4,tension:0.4,fill:true}]},
+  options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f3f4f6'}},x:{grid:{display:false}}}}
 });
 
 new Chart(document.getElementById('subjectChart'),{
@@ -159,8 +265,8 @@ const dayVals={{ day_values|safe }};
 const maxDay=Math.max(...dayVals);
 new Chart(document.getElementById('dayChart'),{
   type:'bar',
-  data:{labels:{{ day_names|safe }},datasets:[{label:'학습 시간(h)',data:dayVals,backgroundColor:dayVals.map(v=>v===maxDay&&maxDay>0?'#2d2d2d':'#e8e8e4'),borderRadius:6}]},
-  options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f0f0ee'}},x:{grid:{display:false}}}}
+  data:{labels:{{ day_names|safe }},datasets:[{label:'학습 시간(h)',data:dayVals,backgroundColor:dayVals.map(v=>v===maxDay&&maxDay>0?'#2563eb':'#dbeafe'),borderRadius:6}]},
+  options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f3f4f6'}},x:{grid:{display:false}}}}
 });
 
 function selectSubject(subject,btn){
@@ -198,8 +304,8 @@ function renderSubjectDetail(subject){
   if(subjectChartInst) subjectChartInst.destroy();
   subjectChartInst=new Chart(document.getElementById('subjectMonthlyChart'),{
     type:'bar',
-    data:{labels:d.monthly_labels,datasets:[{label:'학습 시간(h)',data:d.monthly_values,backgroundColor:'#2d2d2d',borderRadius:6}]},
-    options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f0f0ee'}},x:{grid:{display:false}}}}
+    data:{labels:d.monthly_labels,datasets:[{label:'학습 시간(h)',data:d.monthly_values,backgroundColor:'#2563eb',borderRadius:6}]},
+    options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f3f4f6'}},x:{grid:{display:false}}}}
   });
 }
 
@@ -222,10 +328,10 @@ function getAIFeedback(subject){
       const f=data.feedback;
       result.style.display='block';
       result.innerHTML=`
-        <div class="feedback-section"><h4>📊 진단</h4><p>${f.diagnosis}</p></div>
-        <div class="feedback-section"><h4>✅ 잘하고 있는 점</h4><div class="feedback-tags">${f.strengths.map(s=>`<span class="feedback-tag feedback-tag--good">${s}</span>`).join('')}</div></div>
-        <div class="feedback-section"><h4>⚡ 개선할 점</h4><div class="feedback-tags">${f.improvements.map(s=>`<span class="feedback-tag feedback-tag--bad">${s}</span>`).join('')}</div></div>
-        <div class="feedback-section"><h4>💡 추천 학습법</h4><p>${f.recommendation}</p></div>`;
+        <div class="feedback-section"><h4><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-right:5px;"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>진단</h4><p>${f.diagnosis}</p></div>
+        <div class="feedback-section"><h4><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-right:5px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>잘하고 있는 점</h4><div class="feedback-tags">${f.strengths.map(s=>`<span class="feedback-tag feedback-tag--good">${s}</span>`).join('')}</div></div>
+        <div class="feedback-section"><h4><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-right:5px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>개선할 점</h4><div class="feedback-tags">${f.improvements.map(s=>`<span class="feedback-tag feedback-tag--bad">${s}</span>`).join('')}</div></div>
+        <div class="feedback-section"><h4><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-right:5px;"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg>추천 학습법</h4><p>${f.recommendation}</p></div>`;
     } else {
       result.style.display='block';
       result.innerHTML=`<p style="color:#c0392b;font-size:13px;">오류: ${data.error}</p>`;
@@ -238,6 +344,92 @@ function getAIFeedback(subject){
 
 const firstSubject={{ subjects|tojson }};
 if(firstSubject.length>0) renderSubjectDetail(firstSubject[0]);
+
+const aiPlansData={{ ai_plans|safe }};
+function renderAIPlans(){
+  const c=document.getElementById('aiplan-list');
+  if(!aiPlansData||!aiPlansData.length){
+    c.innerHTML=`<div class="card"><div class="empty-state">
+      <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <p class="empty-state-title">생성된 AI 학습 계획이 없어요</p>
+      <p class="empty-state-desc">AI 학습 계획 탭에서 첫 계획을 만들어보세요</p>
+      <a href="/ai-plan" class="empty-state-btn">계획 만들러 가기</a>
+    </div></div>`;
+    return;
+  }
+  c.innerHTML=aiPlansData.map((p,idx)=>`
+    <div class="plan-card">
+      <div class="plan-card-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="subject-badge subject-badge--${idx%5}">${p.subject}</span>
+          <span style="font-weight:600;font-size:14px;">${p.goal_weeks}주 학습 계획</span>
+        </div>
+        <span style="font-size:12px;color:var(--text-3);">${p.created_at}</span>
+      </div>
+      <div class="plan-card-body">
+        <p class="plan-diagnosis">${p.plan.diagnosis}</p>
+        <div class="plan-weeks-list">
+          ${p.plan.weeks.map(w=>`
+            <div class="plan-week-item">
+              <span class="subject-badge subject-badge--${(w.week-1)%5}" style="flex-shrink:0;">${w.week}주차</span>
+              <div>
+                <div class="plan-week-theme">${w.theme}</div>
+                <div class="plan-week-topics">${w.topics.join(' · ')}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        ${p.plan.tips&&p.plan.tips.length?`
+          <details class="plan-tips">
+            <summary>학습 팁 ${p.plan.tips.length}개 보기</summary>
+            <ul>${p.plan.tips.map(t=>`<li>${t}</li>`).join('')}</ul>
+          </details>
+        `:''}
+      </div>
+    </div>
+  `).join('');
+}
+renderAIPlans();
+
+function generateCoaching(){
+  const regenBtn = document.getElementById('coaching-regen-btn');
+  const allBtns  = document.querySelectorAll('[onclick="generateCoaching()"]');
+  allBtns.forEach(b=>{b.disabled=true; b.textContent='분석 중...';});
+
+  fetch('/analysis/weekly-coaching',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+  .then(r=>r.json())
+  .then(data=>{
+    allBtns.forEach(b=>{b.disabled=false;});
+    if(regenBtn) regenBtn.textContent='다시 분석하기';
+    if(data.success){
+      const emptyEl = document.getElementById('coaching-empty');
+      if(emptyEl) emptyEl.remove();
+      const body = document.querySelector('#coaching-card .coaching-card-body');
+      let textEl = document.getElementById('coaching-text');
+      let metaEl = document.getElementById('coaching-meta');
+      if(!textEl){
+        body.innerHTML='<p class="coaching-text" id="coaching-text"></p><p class="coaching-meta" id="coaching-meta"></p>';
+        textEl = document.getElementById('coaching-text');
+        metaEl = document.getElementById('coaching-meta');
+      }
+      textEl.textContent = data.content;
+      metaEl.textContent = data.created_at + ' 생성';
+      if(!regenBtn){
+        const head = document.querySelector('#coaching-card .coaching-card-head');
+        const b = document.createElement('button');
+        b.className='coaching-btn coaching-btn--sm'; b.id='coaching-regen-btn';
+        b.setAttribute('onclick','generateCoaching()'); b.textContent='다시 분석하기';
+        head.appendChild(b);
+      }
+    } else {
+      const msg = data.error==='insufficient_data' ? '학습 기록이 아직 부족해요.' : ('오류: '+(data.error||''));
+      alert(msg);
+    }
+  }).catch(()=>{
+    allBtns.forEach(b=>{b.disabled=false; b.textContent=b.id==='coaching-regen-btn'?'다시 분석하기':'주간 코칭 받기';});
+    alert('네트워크 오류가 발생했습니다.');
+  });
+}
 </script>
 {% endif %}
 {% endblock %}

@@ -68,9 +68,25 @@ def ai_plan():
     user_id  = current_user.id
     records  = StudyRecord.query.filter_by(user_id=current_user.id).all()
     subjects = list({r.subject for r in records if r.duration_hours > 0})
+
+    plans = AIPlan.query.filter_by(user_id=user_id).order_by(AIPlan.id.desc()).all()
+    plans_by_subject = {}
+    for p in plans:
+        plan_data = {
+            'id':         p.id,
+            'subject':    p.subject,
+            'goal_weeks': p.goal_weeks,
+            'created_at': p.created_at,
+            'plan':       json.loads(p.plan_content)
+        }
+        if p.subject not in plans_by_subject:
+            plans_by_subject[p.subject] = []
+        plans_by_subject[p.subject].append(plan_data)
+
     return render_template('ai_plan.html',
                            subjects=subjects,
-                           username=current_user.username)
+                           username=current_user.username,
+                           plans_by_subject=plans_by_subject)
 
 @ai_plan_bp.route('/ai-plan/analyze', methods=['POST'])
 @login_required
@@ -110,7 +126,7 @@ def analyze():
         )
         db.session.add(new_plan)
         db.session.commit()
-        return jsonify({'success': True, 'plan': plan})
+        return jsonify({'success': True, 'plan': plan, 'plan_id': new_plan.id, 'created_at': new_plan.created_at})
 
     except Exception as e:
         return jsonify({'error': f'AI 분석 중 오류가 발생했습니다: {str(e)}'}), 500
