@@ -12,6 +12,8 @@ class User(UserMixin, db.Model):
     password = db.Column(db.String(255), nullable=True) # 비밀번호
     provider = db.Column(db.String(50)) # 'kakao', 'google' 등
     social_id = db.Column(db.String(100), unique=True) # 소셜에서 주는 고유 번호
+    display_name = db.Column(db.String(100), nullable=True)
+    profile_image = db.Column(db.String(255), nullable=True)
 
 class StudyRecord(db.Model):
     id = db.Column(db.Integer, primary_key=True) # 고유 번호

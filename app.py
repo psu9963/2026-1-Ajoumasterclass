@@ -69,6 +69,16 @@ with app.app_context():
         db.session.commit()
     except Exception:
         db.session.rollback()
+    try:
+        db.session.execute(db.text("ALTER TABLE user ADD COLUMN display_name VARCHAR(100)"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+    try:
+        db.session.execute(db.text("ALTER TABLE user ADD COLUMN profile_image VARCHAR(255)"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
 
 # ── 블루프린트 등록 ───────────────────────────────
 app.register_blueprint(login_bp)
