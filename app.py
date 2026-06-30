@@ -4,9 +4,10 @@ from views.login import login_bp
 from views.dashboard import dashboard_bp
 from views.study_history import study_history_bp
 from views.classroom import classroom_bp
-from views.ai_plan import ai_plan_bp
 from views.analysis import analysis_bp
 from views.mypage import mypage_bp
+from views.calendar import calendar_bp
+from views.grade_predict import grade_predict_bp
 from models import db, User
 from flask_login import login_user, LoginManager
 import requests
@@ -84,10 +85,11 @@ with app.app_context():
 app.register_blueprint(login_bp)
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(study_history_bp)
+app.register_blueprint(grade_predict_bp)
 app.register_blueprint(classroom_bp)
-app.register_blueprint(ai_plan_bp)
 app.register_blueprint(analysis_bp)
 app.register_blueprint(mypage_bp)
+app.register_blueprint(calendar_bp)
 
 # ── 홈 ───────────────────────────────────────────
 @app.route('/')

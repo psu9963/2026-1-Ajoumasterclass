@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
-from datetime import date
+from datetime import date, datetime
+
 
 # 데이터베이스 객체 생성
 db = SQLAlchemy()
@@ -58,6 +59,66 @@ class WeeklyCoaching(db.Model):
     content    = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.String(30), nullable=False)
 
+class CalendarEvent(db.Model):
+    id          = db.Column(db.Integer, primary_key=True)
+    user_id     = db.Column(db.Integer, nullable=False)
+    title       = db.Column(db.String(200), nullable=False)       # 일정 제목
+    description = db.Column(db.Text)                              # 상세 내용
+    start_date  = db.Column(db.String(20), nullable=False)        # '2024-05-20'
+    end_date    = db.Column(db.String(20))                        # 종료일 (선택)
+    start_time  = db.Column(db.String(10))                        # '09:00' (선택)
+    end_time    = db.Column(db.String(10))                        # '11:00' (선택)
+    color       = db.Column(db.String(20), default='blue')        # 색상 카테고리
+    category    = db.Column(db.String(50), default='일반')         # 카테고리명
+    created_at  = db.Column(db.String(30), nullable=False)
+
+class GradePrediction(db.Model):
+    __tablename__ = 'grade_predictions'
+
+    id               = db.Column(db.Integer, primary_key=True)
+    user_id          = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    subject_name     = db.Column(db.String(100), nullable=False)
+    total_students   = db.Column(db.Integer)
+    created_at       = db.Column(db.String(30))
+    current_step     = db.Column(db.Integer, default=1)
+
+    # 반영 비율
+    midterm_ratio    = db.Column(db.Float, default=30)
+    final_ratio      = db.Column(db.Float, default=40)
+    assignment_ratio = db.Column(db.Float, default=20)
+    attendance_ratio = db.Column(db.Float, default=10)
+    other_ratio      = db.Column(db.Float, default=0)
+
+    # 중간고사
+    midterm_score    = db.Column(db.Float)
+    midterm_total    = db.Column(db.Float, default=100)   # ← 추가
+    midterm_average  = db.Column(db.Float)
+    midterm_median   = db.Column(db.Float)                # ← 추가
+    midterm_std      = db.Column(db.Float)
+    midterm_analysis = db.Column(db.Text)
+
+    # 기말고사
+    final_score      = db.Column(db.Float)
+    final_total      = db.Column(db.Float, default=100)   # ← 추가
+    final_average    = db.Column(db.Float)
+    final_median     = db.Column(db.Float)                # ← 추가
+    final_std        = db.Column(db.Float)
+    final_analysis   = db.Column(db.Text)
+
+    # 과제 (JSON 배열)
+    assignment_data  = db.Column(db.Text)                 # ← 추가
+
+    # 출석
+    attendance_score = db.Column(db.Float)
+    attendance_total = db.Column(db.Float, default=100)   # ← 추가
+
+    # 기타
+    other_score      = db.Column(db.Float)
+    other_total      = db.Column(db.Float, default=100)   # ← 추가
+
+    # 최종 결과
+    final_result     = db.Column(db.Text)
+    
 class Subject(db.Model):
     id                 = db.Column(db.Integer, primary_key=True)
     user_id            = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
