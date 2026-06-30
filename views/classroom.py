@@ -377,40 +377,30 @@ def generate_study_plan(subject_id):
     if subject.user_id != current_user.id:
         abort(403)
 
-    try:
-        week_from = int(request.json.get('week_from', 0))
-        week_to   = int(request.json.get('week_to', 0))
-    except (TypeError, ValueError):
-        return jsonify({'error': '주차 범위가 올바르지 않아요.'}), 400
+    # 이미 학습 계획이 있으면 차단 (과목당 1개 고정)
+    if StudyPlan.query.filter_by(subject_id=subject_id).first():
+        return jsonify({'error': '이미 학습 계획이 있어요.'}), 409
 
-    if week_from < 1 or week_to < week_from:
-        return jsonify({'error': '주차 범위가 올바르지 않아요.'}), 400
-
-    weekly_items = WeeklyPlan.query.filter(
-        WeeklyPlan.subject_id == subject_id,
-        WeeklyPlan.week >= week_from,
-        WeeklyPlan.week <= week_to,
-    ).order_by(WeeklyPlan.week).all()
-
+    # 등록된 전체 WeeklyPlan 사용
+    weekly_items = WeeklyPlan.query.filter_by(subject_id=subject_id).order_by(WeeklyPlan.week).all()
     if not weekly_items:
-        return jsonify({'error': '선택한 범위에 등록된 주차 주제가 없어요.'}), 400
+        return jsonify({'error': '등록된 주차 주제가 없어요.'}), 400
 
     plan_data = _call_llm_for_study_plan(weekly_items)
     if plan_data is None:
         return jsonify({'error': 'AI 계획 생성에 실패했어요. 다시 시도해 주세요.'}), 500
 
-    plan_name = str(request.json.get('name', '')).strip()
-    if not plan_name:
-        plan_name = f"{week_from}~{week_to}주차 계획"
+    week_from = weekly_items[0].week
+    week_to   = weekly_items[-1].week
     study_plan = StudyPlan(
         subject_id=subject_id,
         week_from=week_from,
         week_to=week_to,
-        name=plan_name,
+        name="AI 학습 계획",
         created_at=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
     )
     db.session.add(study_plan)
-    db.session.flush()  # study_plan.id 확보
+    db.session.flush()
 
     for entry in plan_data:
         try:
@@ -440,12 +430,8 @@ def generate_study_plan(subject_id):
                                        .order_by(StudyPlanItem.week, StudyPlanItem.id).all()
     ]
     return jsonify({
-        'plan_id':    study_plan.id,
-        'week_from':  week_from,
-        'week_to':    week_to,
-        'name':       study_plan.name,
-        'created_at': study_plan.created_at,
-        'items':      result_items,
+        'plan_id': study_plan.id,
+        'items':   result_items,
     })
 
 
@@ -596,5 +582,98 @@ def delete_exam_plan(subject_id, plan_id):
         abort(403)
     plan = ExamPlan.query.filter_by(id=plan_id, subject_id=subject_id).first_or_404()
     db.session.delete(plan)
+    db.session.commit()
+    return jsonify({'ok': True})
+
+
+@classroom_bp.route('/classroom/<int:subject_id>/rename', methods=['POST'])
+@login_required
+def rename_subject(subject_id):
+    subject = Subject.query.get_or_404(subject_id)
+    if subject.user_id != current_user.id:
+        abort(403)
+    body = request.get_json(silent=True) or {}
+    name = str(body.get('name', '')).strip()
+    if not name:
+        return jsonify({'error': '과목명을 입력해주세요.'}), 400
+    if len(name) > 100:
+        return jsonify({'error': '과목명은 100자 이내여야 해요.'}), 400
+    subject.name = name
+    db.session.commit()
+    return jsonify({'ok': True, 'name': subject.name})
+
+
+@classroom_bp.route('/classroom/<int:subject_id>/replace-pdf', methods=['POST'])
+@login_required
+def replace_pdf(subject_id):
+    subject = Subject.query.get_or_404(subject_id)
+    if subject.user_id != current_user.id:
+        abort(403)
+
+    pdf = request.files.get('syllabus')
+    if not pdf or pdf.filename == '':
+        flash('PDF 파일을 선택해주세요.', 'error')
+        return redirect(url_for('classroom.classroom_detail', subject_id=subject_id))
+    if not _allowed_file(pdf.filename):
+        flash('PDF 파일만 업로드할 수 있어요.', 'error')
+        return redirect(url_for('classroom.classroom_detail', subject_id=subject_id))
+
+    pdf.seek(0, 2)
+    if pdf.tell() > MAX_FILE_SIZE:
+        flash('파일 크기가 10MB를 초과해요.', 'error')
+        return redirect(url_for('classroom.classroom_detail', subject_id=subject_id))
+    pdf.seek(0)
+
+    upload_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'syllabi')
+    safe_name = secure_filename(pdf.filename)
+    unique_name = f"{uuid.uuid4().hex}_{safe_name}"
+    pdf.save(os.path.join(upload_dir, unique_name))
+
+    # 이전 파일 삭제
+    if subject.syllabus_filename:
+        old_path = os.path.join(upload_dir, subject.syllabus_filename)
+        if os.path.exists(old_path):
+            try:
+                os.remove(old_path)
+            except OSError:
+                pass
+
+    subject.syllabus_filename = unique_name
+    subject.syllabus_analyzed = False
+    db.session.commit()
+
+    # 재분석 (성공 시에만 WeeklyPlan 교체, StudyPlan/ExamPlan은 건드리지 않음)
+    ok = _run_analysis(subject)
+    if ok:
+        flash('강의계획서가 교체됐어요. 주차별 주제가 새로 분석됐어요.', 'success')
+
+    return redirect(url_for('classroom.classroom_detail', subject_id=subject_id))
+
+
+@classroom_bp.route('/classroom/<int:subject_id>/delete', methods=['POST'])
+@login_required
+def delete_subject(subject_id):
+    subject = Subject.query.get_or_404(subject_id)
+    if subject.user_id != current_user.id:
+        abort(403)
+
+    # 하위 데이터 삭제 (StudyPlan/ExamPlan은 cascade로 item까지 삭제됨)
+    WeeklyPlan.query.filter_by(subject_id=subject_id).delete()
+    for sp in StudyPlan.query.filter_by(subject_id=subject_id).all():
+        db.session.delete(sp)
+    for ep in ExamPlan.query.filter_by(subject_id=subject_id).all():
+        db.session.delete(ep)
+
+    # PDF 파일 삭제
+    if subject.syllabus_filename:
+        upload_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'syllabi')
+        pdf_path = os.path.join(upload_dir, subject.syllabus_filename)
+        if os.path.exists(pdf_path):
+            try:
+                os.remove(pdf_path)
+            except OSError:
+                pass
+
+    db.session.delete(subject)
     db.session.commit()
     return jsonify({'ok': True})

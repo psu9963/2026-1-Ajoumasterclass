@@ -28,7 +28,27 @@
           <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
         </svg>
       </div>
-      <h1 style="font-size:1rem; font-weight:800; color:var(--gray-900); margin:0; line-height:1.3;">{{ subject.name }}</h1>
+      <div style="flex:1; min-width:0;">
+        <h1 id="subject-name-display" style="font-size:1rem; font-weight:800; color:var(--gray-900); margin:0; line-height:1.3; word-break:break-all;">{{ subject.name }}</h1>
+        <div id="subject-name-edit" style="display:none; align-items:center; gap:5px;">
+          <input id="subject-name-input" type="text" value="{{ subject.name }}" maxlength="100"
+                 style="flex:1; min-width:0; padding:3px 7px; border:1.5px solid #2563eb; border-radius:6px; font-size:0.95rem; font-weight:700; color:var(--gray-900); outline:none; background:#fff;"
+                 onkeydown="if(event.key==='Enter')saveRename(); if(event.key==='Escape')cancelRename();"/>
+          <button onclick="saveRename()" title="저장"
+                  style="padding:3px 8px; background:#2563eb; color:#fff; border-radius:5px; font-size:11px; font-weight:600; cursor:pointer; white-space:nowrap;">저장</button>
+          <button onclick="cancelRename()" title="취소"
+                  style="padding:3px 6px; border:1px solid var(--gray-200); border-radius:5px; font-size:11px; color:var(--gray-500); background:#fff; cursor:pointer;">✕</button>
+        </div>
+        <div id="rename-error" style="display:none; font-size:11px; color:#ef4444; margin-top:3px;"></div>
+      </div>
+      <button id="rename-btn" onclick="startRename()" title="과목명 수정"
+              style="padding:4px; background:none; border:none; cursor:pointer; color:var(--gray-300); border-radius:5px; transition:color .15s; flex-shrink:0;"
+              onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='var(--gray-300)'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+      </button>
     </div>
 
     <!-- 메타 정보 -->
@@ -54,7 +74,7 @@
     <!-- PDF 보기 -->
     {% if subject.syllabus_filename %}
     <a href="{{ url_for('classroom.serve_syllabus', filename=subject.syllabus_filename) }}" target="_blank"
-       style="display:flex; align-items:center; justify-content:center; gap:6px; width:100%; padding:8px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; font-size:12px; font-weight:600; color:#16a34a; text-decoration:none; transition:opacity .15s; box-sizing:border-box; margin-bottom:10px;"
+       style="display:flex; align-items:center; justify-content:center; gap:6px; width:100%; padding:8px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; font-size:12px; font-weight:600; color:#16a34a; text-decoration:none; transition:opacity .15s; box-sizing:border-box; margin-bottom:6px;"
        onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -62,22 +82,22 @@
       </svg>
       강의계획서 PDF 보기
     </a>
+    <!-- PDF 교체 -->
+    <button onclick="openReplacePdfModal()"
+            style="display:flex; align-items:center; justify-content:center; gap:6px; width:100%; padding:8px; background:#fff; border:1px solid var(--gray-200); border-radius:8px; font-size:12px; font-weight:600; color:var(--gray-500); cursor:pointer; box-sizing:border-box; margin-bottom:10px; transition:border-color .15s, color .15s;"
+            onmouseover="this.style.borderColor='#2563eb';this.style.color='#2563eb'"
+            onmouseout="this.style.borderColor='var(--gray-200)';this.style.color='var(--gray-500)'">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      PDF 교체
+    </button>
     {% endif %}
 
-    <!-- 분석 상태 + 재분석 -->
+    <!-- 재분석 + 삭제 -->
     <div style="display:flex; flex-direction:column; gap:7px;">
-      {% if subject.syllabus_analyzed %}
-      <span style="display:inline-flex; align-items:center; justify-content:center; gap:4px; padding:4px 0; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:7px; font-size:11px; font-weight:600; color:#16a34a;">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
-        </svg>
-        분석 완료
-      </span>
-      {% else %}
-      <span style="display:inline-flex; align-items:center; justify-content:center; padding:4px 0; background:#fef9c3; border:1px solid #fde68a; border-radius:7px; font-size:11px; font-weight:600; color:#92400e;">
-        미분석
-      </span>
-      {% endif %}
       {% if subject.syllabus_filename %}
       <form method="POST" action="{{ url_for('classroom.reanalyze', subject_id=subject.id) }}" style="margin:0;">
         <button type="submit"
@@ -88,12 +108,23 @@
         </button>
       </form>
       {% endif %}
+      <!-- 강의실 삭제 -->
+      <button onclick="deleteSubject()"
+              style="width:100%; padding:7px; border:1px solid #fecaca; border-radius:7px; font-size:11px; font-weight:600; color:#ef4444; background:#fff; cursor:pointer; transition:border-color .15s, background .15s; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:4px;"
+              onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+          <path d="M10 11v6M14 11v6"/>
+        </svg>
+        강의실 삭제
+      </button>
     </div>
   </div>
 
   <!-- 오른쪽: 주차별 주제 카드 -->
-  <div class="card" style="padding:0; overflow:hidden;">
-    <div style="padding:14px 18px; border-bottom:1px solid var(--gray-100); display:flex; align-items:center; gap:8px;">
+  <div class="card" style="padding:0; overflow:hidden; display:flex; flex-direction:column;">
+    <div style="padding:14px 18px; border-bottom:1px solid var(--gray-100); display:flex; align-items:center; gap:8px; flex-shrink:0;">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
       </svg>
@@ -108,20 +139,20 @@
     {% set half = ((plans|length) + 1) // 2 %}
     {% set left_plans  = plans[:half] %}
     {% set right_plans = plans[half:] %}
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0;">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0; flex:1; min-height:0;">
       <!-- 왼쪽 열 -->
-      <div style="border-right:1px solid var(--gray-100);">
+      <div style="border-right:1px solid var(--gray-100); display:flex; flex-direction:column;">
         {% for p in left_plans %}
-        <div style="display:flex; align-items:center; gap:0; padding:5px 14px; border-bottom:1px solid var(--gray-50); {% if loop.last and not right_plans %}border-bottom:none;{% endif %}">
+        <div style="display:flex; align-items:center; gap:0; padding:0 14px; flex:1; border-bottom:1px solid var(--gray-50); {% if loop.last and not right_plans %}border-bottom:none;{% endif %}">
           <span style="font-size:11px; font-weight:700; color:#2563eb; width:26px; flex-shrink:0; font-variant-numeric:tabular-nums;">{{ p.week }}주</span>
           <span style="font-size:12px; color:var(--gray-700); line-height:1.4;">{{ p.topic }}</span>
         </div>
         {% endfor %}
       </div>
       <!-- 오른쪽 열 -->
-      <div>
+      <div style="display:flex; flex-direction:column;">
         {% for p in right_plans %}
-        <div style="display:flex; align-items:center; gap:0; padding:5px 14px; border-bottom:1px solid var(--gray-50); {% if loop.last %}border-bottom:none;{% endif %}">
+        <div style="display:flex; align-items:center; gap:0; padding:0 14px; flex:1; border-bottom:1px solid var(--gray-50); {% if loop.last %}border-bottom:none;{% endif %}">
           <span style="font-size:11px; font-weight:700; color:#2563eb; width:26px; flex-shrink:0; font-variant-numeric:tabular-nums;">{{ p.week }}주</span>
           <span style="font-size:12px; color:var(--gray-700); line-height:1.4;">{{ p.topic }}</span>
         </div>
@@ -130,7 +161,7 @@
     </div>
 
     {% else %}
-    <div style="padding:32px 18px; text-align:center;">
+    <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px 18px; text-align:center;">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="display:block; margin:0 auto 10px;">
         <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
       </svg>
@@ -156,8 +187,8 @@
       </div>
       <h2 style="font-size:15px; font-weight:700; color:var(--gray-900); margin:0;">AI 학습 계획</h2>
     </div>
-    {% if plans %}
-    <button id="plan-btn" onclick="openPlanModal()"
+    {% if plans and not study_plans %}
+    <button id="plan-btn" onclick="generatePlan()"
             style="padding:7px 16px; background:#2563eb; color:#fff; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; transition:opacity .15s; white-space:nowrap;"
             onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
       학습 계획하기
@@ -165,54 +196,43 @@
     {% endif %}
   </div>
 
+  <div id="plan-loading" style="display:none; font-size:12px; color:#2563eb; font-weight:500; padding:4px 0; margin-bottom:10px;">
+    <svg style="display:inline;vertical-align:middle;margin-right:5px;animation:spin 1s linear infinite;" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+    AI가 학습 계획을 짜는 중이에요. 잠시만 기다려 주세요...
+  </div>
+  <div id="plan-error" style="display:none; font-size:12px; color:#ef4444; margin-bottom:10px;"></div>
+
   <div id="study-plan-area">
     {% if study_plans %}
-      {% for sp in study_plans %}
-      <div class="plan-card" id="plan-card-{{ sp.id }}">
-        <div class="plan-card-header {% if not loop.first %}collapsed{% endif %}" onclick="togglePlanCard(this)">
-          <div style="flex:1; min-width:0;">
-            <span class="plan-card-name">{{ sp.name or "학습 계획" }}</span>
-            <span class="plan-card-meta">{{ sp.week_from }}~{{ sp.week_to }}주차 · {{ sp.created_at[:10] }}</span>
-          </div>
-          <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-            <button class="plan-delete-btn" onclick="deletePlan({{ sp.id }}, event)" title="삭제">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-            </button>
-            <svg class="plan-card-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-          </div>
-        </div>
-        <div class="plan-card-body {% if not loop.first %}hidden{% endif %}">
-          <div class="plan-list">
-            {% set ns = namespace(cur_week=None) %}
-            {% for item in sp.items|sort(attribute='week') %}
-              {% if item.week != ns.cur_week %}
-                {% if ns.cur_week is not none %}</div></div>{% endif %}
-                {% set ns.cur_week = item.week %}
-                <div class="plan-accordion">
-                <button class="acc-header" onclick="toggleAccordion(this)">
-                  <span>{{ item.week }}주차 · {{ item.topic }}</span>
-                  <svg class="acc-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-                </button>
-                <div class="acc-body">
-              {% endif %}
-              <label style="display:flex; align-items:flex-start; gap:8px; padding:5px 0; cursor:pointer;">
-                <input type="checkbox" {% if item.is_done %}checked{% endif %}
-                       onchange="toggleItem({{ sp.id }}, {{ item.id }}, this)"
-                       style="margin-top:3px; accent-color:#2563eb; flex-shrink:0;"/>
-                <span id="task-{{ item.id }}" style="font-size:14px; color:var(--gray-700); line-height:1.5;
-                      {% if item.is_done %}text-decoration:line-through; color:var(--gray-400);{% endif %}">
-                  {{ item.task }}
-                </span>
-              </label>
-            {% endfor %}
+      {% set sp = study_plans[0] %}
+      <div class="plan-list">
+        {% set ns = namespace(cur_week=None) %}
+        {% for item in sp.items|sort(attribute='week') %}
+          {% if item.week != ns.cur_week %}
             {% if ns.cur_week is not none %}</div></div>{% endif %}
-          </div>
-        </div>
+            {% set ns.cur_week = item.week %}
+            <div class="plan-accordion">
+            <button class="acc-header" onclick="toggleAccordion(this)">
+              <span>{{ item.week }}주차 · {{ item.topic }}</span>
+              <svg class="acc-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <div class="acc-body">
+          {% endif %}
+          <label style="display:flex; align-items:flex-start; gap:8px; padding:5px 0; cursor:pointer;">
+            <input type="checkbox" {% if item.is_done %}checked{% endif %}
+                   onchange="toggleItem({{ sp.id }}, {{ item.id }}, this)"
+                   style="margin-top:3px; accent-color:#2563eb; flex-shrink:0;"/>
+            <span id="task-{{ item.id }}" style="font-size:14px; color:var(--gray-700); line-height:1.5;
+                  {% if item.is_done %}text-decoration:line-through; color:var(--gray-400);{% endif %}">
+              {{ item.task }}
+            </span>
+          </label>
+        {% endfor %}
+        {% if ns.cur_week is not none %}</div></div>{% endif %}
       </div>
-      {% endfor %}
     {% else %}
       <p id="no-plans-msg" style="font-size:13px; color:var(--gray-400); margin:0;">
-        {% if plans %}"학습 계획하기"를 눌러 AI가 주차별 할 일을 생성해줘요.
+        {% if plans %}"학습 계획하기"를 눌러 AI가 전체 주차 학습 계획을 생성해줘요.
         {% else %}주차별 주제가 분석되면 AI 학습 계획을 생성할 수 있어요.{% endif %}
       </p>
     {% endif %}
@@ -259,7 +279,7 @@
           </div>
         </div>
         <div class="plan-card-body {% if not loop.first %}hidden{% endif %}">
-          {% set items_sorted = ep.items|sort(attribute='d_day') %}
+          {% set items_sorted = ep.items|sort(attribute='d_day', reverse=True) %}
           {% set ns2 = namespace(cur_dday=None) %}
           {% for item in items_sorted %}
             {% if item.d_day != ns2.cur_dday %}
@@ -295,65 +315,6 @@
 </div>
 
 <!-- 주차 선택 모달 -->
-<div id="plan-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000; align-items:center; justify-content:center;">
-  <div style="background:#fff; border-radius:14px; width:100%; max-width:360px; margin:16px; box-shadow:0 16px 48px rgba(0,0,0,.18); overflow:hidden;">
-    <div style="padding:18px 20px 0; display:flex; align-items:center; justify-content:space-between;">
-      <h3 style="font-size:14px; font-weight:700; color:var(--gray-900); margin:0;">학습 계획 만들기</h3>
-      <button onclick="closePlanModal()" style="color:var(--gray-400); font-size:18px; line-height:1; background:none; cursor:pointer;"
-              onmouseover="this.style.color='#111'" onmouseout="this.style.color='var(--gray-400)'">✕</button>
-    </div>
-    <div style="padding:16px 20px 20px; display:flex; flex-direction:column; gap:14px;">
-      <div>
-        <label style="font-size:11px; font-weight:600; color:var(--gray-600); display:block; margin-bottom:5px;">
-          학습 이름 <span style="font-weight:400; color:var(--gray-400);">(선택)</span>
-        </label>
-        <input type="text" id="modal-plan-name" placeholder="예) 중간고사 대비, 1~7주 정리" maxlength="100"
-               style="width:100%; padding:8px 10px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; color:var(--gray-900); background:var(--input-bg); outline:none; box-sizing:border-box; transition:border .15s;"
-               onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='var(--gray-200)'"/>
-      </div>
-      <div style="display:flex; align-items:center; gap:10px;">
-        <div style="flex:1;">
-          <label style="font-size:11px; font-weight:600; color:var(--gray-600); display:block; margin-bottom:5px;">시작 주차</label>
-          <select id="modal-week-from"
-                  style="width:100%; padding:8px 10px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; color:var(--gray-900); background:var(--input-bg); outline:none; box-sizing:border-box;">
-            {% for p in plans %}
-            <option value="{{ p.week }}">{{ p.week }}주 ({{ p.topic[:10] }}{% if p.topic|length > 10 %}…{% endif %})</option>
-            {% endfor %}
-          </select>
-        </div>
-        <span style="font-size:14px; color:var(--gray-400); padding-top:18px;">~</span>
-        <div style="flex:1;">
-          <label style="font-size:11px; font-weight:600; color:var(--gray-600); display:block; margin-bottom:5px;">끝 주차</label>
-          <select id="modal-week-to"
-                  style="width:100%; padding:8px 10px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; color:var(--gray-900); background:var(--input-bg); outline:none; box-sizing:border-box;">
-            {% for p in plans %}
-            <option value="{{ p.week }}" {% if loop.last %}selected{% endif %}>{{ p.week }}주 ({{ p.topic[:10] }}{% if p.topic|length > 10 %}…{% endif %})</option>
-            {% endfor %}
-          </select>
-        </div>
-      </div>
-      <!-- 스피너 안내 -->
-      <div id="plan-loading" style="display:none; text-align:center; font-size:12px; color:#2563eb; font-weight:500; padding:4px 0;">
-        <svg style="display:inline;vertical-align:middle;margin-right:5px;animation:spin 1s linear infinite;" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-        AI가 계획을 짜는 중...
-      </div>
-      <div id="plan-error" style="display:none; font-size:12px; color:#ef4444; padding:4px 0;"></div>
-      <div style="display:flex; gap:8px;">
-        <button onclick="closePlanModal()"
-                style="flex:1; padding:9px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; font-weight:600; color:var(--gray-600); background:#fff; cursor:pointer; transition:background .15s;"
-                onmouseover="this.style.background='var(--input-bg)'" onmouseout="this.style.background='#fff'">
-          취소
-        </button>
-        <button id="plan-confirm-btn" onclick="generatePlan()"
-                style="flex:2; padding:9px; background:#2563eb; color:#fff; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; transition:opacity .15s;"
-                onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
-          계획 생성
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- 시험 대비 계획 모달 -->
 <div id="exam-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000; align-items:center; justify-content:center;">
   <div style="background:#fff; border-radius:14px; width:100%; max-width:400px; margin:16px; box-shadow:0 16px 48px rgba(0,0,0,.18); overflow:hidden; max-height:90vh; overflow-y:auto;">
@@ -424,12 +385,60 @@
   </div>
 </div>
 
+<!-- PDF 교체 모달 -->
+<div id="replace-pdf-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:14px; width:100%; max-width:400px; margin:16px; box-shadow:0 16px 48px rgba(0,0,0,.18); overflow:hidden;">
+    <div style="padding:18px 20px 0; display:flex; align-items:center; justify-content:space-between;">
+      <h3 style="font-size:14px; font-weight:700; color:var(--gray-900); margin:0;">강의계획서 PDF 교체</h3>
+      <button onclick="closeReplacePdfModal()" style="color:var(--gray-400); font-size:18px; line-height:1; background:none; cursor:pointer;"
+              onmouseover="this.style.color='#111'" onmouseout="this.style.color='var(--gray-400)'">✕</button>
+    </div>
+    <form id="replace-pdf-form" method="POST" action="{{ url_for('classroom.replace_pdf', subject_id=subject.id) }}" enctype="multipart/form-data"
+          style="padding:16px 20px 20px; display:flex; flex-direction:column; gap:14px;">
+      <p style="font-size:12px; color:var(--gray-500); margin:0; line-height:1.7;">
+        새 PDF를 올리면 주차별 주제가 새로 분석돼요.<br>
+        이미 만들어진 학습 계획·시험 대비 계획은 그대로 유지됩니다.
+      </p>
+      <label id="replace-file-drop"
+             style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:24px 16px; border:2px dashed var(--gray-200); border-radius:10px; cursor:pointer; transition:border .15s, background .15s; background:var(--input-bg);"
+             onmouseover="this.style.borderColor='#2563eb';this.style.background='#eff6ff'"
+             onmouseout="this.style.borderColor='var(--gray-200)';this.style.background='var(--input-bg)'">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        <span id="replace-file-label" style="font-size:13px; color:var(--gray-500);">PDF 파일을 선택하세요</span>
+        <span style="font-size:11px; color:var(--gray-400);">최대 10MB · .pdf 만 허용</span>
+        <input type="file" name="syllabus" id="replace-pdf-input" accept=".pdf" required
+               style="display:none;" onchange="updateReplacePdfLabel(this)"/>
+      </label>
+      <div id="replace-pdf-loading" style="display:none; text-align:center; font-size:12px; color:#2563eb; font-weight:500; padding:4px 0;">
+        <svg style="display:inline;vertical-align:middle;margin-right:5px;animation:spin 1s linear infinite;" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+        PDF를 분석하는 중이에요. 잠시만 기다려 주세요...
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button type="button" onclick="closeReplacePdfModal()" id="replace-cancel-btn"
+                style="flex:1; padding:9px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; font-weight:600; color:var(--gray-600); background:#fff; cursor:pointer; transition:background .15s;"
+                onmouseover="this.style.background='var(--input-bg)'" onmouseout="this.style.background='#fff'">
+          취소
+        </button>
+        <button type="submit" id="replace-confirm-btn"
+                style="flex:2; padding:9px; background:#2563eb; color:#fff; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; transition:opacity .15s;"
+                onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          교체 및 분석
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <style>
   .classroom-detail-grid {
     display: grid;
     grid-template-columns: minmax(200px, 260px) 1fr;
     gap: 16px;
-    align-items: start;
+    align-items: stretch;
   }
   .plan-card { border: 1px solid var(--gray-200, #e2e8f0); border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
   .plan-card:last-child { margin-bottom: 0; }
@@ -472,141 +481,149 @@
 const GENERATE_URL = "{{ url_for('classroom.generate_study_plan', subject_id=subject.id) }}";
 const SUBJECT_ID   = {{ subject.id }};
 
-function openPlanModal() {
-  document.getElementById('plan-modal').style.display = 'flex';
-  document.getElementById('plan-loading').style.display = 'none';
-  document.getElementById('plan-error').style.display = 'none';
-  document.getElementById('modal-plan-name').value = '';
+// ── 이름 수정 ──────────────────────────────────────────────────────────────────
+function startRename() {
+  document.getElementById('subject-name-display').style.display = 'none';
+  document.getElementById('rename-btn').style.display = 'none';
+  const editDiv = document.getElementById('subject-name-edit');
+  editDiv.style.display = 'flex';
+  document.getElementById('rename-error').style.display = 'none';
+  const input = document.getElementById('subject-name-input');
+  input.value = document.getElementById('subject-name-display').textContent.trim();
+  input.focus();
+  input.select();
+}
+function cancelRename() {
+  document.getElementById('subject-name-edit').style.display = 'none';
+  document.getElementById('rename-error').style.display = 'none';
+  document.getElementById('subject-name-display').style.display = '';
+  document.getElementById('rename-btn').style.display = '';
+}
+async function saveRename() {
+  const name = document.getElementById('subject-name-input').value.trim();
+  const errEl = document.getElementById('rename-error');
+  if (!name) { errEl.textContent = '과목명을 입력해주세요.'; errEl.style.display = 'block'; return; }
+  try {
+    const res  = await fetch(`/classroom/${SUBJECT_ID}/rename`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({name}),
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error || '저장에 실패했어요.'; errEl.style.display = 'block'; return; }
+    document.getElementById('subject-name-display').textContent = data.name;
+    document.title = data.name + ' — 강의실';
+    cancelRename();
+  } catch(e) {
+    errEl.textContent = '네트워크 오류가 발생했어요.';
+    errEl.style.display = 'block';
+  }
+}
+
+// ── PDF 교체 ───────────────────────────────────────────────────────────────────
+function openReplacePdfModal() {
+  document.getElementById('replace-pdf-modal').style.display = 'flex';
+  document.getElementById('replace-file-label').textContent = 'PDF 파일을 선택하세요';
+  document.getElementById('replace-file-label').style.color = 'var(--gray-500)';
+  document.getElementById('replace-pdf-input').value = '';
+  document.getElementById('replace-pdf-loading').style.display = 'none';
   document.body.style.overflow = 'hidden';
 }
-function closePlanModal() {
-  document.getElementById('plan-modal').style.display = 'none';
+function closeReplacePdfModal() {
+  document.getElementById('replace-pdf-modal').style.display = 'none';
   document.body.style.overflow = '';
 }
-document.getElementById('plan-modal').addEventListener('click', function(e) {
-  if (e.target === this) closePlanModal();
+document.getElementById('replace-pdf-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeReplacePdfModal();
+});
+function updateReplacePdfLabel(input) {
+  const label = document.getElementById('replace-file-label');
+  label.textContent = input.files[0] ? input.files[0].name : 'PDF 파일을 선택하세요';
+  label.style.color = input.files[0] ? 'var(--gray-900)' : 'var(--gray-500)';
+}
+document.getElementById('replace-pdf-form').addEventListener('submit', function() {
+  document.getElementById('replace-pdf-loading').style.display = 'block';
+  document.getElementById('replace-confirm-btn').disabled = true;
+  document.getElementById('replace-confirm-btn').style.opacity = '.5';
+  document.getElementById('replace-cancel-btn').disabled = true;
 });
 
-async function generatePlan() {
-  const weekFrom = parseInt(document.getElementById('modal-week-from').value);
-  const weekTo   = parseInt(document.getElementById('modal-week-to').value);
-  const planName = document.getElementById('modal-plan-name').value.trim();
-  const errEl    = document.getElementById('plan-error');
-  errEl.style.display = 'none';
-
-  if (weekTo < weekFrom) {
-    errEl.textContent = '끝 주차가 시작 주차보다 작을 수 없어요.';
-    errEl.style.display = 'block';
-    return;
+// ── 강의실 삭제 ────────────────────────────────────────────────────────────────
+async function deleteSubject() {
+  if (!confirm('이 강의실과 모든 데이터(주차별 주제, 학습 계획, 시험 대비 계획)를 삭제할까요?\n이 작업은 되돌릴 수 없어요.')) return;
+  try {
+    const res = await fetch(`/classroom/${SUBJECT_ID}/delete`, {method: 'POST'});
+    const data = await res.json();
+    if (data.ok) {
+      window.location.href = "{{ url_for('classroom.classroom') }}";
+    }
+  } catch(e) {
+    alert('삭제에 실패했어요. 다시 시도해 주세요.');
   }
+}
 
-  const loadEl     = document.getElementById('plan-loading');
-  const confirmBtn = document.getElementById('plan-confirm-btn');
+// ── AI 학습 계획 ───────────────────────────────────────────────────────────────
+async function generatePlan() {
+  const loadEl = document.getElementById('plan-loading');
+  const errEl  = document.getElementById('plan-error');
+  const planBtn = document.getElementById('plan-btn');
+  errEl.style.display = 'none';
   loadEl.style.display = 'block';
-  confirmBtn.disabled = true;
-  confirmBtn.style.opacity = '.5';
+  if (planBtn) { planBtn.disabled = true; planBtn.style.opacity = '.5'; }
 
   try {
     const res  = await fetch(GENERATE_URL, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({week_from: weekFrom, week_to: weekTo, name: planName}),
+      body: JSON.stringify({}),
     });
     const data = await res.json();
     if (!res.ok) {
       errEl.textContent = data.error || '오류가 발생했어요.';
       errEl.style.display = 'block';
+      if (planBtn) { planBtn.disabled = false; planBtn.style.opacity = '1'; }
       return;
     }
-    closePlanModal();
-    addPlanCard(data);
+    loadEl.style.display = 'none';
+    if (planBtn) planBtn.style.display = 'none';
+    renderPlanAccordions(data);
   } catch(e) {
     errEl.textContent = '네트워크 오류가 발생했어요.';
     errEl.style.display = 'block';
+    if (planBtn) { planBtn.disabled = false; planBtn.style.opacity = '1'; }
   } finally {
     loadEl.style.display = 'none';
-    confirmBtn.disabled = false;
-    confirmBtn.style.opacity = '1';
   }
 }
 
-function addPlanCard(data) {
+function renderPlanAccordions(data) {
   const area = document.getElementById('study-plan-area');
-
-  // 빈 상태 메시지 제거
   const noMsg = document.getElementById('no-plans-msg');
   if (noMsg) noMsg.remove();
 
-  // 기존 열린 카드 접기
-  area.querySelectorAll('.plan-card-header:not(.collapsed)').forEach(h => {
-    h.classList.add('collapsed');
-    h.nextElementSibling.classList.add('hidden');
-  });
-
   const arrowSvg = `<svg class="acc-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>`;
-  const trashSvg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
 
-  const planName = data.name || '학습 계획';
-  const metaText = `${data.week_from}~${data.week_to}주차 · ${data.created_at.slice(0, 10)}`;
-
-  let innerHtml = '<div class="plan-list">';
+  let html = '<div class="plan-list">';
   let curWeek = null;
   for (const item of data.items) {
     if (item.week !== curWeek) {
-      if (curWeek !== null) innerHtml += '</div></div>';
+      if (curWeek !== null) html += '</div></div>';
       curWeek = item.week;
-      innerHtml += `<div class="plan-accordion">
+      html += `<div class="plan-accordion">
         <button class="acc-header" onclick="toggleAccordion(this)">
           <span>${item.week}주차 · ${escHtml(item.topic)}</span>${arrowSvg}
         </button>
         <div class="acc-body">`;
     }
-    innerHtml += `<label style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;cursor:pointer;">
-      <input type="checkbox" ${item.is_done ? 'checked' : ''} onchange="toggleItem(${data.plan_id},${item.id},this)" style="margin-top:3px;accent-color:#2563eb;flex-shrink:0;"/>
-      <span id="task-${item.id}" style="font-size:14px;color:${item.is_done ? 'var(--gray-400)' : 'var(--gray-700)'};line-height:1.5;${item.is_done ? 'text-decoration:line-through;' : ''}">${escHtml(item.task)}</span>
+    html += `<label style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;cursor:pointer;">
+      <input type="checkbox" ${item.is_done?'checked':''} onchange="toggleItem(${data.plan_id},${item.id},this)" style="margin-top:3px;accent-color:#2563eb;flex-shrink:0;"/>
+      <span id="task-${item.id}" style="font-size:14px;color:${item.is_done?'var(--gray-400)':'var(--gray-700)'};line-height:1.5;${item.is_done?'text-decoration:line-through;':''}">${escHtml(item.task)}</span>
     </label>`;
   }
-  if (curWeek !== null) innerHtml += '</div></div>';
-  innerHtml += '</div>';
+  if (curWeek !== null) html += '</div></div>';
+  html += '</div>';
 
-  const cardHtml = `
-    <div class="plan-card" id="plan-card-${data.plan_id}">
-      <div class="plan-card-header" onclick="togglePlanCard(this)">
-        <div style="flex:1;min-width:0;">
-          <span class="plan-card-name">${escHtml(planName)}</span>
-          <span class="plan-card-meta">${metaText}</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-          <button class="plan-delete-btn" onclick="deletePlan(${data.plan_id},event)" title="삭제">${trashSvg}</button>
-          <svg class="plan-card-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-        </div>
-      </div>
-      <div class="plan-card-body">${innerHtml}</div>
-    </div>`;
-
-  area.insertAdjacentHTML('afterbegin', cardHtml);
-}
-
-function togglePlanCard(header) {
-  header.classList.toggle('collapsed');
-  header.nextElementSibling.classList.toggle('hidden');
-}
-
-async function deletePlan(planId, event) {
-  event.stopPropagation();
-  if (!confirm('이 학습 계획을 삭제할까요?')) return;
-  try {
-    const res = await fetch(`/classroom/${SUBJECT_ID}/study-plan/${planId}/delete`, {method: 'POST'});
-    if (res.ok) {
-      document.getElementById('plan-card-' + planId).remove();
-      const area = document.getElementById('study-plan-area');
-      if (!area.querySelector('.plan-card')) {
-        area.innerHTML = '<p id="no-plans-msg" style="font-size:13px;color:var(--gray-400);margin:0;">"학습 계획하기"를 눌러 AI가 주차별 할 일을 생성해줘요.</p>';
-      }
-    }
-  } catch(e) {
-    alert('삭제에 실패했어요. 다시 시도해 주세요.');
-  }
+  area.innerHTML = html;
 }
 
 function toggleAccordion(btn) {
@@ -736,7 +753,7 @@ function addExamPlanCard(data) {
     if (!grouped[item.d_day]) grouped[item.d_day] = [];
     grouped[item.d_day].push(item);
   }
-  const ddays = Object.keys(grouped).map(Number).sort((a, b) => a - b);
+  const ddays = Object.keys(grouped).map(Number).sort((a, b) => b - a);
 
   let bodyHtml = '';
   for (const dday of ddays) {
