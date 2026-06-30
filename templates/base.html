@@ -45,7 +45,7 @@
 
     <nav class="header-nav">
       <a href="{{ url_for('dashboard.dashboard') }}" class="{% if active_menu == 'dashboard' %}active{% endif %}">대시보드</a>
-      <a href="{{ url_for('study_history.history') }}" class="{% if active_menu == 'study_history' %}active{% endif %}">학습 기록</a>
+      <a href="{{ url_for('classroom.classroom') }}" class="{% if active_menu == 'classroom' %}active{% endif %}">강의실</a>
       <a href="{{ url_for('analysis.analysis') }}" class="{% if active_menu == 'analysis' %}active{% endif %}">학습 분석</a>
       <a href="{{ url_for('ai_plan.ai_plan') }}" class="{% if active_menu == 'ai_plan' %}active{% endif %}">AI 학습 계획</a>
     </nav>
@@ -131,6 +131,7 @@
     .user-popup-item:hover { background: var(--surface-2); color: var(--text-1); }
     .user-popup-item.active { color: var(--accent); font-weight: 500; }
     .user-popup-item.logout:hover { background: #fef0f0; color: #c0392b; }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 
   <script>
