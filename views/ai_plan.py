@@ -14,53 +14,53 @@ ai_plan_bp = Blueprint('ai_plan', __name__)
 
 
 
-def generate_study_plan(subject, total_hours, recent_dates, goal_weeks=4):
-    client = OpenAI(
-        api_key=os.getenv("AJOU_API_KEY"),
-        base_url="https://factchat-cloud.mindlogic.ai/v1/gateway"
-    )
-    prompt = f"""당신은 대학생 학습 분석 전문가입니다.
-아래 학생의 학습 데이터를 분석하고, 학습 계획을 JSON 형식으로만 반환하세요.
-절대 JSON 외의 텍스트를 포함하지 마세요.
+    def generate_study_plan(subject, total_hours, recent_dates, goal_weeks=4):
+        client = OpenAI(
+            api_key=os.getenv("AJOU_API_KEY"),
+            base_url="https://factchat-cloud.mindlogic.ai/v1/gateway"
+        )
+        prompt = f"""당신은 대학생 학습 분석 전문가입니다.
+    아래 학생의 학습 데이터를 분석하고, 학습 계획을 JSON 형식으로만 반환하세요.
+    절대 JSON 외의 텍스트를 포함하지 마세요.
 
-[학생 학습 데이터]
-- 과목: {subject}
-- 지금까지 총 학습 시간: {total_hours}시간
-- 최근 학습 날짜: {', '.join(recent_dates) if recent_dates else '기록 없음'}
-- 앞으로 목표 기간: {goal_weeks}주
+    [학생 학습 데이터]
+    - 과목: {subject}
+    - 지금까지 총 학습 시간: {total_hours}시간
+    - 최근 학습 날짜: {', '.join(recent_dates) if recent_dates else '기록 없음'}
+    - 앞으로 목표 기간: {goal_weeks}주
 
-[반환할 JSON 형식]
-{{
-  "subject": "과목명",
-  "diagnosis": "현재 학습 상태 진단 (2문장)",
-  "weekly_goal_hours": 주당_권장_학습시간_숫자,
-  "total_plan_hours": 전체_계획_시간_숫자,
-  "weeks": [
+    [반환할 JSON 형식]
     {{
-      "week": 1,
-      "theme": "이번 주 핵심 테마",
-      "daily_hours": 하루_권장_시간_숫자,
-      "topics": ["학습 주제1", "학습 주제2", "학습 주제3"],
-      "checkpoint": "이번 주 마무리 점검 방법"
+    "subject": "과목명",
+    "diagnosis": "현재 학습 상태 진단 (2문장)",
+    "weekly_goal_hours": 주당_권장_학습시간_숫자,
+    "total_plan_hours": 전체_계획_시간_숫자,
+    "weeks": [
+        {{
+        "week": 1,
+        "theme": "이번 주 핵심 테마",
+        "daily_hours": 하루_권장_시간_숫자,
+        "topics": ["학습 주제1", "학습 주제2", "학습 주제3"],
+        "checkpoint": "이번 주 마무리 점검 방법"
+        }}
+    ],
+    "tips": ["학습 팁1", "학습 팁2", "학습 팁3"]
     }}
-  ],
-  "tips": ["학습 팁1", "학습 팁2", "학습 팁3"]
-}}
 
-반드시 {goal_weeks}개의 week 객체를 포함하고, JSON만 반환하세요."""
+    반드시 {goal_weeks}개의 week 객체를 포함하고, JSON만 반환하세요."""
 
-    response = client.chat.completions.create(
-        model="claude-sonnet-4-6",
-        max_tokens=2000,
-        messages=[{"role": "user", "content": prompt}]
-    )
-    raw = response.choices[0].message.content.strip()
-    if raw.startswith("```"):
-        raw = raw.split("```")[1]
-        if raw.startswith("json"):
-            raw = raw[4:]
-    raw = raw.strip()
-    return json.loads(raw)
+        response = client.chat.completions.create(
+            model="claude-sonnet-4-6",
+            max_tokens=2000,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        raw = response.choices[0].message.content.strip()
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+        raw = raw.strip()
+        return json.loads(raw)
 
 @ai_plan_bp.route('/ai-plan')
 @login_required
