@@ -33,6 +33,7 @@ openai==2.33.0
 packaging==26.0
 pandas==2.3.3
 pillow==11.3.0
+pdfplumber==0.11.4
 pycparser==2.23
 pydantic==2.13.3
 pydantic_core==2.46.3
