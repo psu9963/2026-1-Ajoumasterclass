@@ -4,24 +4,39 @@
 
 {% block extra_css %}
 <style>
-  .mp-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-  .mp-profile-body { padding:32px 22px; display:flex; flex-direction:column; align-items:center; gap:12px; }
-  .mp-avatar { width:72px; height:72px; border-radius:50%; background:var(--accent); color:#fff; font-family:'pretendard',sans-serif; font-weight:800; font-size:28px; display:flex; align-items:center; justify-content:center; }
-  .mp-username { font-family:'pretendard',sans-serif; font-size:20px; font-weight:700; color:var(--text-1); }
-  .mp-provider-badge { padding:5px 14px; border-radius:20px; font-size:12px; font-weight:500; background:var(--surface-2); color:var(--text-2); border:1px solid var(--border); }
-  .mp-stats-body { padding:16px 22px 20px; }
-  .mp-stat-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); margin-bottom:14px; }
-  .mp-stat-label { font-size:13px; color:var(--text-2); }
-  .mp-stat-value { font-family:'pretendard',sans-serif; font-size:16px; font-weight:700; color:var(--text-1); }
-  .mp-subjects { display:flex; flex-wrap:wrap; gap:8px; }
-  .mp-pw-body { padding:20px 22px; }
-  .mp-input { width:100%; padding:10px 13px; border:1.5px solid var(--border); border-radius:var(--radius-md); font-size:14px; outline:none; font-family:'pretendard',sans-serif; box-sizing:border-box; transition:border-color .15s; }
-  .mp-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(45,45,45,0.08); }
-  .mp-delete-body { padding:20px 22px; }
-  .mp-delete-desc { font-size:13px; color:var(--text-2); line-height:1.6; margin-bottom:16px; }
-  .mp-delete-btn { padding:9px 20px; background:#fef0f0; color:#c0392b; border:1px solid #f5c6cb; border-radius:var(--radius-md); font-size:13px; font-weight:500; cursor:pointer; transition:background .15s; font-family:'pretendard',sans-serif; }
-  .mp-delete-btn:hover { background:#fde0e0; }
-  @media(max-width:700px){ .mp-grid{grid-template-columns:1fr} }
+  .mp-col { max-width: 680px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+
+  /* 프로필 */
+  .mp-profile-body { padding: 28px 24px; display: flex; align-items: center; gap: 22px; }
+  .mp-avatar-wrap  { position: relative; flex-shrink: 0; cursor: pointer; }
+  .mp-avatar       { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; display: block; }
+  .mp-avatar-initials { width: 72px; height: 72px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 800; font-size: 28px; display: flex; align-items: center; justify-content: center; }
+  .mp-avatar-edit  { position: absolute; bottom: 0; right: 0; width: 22px; height: 22px; background: #2563eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+  .mp-display-name { font-size: 18px; font-weight: 700; color: var(--text-1); margin: 0 0 6px; }
+  .mp-provider-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border); }
+  .mp-name-form    { display: flex; gap: 8px; margin-top: 10px; }
+  .mp-name-input   { padding: 7px 10px; border: 1.5px solid var(--border); border-radius: var(--radius-md); font-size: 13px; outline: none; width: 180px; box-sizing: border-box; background: var(--input-bg); color: var(--text-1); transition: border-color .15s; }
+  .mp-name-input:focus { border-color: var(--accent); }
+
+  /* 학습 현황 */
+  .mp-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 20px 24px; }
+  .mp-stat-card  { background: var(--surface-2); border-radius: 10px; padding: 14px 12px; text-align: center; }
+  .mp-stat-num   { font-size: 22px; font-weight: 800; color: var(--text-1); line-height: 1; }
+  .mp-stat-label { font-size: 11px; color: var(--text-2); margin-top: 5px; }
+
+  /* 공통 폼 */
+  .mp-section-body { padding: 20px 24px; }
+  .mp-input { width: 100%; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: var(--radius-md); font-size: 14px; outline: none; box-sizing: border-box; transition: border-color .15s; background: var(--input-bg); color: var(--text-1); }
+  .mp-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
+
+  /* 회원 탈퇴 */
+  .mp-delete-btn { padding: 9px 20px; background: #fef0f0; color: #c0392b; border: 1px solid #f5c6cb; border-radius: var(--radius-md); font-size: 13px; font-weight: 500; cursor: pointer; transition: background .15s; }
+  .mp-delete-btn:hover { background: #fde0e0; }
+
+  @media(max-width:600px) {
+    .mp-stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .mp-profile-body { flex-direction: column; align-items: flex-start; }
+  }
 </style>
 {% endblock %}
 
@@ -33,55 +48,78 @@
   </div>
 </header>
 
-<div class="mp-grid">
+<div class="mp-col">
 
-  <!-- 프로필 카드 -->
+  <!-- ① 프로필 -->
   <div class="card">
     <div class="card-head"><h2 class="card-title">프로필</h2></div>
     <div class="mp-profile-body">
-      <div class="mp-avatar">{{ current_user.username[0] | upper }}</div>
-      <div class="mp-username">{{ current_user.username }}</div>
-      <div class="mp-provider-badge">
-        {% if current_user.provider == 'kakao' %}
-        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e3/KakaoTalk_logo.svg"
-                   alt="카카오" style="width:14px; height:14px;"> 카카오 로그인
-        {% elif current_user.provider == 'google' %}
-        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
-                   alt="구글" style="width:14px; height:14px;"> 구글 로그인
-        {% else %}🔒 일반 로그인{% endif %}
+
+      <!-- 아바타 (파일 선택 → 즉시 업로드) -->
+      <form method="POST" action="{{ url_for('mypage.update_profile') }}" enctype="multipart/form-data">
+        <label class="mp-avatar-wrap" title="사진 변경">
+          {% if profile_image %}
+          <img src="{{ url_for('static', filename=profile_image) }}" class="mp-avatar" id="avatar-preview" alt="프로필"/>
+          {% else %}
+          <div class="mp-avatar-initials" id="avatar-preview">{{ current_user.username[0]|upper }}</div>
+          {% endif %}
+          <div class="mp-avatar-edit">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </div>
+          <input type="file" name="profile_image" accept="image/*" style="display:none;"
+                 onchange="previewAvatar(event)"/>
+        </label>
+      </form>
+
+      <!-- 이름 + 로그인 방식 -->
+      <div style="flex:1;">
+        <p class="mp-display-name">{{ display_name }}</p>
+        <span class="mp-provider-badge">
+          {% if current_user.provider == 'kakao' %}
+          카카오 로그인
+          {% elif current_user.provider == 'google' %}
+          구글 로그인
+          {% else %}🔒 일반 로그인{% endif %}
+        </span>
+        <form method="POST" action="{{ url_for('mypage.update_profile') }}" class="mp-name-form">
+          <input type="text" name="display_name" class="mp-name-input" value="{{ display_name }}" placeholder="표시 이름" maxlength="100"/>
+          <button type="submit" class="btn-primary" style="padding:7px 14px; font-size:13px;">저장</button>
+        </form>
       </div>
+
     </div>
   </div>
 
-  <!-- 학습 현황 카드 -->
+  <!-- ② 학습 현황 -->
   <div class="card">
-    <div class="card-head">
-      <h2 class="card-title">학습 현황</h2>
-      <a href="{{ url_for('study_history.history') }}" class="card-link">기록 보기</a>
-    </div>
-    <div class="mp-stats-body">
-      <div class="mp-stat-row">
-        <span class="mp-stat-label">학습 중인 과목</span>
-        <span class="mp-stat-value">{{ subject_count }}개</span>
+    <div class="card-head"><h2 class="card-title">학습 현황</h2></div>
+    <div class="mp-stats-grid">
+      <div class="mp-stat-card">
+        <div class="mp-stat-num">{{ subject_count }}</div>
+        <div class="mp-stat-label">등록 강의실</div>
       </div>
-      {% if subjects %}
-      <div class="mp-subjects">
-        {% for s in subjects %}
-        <span class="subject-badge subject-badge--{{ loop.index%5 }}">{{ s }}</span>
-        {% endfor %}
+      <div class="mp-stat-card">
+        <div class="mp-stat-num">{{ study_plan_count }}</div>
+        <div class="mp-stat-label">학습 계획</div>
       </div>
-      {% else %}
-      <div class="empty-state" style="padding:24px 0;">
-        <p>아직 학습 기록이 없어요</p>
+      <div class="mp-stat-card">
+        <div class="mp-stat-num">{{ exam_plan_count }}</div>
+        <div class="mp-stat-label">시험 대비</div>
       </div>
-      {% endif %}
+      <div class="mp-stat-card">
+        <div class="mp-stat-num">{{ done_count }}</div>
+        <div class="mp-stat-label">완료 항목</div>
+      </div>
     </div>
   </div>
 
-  <!-- 비밀번호 변경 카드 -->
+  <!-- ③ 비밀번호 변경 -->
   <div class="card">
     <div class="card-head"><h2 class="card-title">비밀번호 변경</h2></div>
-    <div class="mp-pw-body">
+    <div class="mp-section-body">
       {% if not is_social %}
       <form method="POST" action="{{ url_for('mypage.change_password') }}"
             style="display:flex; flex-direction:column; gap:14px;">
@@ -112,11 +150,13 @@
     </div>
   </div>
 
-  <!-- 회원 탈퇴 카드 -->
+  <!-- ④ 회원 탈퇴 -->
   <div class="card">
     <div class="card-head"><h2 class="card-title" style="color:#c0392b;">회원 탈퇴</h2></div>
-    <div class="mp-delete-body">
-      <p class="mp-delete-desc">탈퇴 시 모든 학습 기록과 AI 계획이 삭제되며 복구할 수 없어요.</p>
+    <div class="mp-section-body">
+      <p style="font-size:13px; color:var(--text-2); line-height:1.6; margin-bottom:16px;">
+        탈퇴 시 모든 강의실, 학습 계획, 시험 대비 계획과 업로드 파일이 영구 삭제돼요. 이 작업은 되돌릴 수 없어요.
+      </p>
       <button onclick="document.getElementById('deleteModal').style.display='flex'" class="mp-delete-btn">
         회원 탈퇴
       </button>
@@ -128,8 +168,8 @@
 <!-- 회원 탈퇴 확인 모달 -->
 <div id="deleteModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
   <div style="background:var(--surface); padding:36px; border-radius:var(--radius-lg); width:380px; box-shadow:0 10px 30px rgba(0,0,0,0.15);">
-    <h3 style="font-family:'pretendard',sans-serif; font-size:18px; font-weight:800; margin-bottom:12px;">정말 탈퇴하시겠어요?</h3>
-    <p style="font-size:13px; color:var(--text-2); line-height:1.7; margin-bottom:24px;">모든 학습 기록, AI 계획이 영구 삭제돼요.<br>이 작업은 되돌릴 수 없어요.</p>
+    <h3 style="font-size:18px; font-weight:800; margin-bottom:12px;">정말 탈퇴하시겠어요?</h3>
+    <p style="font-size:13px; color:var(--text-2); line-height:1.7; margin-bottom:24px;">모든 강의실, 학습 계획, 업로드 파일이 영구 삭제돼요.<br>이 작업은 되돌릴 수 없어요.</p>
     <div style="display:flex; gap:10px;">
       <button onclick="document.getElementById('deleteModal').style.display='none'"
               class="btn-primary" style="flex:1; justify-content:center; background:var(--surface-2); color:var(--text-1); box-shadow:none;">
@@ -141,4 +181,25 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function previewAvatar(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  const preview = document.getElementById('avatar-preview');
+  if (preview.tagName === 'IMG') {
+    preview.src = url;
+  } else {
+    const img = document.createElement('img');
+    img.src = url;
+    img.id = 'avatar-preview';
+    img.className = 'mp-avatar';
+    preview.replaceWith(img);
+  }
+  e.target.closest('form').submit();
+}
+</script>
 {% endblock %}
