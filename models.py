@@ -13,6 +13,8 @@ class User(UserMixin, db.Model):
     password = db.Column(db.String(255), nullable=True) # 비밀번호
     provider = db.Column(db.String(50)) # 'kakao', 'google' 등
     social_id = db.Column(db.String(100), unique=True) # 소셜에서 주는 고유 번호
+    display_name = db.Column(db.String(100), nullable=True)
+    profile_image = db.Column(db.String(255), nullable=True)
 
 class StudyRecord(db.Model):
     id = db.Column(db.Integer, primary_key=True) # 고유 번호
@@ -116,3 +118,55 @@ class GradePrediction(db.Model):
 
     # 최종 결과
     final_result     = db.Column(db.Text)
+    
+class Subject(db.Model):
+    id                 = db.Column(db.Integer, primary_key=True)
+    user_id            = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    name               = db.Column(db.String(100), nullable=False)
+    start_date         = db.Column(db.String(20), nullable=True)
+    syllabus_filename  = db.Column(db.String(255), nullable=True)
+    syllabus_analyzed  = db.Column(db.Boolean, default=False)
+    created_at         = db.Column(db.String(30), nullable=False)
+
+class WeeklyPlan(db.Model):
+    id         = db.Column(db.Integer, primary_key=True)
+    subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)
+    week       = db.Column(db.Integer, nullable=False)
+    topic      = db.Column(db.String(200), nullable=False)
+
+class StudyPlan(db.Model):
+    id         = db.Column(db.Integer, primary_key=True)
+    subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)
+    week_from  = db.Column(db.Integer, nullable=False)
+    week_to    = db.Column(db.Integer, nullable=False)
+    name       = db.Column(db.String(100), nullable=True)
+    created_at = db.Column(db.String(30), nullable=False)
+    items      = db.relationship('StudyPlanItem', backref='plan', lazy=True, cascade='all, delete-orphan')
+
+class StudyPlanItem(db.Model):
+    id      = db.Column(db.Integer, primary_key=True)
+    plan_id = db.Column(db.Integer, db.ForeignKey('study_plan.id'), nullable=False)
+    week    = db.Column(db.Integer, nullable=False)
+    topic   = db.Column(db.String(200), nullable=False)
+    task    = db.Column(db.String(400), nullable=False)
+    is_done = db.Column(db.Boolean, default=False, nullable=False)
+
+class ExamPlan(db.Model):
+    id         = db.Column(db.Integer, primary_key=True)
+    subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)
+    name       = db.Column(db.String(100), nullable=False)
+    exam_date  = db.Column(db.String(20), nullable=False)
+    scope_from = db.Column(db.Integer, nullable=False)
+    scope_to   = db.Column(db.Integer, nullable=False)
+    scope_note = db.Column(db.String(200), nullable=True)
+    created_at = db.Column(db.String(30), nullable=False)
+    items      = db.relationship('ExamPlanItem', backref='exam_plan', lazy=True, cascade='all, delete-orphan')
+
+class ExamPlanItem(db.Model):
+    id           = db.Column(db.Integer, primary_key=True)
+    exam_plan_id = db.Column(db.Integer, db.ForeignKey('exam_plan.id'), nullable=False)
+    plan_date    = db.Column(db.String(20), nullable=False)
+    d_day        = db.Column(db.Integer, nullable=False)
+    task         = db.Column(db.String(400), nullable=False)
+    is_done      = db.Column(db.Boolean, default=False, nullable=False)
+
