@@ -1,7 +1,9 @@
 from flask import Flask, render_template, redirect, request, url_for
+from datetime import datetime as _dt
 from views.login import login_bp
 from views.dashboard import dashboard_bp
 from views.study_history import study_history_bp
+from views.classroom import classroom_bp
 from views.analysis import analysis_bp
 from views.mypage import mypage_bp
 from views.calendar import calendar_bp
@@ -23,6 +25,7 @@ db_url = os.environ.get('DATABASE_URL') or 'sqlite:///app.db'
 print("🔥 현재 연결된 DB 주소는:", db_url)
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10MB
 
 #연결 끊김 방지용
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
@@ -30,6 +33,15 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'pool_pre_ping': True     # 쿼리를 날리기 전에 연결이 살아있는지 확인
 }
 db.init_app(app)
+
+@app.template_filter('exam_date_label')
+def exam_date_label_filter(date_str):
+    try:
+        d = _dt.strptime(date_str, '%Y-%m-%d')
+        days = ['월', '화', '수', '목', '금', '토', '일']
+        return f"{d.month}월 {d.day}일({days[d.weekday()]})"
+    except Exception:
+        return date_str
 
 # ── 로그인 매니저 ─────────────────────────────────
 login_manager = LoginManager()
@@ -47,12 +59,34 @@ GOOGLE_REDIRECT_URI  = os.getenv("GOOGLE_REDIRECT_URI")
 # ── DB 테이블 생성 ────────────────────────────────
 with app.app_context():
     db.create_all()
+    # 기존 subject 테이블에 syllabus_analyzed 컬럼이 없으면 추가
+    try:
+        db.session.execute(db.text("ALTER TABLE subject ADD COLUMN syllabus_analyzed BOOLEAN DEFAULT 0"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+    try:
+        db.session.execute(db.text("ALTER TABLE study_plan ADD COLUMN name VARCHAR(100)"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+    try:
+        db.session.execute(db.text("ALTER TABLE user ADD COLUMN display_name VARCHAR(100)"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+    try:
+        db.session.execute(db.text("ALTER TABLE user ADD COLUMN profile_image VARCHAR(255)"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
 
 # ── 블루프린트 등록 ───────────────────────────────
 app.register_blueprint(login_bp)
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(study_history_bp)
 app.register_blueprint(grade_predict_bp)
+app.register_blueprint(classroom_bp)
 app.register_blueprint(analysis_bp)
 app.register_blueprint(mypage_bp)
 app.register_blueprint(calendar_bp)
