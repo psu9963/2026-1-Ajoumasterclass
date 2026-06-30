@@ -1189,11 +1189,9 @@ function toggleCard(predId, event) {
 // 카드가 2개 이상이면 첫 번째 빼고 접기
 document.addEventListener('DOMContentLoaded', () => {
   const cards = document.querySelectorAll('.subject-card');
-  if (cards.length > 1) {
-    cards.forEach((card, idx) => {
-      if (idx > 0) card.classList.add('collapsed');
-    });
-  }
+  cards.forEach(card => {
+    card.classList.add('collapsed');
+  });
 });
 
 // ── 단계별 모달 열기 ─────────────────────────────
