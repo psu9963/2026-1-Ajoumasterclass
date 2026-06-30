@@ -1,0 +1,475 @@
+/* ══════════════════════════════════════════════
+   캘린더 페이지 레이아웃
+══════════════════════════════════════════════ */
+.calendar-page {
+  display: flex;
+  gap: 20px;
+  height: calc(100vh - 72px);
+  padding: 20px 24px;
+  box-sizing: border-box;
+  background: var(--bg, #f8fafc);
+}
+
+/* ── 사이드바 ── */
+.cal-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cal-add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 0;
+  background: #2563eb;        /* 그라디언트 → 단색 파란색 */
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s, transform .15s;
+  box-shadow: 0 4px 12px rgba(37,99,235,.25);
+}
+.cal-add-btn:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+/* 범례 */
+.cal-legend {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+.cal-legend-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin: 0 0 12px;
+}
+.cal-legend ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cal-legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #374151;
+  font-weight: 500;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* 이번 달 일정 */
+.cal-upcoming {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  flex: 1;
+  overflow-y: auto;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+.cal-upcoming ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cal-upcoming-empty {
+  font-size: 13px;
+  color: #94a3b8;
+  text-align: center;
+  padding: 20px 0;
+}
+.cal-upcoming-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.cal-upcoming-item:hover { background: #f8fafc; }
+.cal-upcoming-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.cal-upcoming-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.cal-upcoming-name {
+  font-size: 13px;
+  color: #1e293b;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cal-upcoming-date {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+/* ── 캘린더 본체 ── */
+.cal-main {
+  flex: 1;
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+#fullcalendar { height: 100%; }
+
+/* FullCalendar 커스텀 */
+.fc .fc-toolbar-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+}
+.fc .fc-button {
+  background: #f1f5f9 !important;
+  border: none !important;
+  color: #374151 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  border-radius: 8px !important;
+  padding: 6px 12px !important;
+  box-shadow: none !important;
+  transition: background .15s !important;
+}
+.fc .fc-button:hover { background: #e2e8f0 !important; }
+.fc .fc-button-active,
+.fc .fc-button-primary:not(:disabled).fc-button-active {
+  background: #2563eb !important;
+  color: #fff !important;
+}
+.fc .fc-today-button {
+  background: #2563eb !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+}
+.fc .fc-today-button:hover {
+  background: #1d4ed8 !important;
+  color: #fff !important;
+  opacity: 1 !important;
+}
+.fc .fc-today-button:disabled {
+  background: #2563eb !important;
+  color: #fff !important;
+  opacity: 0.6 !important;
+}
+.fc-daygrid-day.fc-day-today { background: #eff6ff !important; }
+.fc-daygrid-day-number { font-size: 13px; color: #374151; }
+.fc-col-header-cell-cushion { font-size: 13px; font-weight: 600; color: #64748b; }
+.fc-event {
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  padding: 2px 6px !important;
+  border: none !important;
+}
+.fc-daygrid-more-link { font-size: 11px; color: #2563eb; }
+
+/* ══════════════════════════════════════════════
+   모달
+══════════════════════════════════════════════ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s;
+}
+.modal-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+.modal-box {
+  background: #fff;
+  border-radius: 20px;
+  width: 480px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 64px rgba(0,0,0,.18);
+  transform: translateY(20px) scale(.97);
+  transition: transform .25s;
+}
+.modal-overlay.active .modal-box {
+  transform: translateY(0) scale(1);
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 24px 0;
+}
+.modal-header h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+.modal-close {
+  background: #f1f5f9;
+  border: none;
+  font-size: 18px;
+  color: #64748b;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s;
+}
+.modal-close:hover { background: #e2e8f0; color: #1e293b; }
+
+.modal-body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+.form-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 10px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #1e293b;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  font-family: inherit;
+  background: #f8fafc;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: #2563eb;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+}
+.form-group textarea { resize: vertical; }
+.required { color: #ef4444; }
+.form-row { display: flex; gap: 12px; }
+
+/* 색상 선택 */
+.color-picker {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 0;
+}
+.color-dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform .15s, box-shadow .15s;
+  border: 2.5px solid transparent;
+}
+.color-dot:hover { transform: scale(1.2); }
+.color-dot.active {
+  border-color: #1e293b;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #1e293b;
+  transform: scale(1.1);
+}
+
+/* 모달 푸터 */
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px 22px;
+  gap: 8px;
+}
+.modal-footer-right { display: flex; gap: 8px; }
+
+.btn-cancel, .btn-save, .btn-delete {
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  transition: all .15s;
+}
+.btn-cancel { background: #f1f5f9; color: #374151; }
+.btn-cancel:hover { background: #e2e8f0; }
+.btn-save {
+  background: #2563eb;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(37,99,235,.25);
+}
+.btn-save:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+.btn-delete { background: #fef2f2; color: #ef4444; }
+.btn-delete:hover { background: #fee2e2; }
+
+/* ══════════════════════════════════════════════
+   모바일 반응형
+══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  .calendar-page {
+    flex-direction: column;
+    height: auto;
+    min-height: calc(100vh - 72px);
+    padding: 12px 12px 80px; /* 하단 탭바 공간 확보 */
+    gap: 12px;
+  }
+
+  /* 사이드바 : 가로 스크롤 */
+  .cal-sidebar {
+    width: 100%;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* 카테고리 칩 형태로 가로 스크롤 */
+  .cal-legend {
+    padding: 14px;
+    border-radius: 14px;
+  }
+  .cal-legend ul {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 8px;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .cal-legend ul::-webkit-scrollbar { display: none; }
+  .cal-legend li {
+    flex-shrink: 0;
+    background: #f8fafc;
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    border: 1.5px solid #e2e8f0;
+  }
+
+  /* 이번 달 일정 숨김 */
+  .cal-upcoming { display: none; }
+
+  /* 캘린더 본체 */
+  .cal-main {
+    flex: none;
+    height: 500px;
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  /* FullCalendar 모바일 */
+  .fc .fc-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px !important;
+  }
+  .fc .fc-toolbar-title { font-size: 15px; }
+  .fc .fc-button {
+    font-size: 11px !important;
+    padding: 5px 9px !important;
+    border-radius: 7px !important;
+  }
+
+  /* 주/일/목록 버튼 숨김 */
+  .fc .fc-timeGridWeek-button,
+  .fc .fc-timeGridDay-button,
+  .fc .fc-listMonth-button {
+    display: none !important;
+  }
+
+  .fc-daygrid-day-number { font-size: 11px; }
+  .fc-col-header-cell-cushion { font-size: 11px; }
+  .fc-event {
+    font-size: 10px !important;
+    padding: 1px 4px !important;
+  }
+
+  /* 모달 */
+  .modal-box {
+    width: 100%;
+    max-width: 100%;
+    max-height: 90vh;
+    border-radius: 20px 20px 0 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+  }
+  .modal-overlay {
+    align-items: flex-end;
+  }
+  .modal-overlay.active .modal-box {
+    transform: translateY(0) scale(1);
+  }
+  .modal-box {
+    transform: translateY(100%);
+  }
+  .modal-header { padding: 20px 20px 0; }
+  .modal-body { padding: 16px 20px; gap: 14px; }
+  .modal-footer { padding: 0 20px 32px; }
+  .form-row { flex-direction: column; gap: 14px; }
+}
+
+@media (max-width: 360px) {
+  .cal-main { height: 440px; }
+  .fc .fc-toolbar-title { font-size: 13px; }
+}

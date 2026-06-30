@@ -1,0 +1,1467 @@
+{% extends "base.html" %}
+{% block title %}성적 예측{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── 전체 레이아웃 ─────────────────────────────── */
+.gp-container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.gp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+
+.gp-header-left h1 {
+  font-size: 26px;
+  font-weight: 800;
+  color: #1a1a2e;
+  margin: 0 0 4px;
+}
+
+.gp-header-left p {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ── 버튼 ──────────────────────────────────────── */
+.btn-add {
+  background: #4f46e5;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  white-space: nowrap;
+}
+.btn-add:hover { background: #4338ca; transform: translateY(-1px); }
+
+.btn-green {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-green:hover    { background: #059669; }
+.btn-green:disabled { background: #a7f3d0; cursor: not-allowed; }
+
+.btn-red-outline {
+  background: transparent;
+  color: #ef4444;
+  border: 1.5px solid #ef4444;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-red-outline:hover { background: #ef4444; color: white; }
+
+.btn-gray {
+  background: #f3f4f6;
+  color: #374151;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-gray:hover { background: #e5e7eb; }
+
+.btn-indigo {
+  background: #4f46e5;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-indigo:hover    { background: #4338ca; }
+.btn-indigo:disabled { background: #a5b4fc; cursor: not-allowed; }
+
+/* ── 빈 상태 ───────────────────────────────────── */
+.gp-empty {
+  text-align: center;
+  padding: 80px 20px;
+  background: white;
+  border-radius: 20px;
+  border: 2px dashed #e5e7eb;
+}
+.gp-empty .empty-icon { font-size: 48px; margin-bottom: 12px; }
+.gp-empty p { font-size: 15px; color: #9ca3af; margin: 4px 0; }
+
+/* ── 과목 카드 ─────────────────────────────────── */
+.subject-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.subject-card {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  overflow: hidden;
+  border: 1px solid #f0f0f0;
+}
+
+.sc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.sc-header:hover { background: #fafafa; }
+
+.sc-title h2 {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1a1a2e;
+  margin: 0 0 8px;
+}
+
+/* ── 접기/펼치기 토글 ──────────────────────────── */
+.sc-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toggle-icon {
+  width: 28px;
+  height: 28px;
+  background: #f3f4f6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: #6b7280;
+  transition: transform 0.3s, background 0.2s;
+  flex-shrink: 0;
+}
+
+.subject-card.collapsed .toggle-icon {
+  transform: rotate(-90deg);
+}
+
+.card-body {
+  transition: max-height 0.4s ease, opacity 0.3s ease;
+  max-height: 3000px;
+  opacity: 1;
+  overflow: hidden;
+}
+
+.subject-card.collapsed .card-body {
+  max-height: 0;
+  opacity: 0;
+}
+
+/* 카드 요약 (접혔을 때 표시) */
+.card-summary {
+  display: none;
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.subject-card.collapsed .card-summary { display: block; }
+
+/* ── 스텝 프로그레스 ───────────────────────────── */
+.step-progress {
+  display: flex;
+  align-items: center;
+}
+
+.step-dot {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #d1d5db;
+}
+
+.step-dot .dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #f3f4f6;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.step-dot.active .dot { background: #4f46e5; color: white; }
+.step-dot.done .dot   { background: #10b981; color: white; }
+.step-dot.done        { color: #10b981; }
+.step-dot.active      { color: #4f46e5; }
+
+.step-line {
+  width: 32px;
+  height: 2px;
+  background: #e5e7eb;
+  margin: 0 4px;
+}
+.step-line.done { background: #10b981; }
+
+.sc-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* 반영 비율 바 */
+.ratio-bar {
+  display: flex;
+  height: 32px;
+  margin: 0 24px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  gap: 2px;
+}
+
+.rb-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: white;
+  min-width: 30px;
+  border-radius: 4px;
+}
+
+.rb-mid    { background: #4f46e5; }
+.rb-final  { background: #7c3aed; }
+.rb-assign { background: #0891b2; }
+.rb-attend { background: #059669; }
+.rb-other  { background: #d97706; }
+
+/* ── 분석 결과 섹션 ────────────────────────────── */
+.analysis-sections {
+  padding: 20px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.next-step-area {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0 4px;
+}
+
+.abox {
+  border-radius: 14px;
+  padding: 20px;
+  border: 1.5px solid;
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.abox-midterm { background: #eff6ff; border-color: #bfdbfe; }
+.abox-final   { background: #f5f3ff; border-color: #ddd6fe; }
+.abox-result  { background: #f0fdf4; border-color: #bbf7d0; }
+
+.abox h3 {
+  font-size: 15px;
+  font-weight: 800;
+  margin: 0 0 16px;
+  color: #1a1a2e;
+}
+
+.score-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.sg-item {
+  background: white;
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+}
+
+.sg-label {
+  font-size: 11px;
+  color: #6b7280;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.sg-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1a1a2e;
+}
+
+.sg-value.indigo { color: #4f46e5; }
+.sg-value.green  { color: #059669; font-size: 24px; }
+.sg-value.purple { color: #7c3aed; }
+
+.ai-comment {
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.7;
+  margin: 10px 0 6px;
+  padding: 10px 14px;
+  background: white;
+  border-radius: 8px;
+}
+
+.ai-tip {
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0 4px;
+}
+
+/* 최종 결과 */
+.final-hero {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: white;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+
+.fh-grade {
+  font-size: 56px;
+  font-weight: 900;
+  color: #059669;
+  line-height: 1;
+}
+
+.fh-info { flex: 1; }
+
+.fh-score {
+  font-size: 28px;
+  font-weight: 800;
+  color: #1a1a2e;
+  margin-bottom: 4px;
+}
+
+.fh-rank {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.breakdown-table {
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.bt-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 16px;
+  font-size: 14px;
+  color: #374151;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.bt-row:last-child { border-bottom: none; }
+
+.bt-row.total {
+  font-weight: 800;
+  color: #1a1a2e;
+  background: #f9fafb;
+}
+
+.tips-box h4 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 8px;
+}
+
+.tips-box ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.tips-box li {
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.8;
+}
+
+/* ── 모달 ──────────────────────────────────────── */
+.gp-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+}
+
+.gp-modal-overlay.open { display: flex; }
+
+.gp-modal {
+  background: white;
+  border-radius: 20px;
+  width: 92%;
+  max-width: 480px;
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.25);
+}
+
+.gp-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid #f3f4f6;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 1;
+}
+
+.gp-modal-header h2 {
+  font-size: 17px;
+  font-weight: 800;
+  margin: 0;
+  color: #1a1a2e;
+}
+
+.modal-x {
+  background: #f3f4f6;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  transition: background 0.2s;
+}
+.modal-x:hover { background: #e5e7eb; color: #1a1a2e; }
+
+.gp-modal-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.gp-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid #f3f4f6;
+}
+
+/* 폼 */
+.fg {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fg label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.fg input {
+  padding: 11px 14px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 9px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.fg input:focus { border-color: #4f46e5; }
+
+/* 점수 입력 행 (내 점수 / 총점) */
+.score-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.score-row .fg label { font-size: 12px; }
+
+/* 과제 입력 */
+.assignment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.assignment-item {
+  background: #f9fafb;
+  border-radius: 10px;
+  padding: 12px 14px;
+  border: 1.5px solid #e5e7eb;
+}
+
+.assignment-item-header {
+  font-size: 13px;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 10px;
+}
+
+.assignment-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.assignment-inputs .fg label { font-size: 11px; color: #6b7280; }
+.assignment-inputs .fg input { padding: 8px 10px; font-size: 13px; }
+
+.btn-add-assign {
+  background: #eff6ff;
+  color: #4f46e5;
+  border: 1.5px dashed #bfdbfe;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.2s;
+}
+.btn-add-assign:hover { background: #dbeafe; }
+
+.btn-remove-assign {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-size: 12px;
+  cursor: pointer;
+  float: right;
+  font-weight: 600;
+}
+
+/* 비율 */
+.ratio-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.ratio-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.ratio-row span {
+  font-size: 13px;
+  color: #374151;
+  font-weight: 600;
+  flex: 1;
+}
+
+.ratio-row input {
+  width: 60px !important;
+  padding: 6px 8px !important;
+  text-align: center;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  outline: none;
+}
+
+.ratio-row input:focus { border-color: #4f46e5; }
+
+.ratio-sum-display {
+  text-align: center;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  background: #f3f4f6;
+  color: #374151;
+  transition: all 0.2s;
+}
+
+.ratio-sum-display.ok    { background: #d1fae5; color: #059669; }
+.ratio-sum-display.error { background: #fee2e2; color: #ef4444; }
+
+.info-note {
+  background: #eff6ff;
+  border: 1.5px solid #bfdbfe;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #1d4ed8;
+  line-height: 1.6;
+}
+
+/* ── 로딩 ──────────────────────────────────────── */
+.gp-loading {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 99999;
+  align-items: center;
+  justify-content: center;
+}
+
+.gp-loading.open { display: flex; }
+
+.loading-card {
+  background: white;
+  border-radius: 20px;
+  padding: 44px 48px;
+  text-align: center;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.25);
+}
+
+.spinner {
+  width: 52px;
+  height: 52px;
+  border: 5px solid #e5e7eb;
+  border-top-color: #4f46e5;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+  margin: 0 auto 18px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-card p {
+  font-size: 15px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
+}
+
+.loading-card small {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 6px;
+  display: block;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="gp-container">
+
+  <!-- 헤더 -->
+  <div class="gp-header">
+    <div class="gp-header-left">
+      <h1>📊 성적 예측 분석</h1>
+      <p>단계별로 성적을 입력하면 AI가 학점을 예측해드려요</p>
+    </div>
+    <button class="btn-add" onclick="openModal('modal-step1')">+ 새 과목 추가</button>
+  </div>
+
+  <!-- 과목 목록 -->
+  <div class="subject-list">
+    {% if predictions %}
+      {% for p in predictions %}
+      <div class="subject-card" id="card-{{ p.id }}">
+
+        <!-- 카드 헤더 (클릭 시 접기/펼치기) -->
+        <div class="sc-header" onclick="toggleCard({{ p.id }}, event)">
+          <div class="sc-title">
+            <h2>{{ p.subject_name }}</h2>
+            <div class="card-summary">
+              {% if p.result_data %}
+                최종 학점 예측: {{ p.result_data.predicted_grade }} · {{ p.result_data.total_score }}점
+              {% elif p.final_data %}
+                중간+기말 합산: {{ p.final_data.combined_score }}점 · 예측 학점: {{ p.final_data.predicted_grade }}
+              {% elif p.midterm_data %}
+                중간고사 반영 점수: {{ p.midterm_data.weighted_score }}점 · 예측 학점: {{ p.midterm_data.predicted_grade_so_far }}
+              {% else %}
+                중간고사 점수를 입력해주세요
+              {% endif %}
+            </div>
+            <div class="step-progress">
+              <div class="step-dot done"><div class="dot">✓</div></div>
+              <div class="step-line done"></div>
+              <div class="step-dot {{ 'done' if p.current_step > 2 else ('active' if p.current_step == 2 else '') }}">
+                <div class="dot">{{ '✓' if p.current_step > 2 else '2' }}</div>
+              </div>
+              <div class="step-line {{ 'done' if p.current_step > 2 else '' }}"></div>
+              <div class="step-dot {{ 'done' if p.current_step > 3 else ('active' if p.current_step == 3 else '') }}">
+                <div class="dot">{{ '✓' if p.current_step > 3 else '3' }}</div>
+              </div>
+              <div class="step-line {{ 'done' if p.current_step > 3 else '' }}"></div>
+              <div class="step-dot {{ 'done' if p.current_step >= 4 else ('active' if p.current_step == 4 else '') }}">
+                <div class="dot">{{ '✓' if p.current_step >= 4 else '4' }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="sc-actions">
+            <div class="sc-toggle">
+              <div class="toggle-icon">▼</div>
+            </div>
+            <button class="btn-red-outline" onclick="deletePrediction({{ p.id }})">삭제</button>
+          </div>
+        </div>
+
+        <!-- 카드 바디 (접기/펼치기 대상) -->
+        <div class="card-body" id="body-{{ p.id }}">
+
+          <!-- 반영 비율 바 -->
+          <div class="ratio-bar" style="margin: 0 24px 4px;">
+            <div class="rb-item rb-mid"    style="flex: {{ p.midterm_ratio }}">중간 {{ p.midterm_ratio|int }}%</div>
+            <div class="rb-item rb-final"  style="flex: {{ p.final_ratio }}">기말 {{ p.final_ratio|int }}%</div>
+            <div class="rb-item rb-assign" style="flex: {{ p.assignment_ratio }}">과제 {{ p.assignment_ratio|int }}%</div>
+            <div class="rb-item rb-attend" style="flex: {{ p.attendance_ratio }}">출석 {{ p.attendance_ratio|int }}%</div>
+            {% if p.other_ratio and p.other_ratio > 0 %}
+            <div class="rb-item rb-other"  style="flex: {{ p.other_ratio }}">기타 {{ p.other_ratio|int }}%</div>
+            {% endif %}
+          </div>
+
+          <!-- 분석 결과 -->
+          <div class="analysis-sections">
+
+            <!-- 2단계: 중간고사 결과 -->
+            {% if p.midterm_data %}
+            <div class="abox abox-midterm">
+              <h3>📝 중간고사 분석</h3>
+              <div class="score-grid">
+                <div class="sg-item">
+                  <div class="sg-label">내 점수</div>
+                  <div class="sg-value">{{ p.midterm_score|int }} / {{ p.midterm_total|int }}점</div>
+                </div>
+                <div class="sg-item">
+                  <div class="sg-label">득점률</div>
+                  <div class="sg-value indigo">{{ p.midterm_data.raw_pct }}%</div>
+                </div>
+                <div class="sg-item">
+                  <div class="sg-label">반영 후 점수</div>
+                  <div class="sg-value indigo">{{ p.midterm_data.weighted_score }}점</div>
+                </div>
+                <div class="sg-item">
+                  <div class="sg-label">현재 예측 학점</div>
+                  <div class="sg-value green">{{ p.midterm_data.predicted_grade_so_far }}</div>
+                </div>
+                <div class="sg-item">
+                  <div class="sg-label">예상 등수</div>
+                  <div class="sg-value purple">상위 {{ p.midterm_data.predicted_rank_percent }}%</div>
+                </div>
+              </div>
+              {% if p.midterm_data.distribution_type %}
+              <div style="display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
+                <span style="background:white; border-radius:8px; padding:6px 12px; font-size:12px; font-weight:700; color:#4f46e5;">
+                  📊 {{ p.midterm_data.distribution_type }}
+                </span>
+                {% if p.midterm_data.score_position %}
+                <span style="background:white; border-radius:8px; padding:6px 12px; font-size:12px; font-weight:700; color:#059669;">
+                  📍 {{ p.midterm_data.score_position }}
+                </span>
+                {% endif %}
+              </div>
+              {% endif %}
+              <div class="ai-comment">{{ p.midterm_data.comment }}</div>
+              <p class="ai-tip">💡 {{ p.midterm_data.next_step_tip }}</p>
+            </div>
+            {% endif %}
+
+            <!-- 3단계: 기말고사 결과 -->
+            {% if p.final_data %}
+            <div class="abox abox-final">
+              <h3>📋 기말고사 분석</h3>
+              <div class="score-grid">
+                <div class="sg-item">
+                  <div class="sg-label">기말 점수</div>
+                  <div class="sg-value">{{ p.final_score|int }} / {{ p.final_total|int }}점</div>
+                </div>
+                <div class="sg-item">
+                  <div class="sg-label">득점률</div>
+                  <div class="sg-value indigo">
+                    {{ (p.final_score / p.final_total * 100)|round(1) }}%
+                  </div>
+                </div>
+                <div class="sg-item">
+                  <div class="sg-label">중간+기말 합산</div>
+                  <div class="sg-value indigo">{{ p.final_data.combined_score }}점</div>
+                </div>
+                <div class="sg-item">
+                  <div class="sg-label">예측 학점</div>
+                  <div class="sg-value green">{{ p.final_data.predicted_grade }}</div>
+                </div>
+                <div class="sg-item">
+                  <div class="sg-label">예상 등수</div>
+                  <div class="sg-value purple">상위 {{ p.final_data.predicted_rank_percent }}%</div>
+                </div>
+              </div>
+              <div class="ai-comment">{{ p.final_data.comment }}</div>
+              <p class="ai-tip">💡 {{ p.final_data.remaining_tip }}</p>
+            </div>
+            {% endif %}
+
+            <!-- 4단계: 최종 결과 -->
+            {% if p.result_data %}
+            <div class="abox abox-result">
+              <h3>🎯 최종 학점 예측</h3>
+              <div class="final-hero">
+                <div class="fh-grade">{{ p.result_data.predicted_grade }}</div>
+                <div class="fh-info">
+                  <div class="fh-score">{{ p.result_data.total_score }}점</div>
+                  <div class="fh-rank">상위 {{ p.result_data.predicted_rank_percent }}%</div>
+                </div>
+              </div>
+              <div class="breakdown-table">
+                <div class="bt-row"><span>중간고사</span><span>{{ p.result_data.midterm_weighted }}점</span></div>
+                <div class="bt-row"><span>기말고사</span><span>{{ p.result_data.final_weighted }}점</span></div>
+                <div class="bt-row"><span>과제</span><span>{{ p.result_data.assignment_weighted }}점</span></div>
+                <div class="bt-row"><span>출석</span><span>{{ p.result_data.attendance_weighted }}점</span></div>
+                {% if p.result_data.other_weighted and p.result_data.other_weighted > 0 %}
+                <div class="bt-row"><span>기타</span><span>{{ p.result_data.other_weighted }}점</span></div>
+                {% endif %}
+                <div class="bt-row total"><span>최종 합계</span><span>{{ p.result_data.total_score }}점</span></div>
+              </div>
+              <div class="ai-comment">{{ p.result_data.overall_comment }}</div>
+              <div class="tips-box" style="margin-top:12px;">
+                <h4>📌 학점 향상 팁</h4>
+                <ul>
+                  {% for tip in p.result_data.grade_up_tips %}
+                  <li>{{ tip }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- 다음 단계 버튼 -->
+            {% if p.current_step == 1 %}
+            <div class="next-step-area">
+              <button class="btn-green" onclick="openStep2({{ p.id }})">
+                📝 중간고사 점수 입력하기 →
+              </button>
+            </div>
+            {% elif p.current_step == 2 %}
+            <div class="next-step-area">
+              <button class="btn-green" onclick="openStep3({{ p.id }})">
+                📋 기말고사 점수 입력하기 →
+              </button>
+            </div>
+            {% elif p.current_step == 3 %}
+            <div class="next-step-area">
+              <button class="btn-green" onclick="openStep4({{ p.id }})">
+                🎯 최종 점수 입력하기 →
+              </button>
+            </div>
+            {% endif %}
+
+          </div>
+        </div><!-- /.card-body -->
+      </div>
+      {% endfor %}
+
+    {% else %}
+    <div class="gp-empty">
+      <div class="empty-icon">📭</div>
+      <p>아직 등록된 과목이 없어요</p>
+      <p>새 과목을 추가해서 성적을 예측해보세요!</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- 모달: 1단계 과목 기본 정보                      -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="gp-modal-overlay" id="modal-step1">
+  <div class="gp-modal">
+    <div class="gp-modal-header">
+      <h2>📚 과목 기본 정보 입력</h2>
+      <button class="modal-x" onclick="closeModal('modal-step1')">✕</button>
+    </div>
+    <div class="gp-modal-body">
+      <div class="fg">
+        <label>과목명 *</label>
+        <input type="text" id="s1-name" placeholder="예: 데이터구조론">
+      </div>
+      <div class="fg">
+        <label>수강 인원 (선택)</label>
+        <input type="number" id="s1-students" placeholder="예: 45" min="1">
+      </div>
+      <div class="fg">
+        <label>반영 비율 설정 (합계 100%)</label>
+        <div class="ratio-grid">
+          <div class="ratio-row">
+            <span>🔵 중간고사</span>
+            <input type="number" id="r-mid" value="30" min="0" max="100" oninput="calcSum()">
+            <span>%</span>
+          </div>
+          <div class="ratio-row">
+            <span>🟣 기말고사</span>
+            <input type="number" id="r-fin" value="40" min="0" max="100" oninput="calcSum()">
+            <span>%</span>
+          </div>
+          <div class="ratio-row">
+            <span>🔷 과제</span>
+            <input type="number" id="r-asg" value="20" min="0" max="100" oninput="calcSum()">
+            <span>%</span>
+          </div>
+          <div class="ratio-row">
+            <span>🟢 출석</span>
+            <input type="number" id="r-att" value="10" min="0" max="100" oninput="calcSum()">
+            <span>%</span>
+          </div>
+          <div class="ratio-row">
+            <span>🟡 기타</span>
+            <input type="number" id="r-oth" value="0" min="0" max="100" oninput="calcSum()">
+            <span>%</span>
+          </div>
+        </div>
+        <div class="ratio-sum-display ok" id="ratio-sum-display">합계: 100% ✓</div>
+      </div>
+    </div>
+    <div class="gp-modal-footer">
+      <button class="btn-gray" onclick="closeModal('modal-step1')">취소</button>
+      <button class="btn-indigo" onclick="submitStep1()">저장하기</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- 모달: 2단계 중간고사                            -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="gp-modal-overlay" id="modal-step2">
+  <div class="gp-modal">
+    <div class="gp-modal-header">
+      <h2>📝 중간고사 점수 입력</h2>
+      <button class="modal-x" onclick="closeModal('modal-step2')">✕</button>
+    </div>
+    <div class="gp-modal-body">
+      <div class="info-note">
+        💡 내 점수와 총점을 입력해주세요. 평균·중앙값·표준편차를 추가하면 더 정확한 예측이 가능해요!
+      </div>
+      <div class="score-row">
+        <div class="fg">
+          <label>내 점수 *</label>
+          <input type="number" id="s2-score" placeholder="예: 78" min="0">
+        </div>
+        <div class="fg">
+          <label>총점 *</label>
+          <input type="number" id="s2-total" placeholder="예: 100" min="1" value="100">
+        </div>
+      </div>
+      <div class="fg">
+        <label>반 평균 점수 (선택)</label>
+        <input type="number" id="s2-avg" placeholder="예: 65.3" step="0.1">
+      </div>
+      <div class="fg">
+        <label>중앙값 (선택)</label>
+        <input type="number" id="s2-median" placeholder="예: 67.0" step="0.1">
+      </div>
+      <div class="fg">
+        <label>표준편차 (선택)</label>
+        <input type="number" id="s2-std" placeholder="예: 12.5" step="0.1">
+      </div>
+    </div>
+    <div class="gp-modal-footer">
+      <button class="btn-gray" onclick="closeModal('modal-step2')">취소</button>
+      <button class="btn-indigo" id="btn-s2" onclick="submitStep2()">AI 분석하기 🔍</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- 모달: 3단계 기말고사                            -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="gp-modal-overlay" id="modal-step3">
+  <div class="gp-modal">
+    <div class="gp-modal-header">
+      <h2>📋 기말고사 점수 입력</h2>
+      <button class="modal-x" onclick="closeModal('modal-step3')">✕</button>
+    </div>
+    <div class="gp-modal-body">
+      <div class="info-note">
+        💡 내 점수와 총점을 입력해주세요. 평균·중앙값·표준편차를 추가하면 더 정확한 예측이 가능해요!
+      </div>
+      <div class="score-row">
+        <div class="fg">
+          <label>내 점수 *</label>
+          <input type="number" id="s3-score" placeholder="예: 82" min="0">
+        </div>
+        <div class="fg">
+          <label>총점 *</label>
+          <input type="number" id="s3-total" placeholder="예: 100" min="1" value="100">
+        </div>
+      </div>
+      <div class="fg">
+        <label>반 평균 점수 (선택)</label>
+        <input type="number" id="s3-avg" placeholder="예: 68.1" step="0.1">
+      </div>
+      <div class="fg">
+        <label>중앙값 (선택)</label>
+        <input type="number" id="s3-median" placeholder="예: 70.0" step="0.1">
+      </div>
+      <div class="fg">
+        <label>표준편차 (선택)</label>
+        <input type="number" id="s3-std" placeholder="예: 14.2" step="0.1">
+      </div>
+    </div>
+    <div class="gp-modal-footer">
+      <button class="btn-gray" onclick="closeModal('modal-step3')">취소</button>
+      <button class="btn-indigo" id="btn-s3" onclick="submitStep3()">AI 분석하기 🔍</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- 모달: 4단계 최종 점수 (과제 + 출석 + 기타)      -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="gp-modal-overlay" id="modal-step4">
+  <div class="gp-modal">
+    <div class="gp-modal-header">
+      <h2>🎯 최종 점수 입력</h2>
+      <button class="modal-x" onclick="closeModal('modal-step4')">✕</button>
+    </div>
+    <div class="gp-modal-body">
+
+      <!-- 과제 섹션 -->
+      <div class="fg">
+        <label>📋 과제 점수 입력</label>
+        <div class="info-note" style="margin-bottom:0;">
+          과제 개수에 맞게 추가해주세요. 평균은 선택 입력이에요.
+        </div>
+      </div>
+
+      <div class="assignment-list" id="assignment-list">
+        <!-- JS로 동적 생성 -->
+      </div>
+      <button class="btn-add-assign" onclick="addAssignment()">+ 과제 추가</button>
+
+      <!-- 출석 섹션 -->
+      <div class="fg" style="margin-top:4px;">
+        <label>🟢 출석 점수</label>
+      </div>
+      <div class="score-row">
+        <div class="fg">
+          <label>내 점수</label>
+          <input type="number" id="s4-att-score" placeholder="예: 28" min="0">
+        </div>
+        <div class="fg">
+          <label>총점</label>
+          <input type="number" id="s4-att-total" placeholder="예: 30" min="1" value="100">
+        </div>
+      </div>
+
+      <!-- 기타 섹션 -->
+      <div class="fg">
+        <label>🟡 기타 점수 (선택)</label>
+      </div>
+      <div class="score-row">
+        <div class="fg">
+          <label>내 점수</label>
+          <input type="number" id="s4-oth-score" placeholder="예: 15" min="0">
+        </div>
+        <div class="fg">
+          <label>총점</label>
+          <input type="number" id="s4-oth-total" placeholder="예: 20" min="1" value="100">
+        </div>
+      </div>
+
+    </div>
+    <div class="gp-modal-footer">
+      <button class="btn-gray" onclick="closeModal('modal-step4')">취소</button>
+      <button class="btn-indigo" id="btn-s4" onclick="submitStep4()">최종 학점 예측 🎯</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- 로딩 -->
+<div class="gp-loading" id="gp-loading">
+  <div class="loading-card">
+    <div class="spinner"></div>
+    <p id="loading-msg">AI가 분석 중이에요...</p>
+    <small>잠시만 기다려주세요 ☕</small>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- JavaScript                                     -->
+<!-- ══════════════════════════════════════════════ -->
+<script>
+let currentPredId  = null;
+let assignmentCount = 0;
+
+// ── 모달 ─────────────────────────────────────────
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+document.querySelectorAll('.gp-modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+});
+
+// ── 로딩 ─────────────────────────────────────────
+function showLoading(msg = 'AI가 분석 중이에요...') {
+  document.getElementById('loading-msg').textContent = msg;
+  document.getElementById('gp-loading').classList.add('open');
+}
+
+function hideLoading() {
+  document.getElementById('gp-loading').classList.remove('open');
+}
+
+// ── 비율 합계 계산 ───────────────────────────────
+function calcSum() {
+  const vals = ['r-mid', 'r-fin', 'r-asg', 'r-att', 'r-oth']
+    .map(id => parseFloat(document.getElementById(id).value) || 0);
+  const sum = vals.reduce((a, b) => a + b, 0);
+  const el  = document.getElementById('ratio-sum-display');
+  el.textContent = `합계: ${Math.round(sum * 10) / 10}% ${sum === 100 ? '✓' : '✗'}`;
+  el.className   = 'ratio-sum-display ' + (sum === 100 ? 'ok' : 'error');
+}
+
+// ── 접기/펼치기 ──────────────────────────────────
+function toggleCard(predId, event) {
+  // 삭제 버튼 클릭 시 토글 방지
+  if (event.target.closest('.btn-red-outline')) return;
+
+  const card = document.getElementById(`card-${predId}`);
+  card.classList.toggle('collapsed');
+}
+
+// 카드가 2개 이상이면 첫 번째 빼고 접기
+document.addEventListener('DOMContentLoaded', () => {
+  const cards = document.querySelectorAll('.subject-card');
+  if (cards.length > 1) {
+    cards.forEach((card, idx) => {
+      if (idx > 0) card.classList.add('collapsed');
+    });
+  }
+});
+
+// ── 단계별 모달 열기 ─────────────────────────────
+function openStep2(predId) {
+  currentPredId = predId;
+  ['s2-score', 's2-avg', 's2-median', 's2-std'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('s2-total').value = '100';
+  openModal('modal-step2');
+}
+
+function openStep3(predId) {
+  currentPredId = predId;
+  ['s3-score', 's3-avg', 's3-median', 's3-std'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('s3-total').value = '100';
+  openModal('modal-step3');
+}
+
+function openStep4(predId) {
+  currentPredId  = predId;
+  assignmentCount = 0;
+
+  // 과제 목록 초기화 후 1개 기본 추가
+  document.getElementById('assignment-list').innerHTML = '';
+  addAssignment();
+
+  // 출석/기타 초기화
+  ['s4-att-score', 's4-att-total', 's4-oth-score', 's4-oth-total'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('s4-att-total').value = '100';
+  document.getElementById('s4-oth-total').value = '100';
+
+  openModal('modal-step4');
+}
+
+// ── 과제 동적 추가/삭제 ──────────────────────────
+function addAssignment() {
+  assignmentCount++;
+  const idx  = assignmentCount;
+  const list = document.getElementById('assignment-list');
+
+  const item = document.createElement('div');
+  item.className = 'assignment-item';
+  item.id        = `asg-item-${idx}`;
+  item.innerHTML = `
+    <div class="assignment-item-header">
+      과제 ${idx}
+      <button class="btn-remove-assign" onclick="removeAssignment(${idx})">✕ 삭제</button>
+    </div>
+    <div class="assignment-inputs">
+      <div class="fg">
+        <label>내 점수 *</label>
+        <input type="number" id="asg-score-${idx}" placeholder="예: 18" min="0">
+      </div>
+      <div class="fg">
+        <label>총점 *</label>
+        <input type="number" id="asg-total-${idx}" placeholder="예: 20" min="1">
+      </div>
+      <div class="fg">
+        <label>반 평균 (선택)</label>
+        <input type="number" id="asg-avg-${idx}" placeholder="예: 15" step="0.1">
+      </div>
+    </div>`;
+  list.appendChild(item);
+}
+
+function removeAssignment(idx) {
+  const item = document.getElementById(`asg-item-${idx}`);
+  if (item) item.remove();
+}
+
+function collectAssignments() {
+  const list  = document.getElementById('assignment-list');
+  const items = list.querySelectorAll('.assignment-item');
+  const result = [];
+
+  items.forEach(item => {
+    const id    = item.id.replace('asg-item-', '');
+    const score = parseFloat(document.getElementById(`asg-score-${id}`)?.value);
+    const total = parseFloat(document.getElementById(`asg-total-${id}`)?.value);
+    const avg   = parseFloat(document.getElementById(`asg-avg-${id}`)?.value) || null;
+
+    if (!isNaN(score) && !isNaN(total) && total > 0) {
+      result.push({ my_score: score, total_score: total, average: avg });
+    }
+  });
+
+  return result;
+}
+
+// ── 1단계: 과목 기본 정보 저장 ───────────────────
+async function submitStep1() {
+  const name = document.getElementById('s1-name').value.trim();
+  if (!name) { alert('과목명을 입력해주세요.'); return; }
+
+  const sum = ['r-mid', 'r-fin', 'r-asg', 'r-att', 'r-oth']
+    .map(id => parseFloat(document.getElementById(id).value) || 0)
+    .reduce((a, b) => a + b, 0);
+
+  if (Math.round(sum) !== 100) {
+    alert('반영 비율 합계가 100%가 되어야 합니다.');
+    return;
+  }
+
+  const payload = {
+    subject_name:     name,
+    total_students:   parseInt(document.getElementById('s1-students').value) || null,
+    midterm_ratio:    parseFloat(document.getElementById('r-mid').value) || 0,
+    final_ratio:      parseFloat(document.getElementById('r-fin').value) || 0,
+    assignment_ratio: parseFloat(document.getElementById('r-asg').value) || 0,
+    attendance_ratio: parseFloat(document.getElementById('r-att').value) || 0,
+    other_ratio:      parseFloat(document.getElementById('r-oth').value) || 0,
+  };
+
+  try {
+    closeModal('modal-step1');
+    showLoading('과목 정보를 저장하는 중...');
+    const res  = await fetch('/grade-predict/create', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (data.success) location.reload();
+    else alert('저장에 실패했습니다.');
+  } catch (e) {
+    alert('오류: ' + e.message);
+  } finally {
+    hideLoading();
+  }
+}
+
+// ── 2단계: 중간고사 ──────────────────────────────
+async function submitStep2() {
+  const score = document.getElementById('s2-score').value;
+  const total = document.getElementById('s2-total').value;
+  if (!score || !total) { alert('내 점수와 총점을 입력해주세요.'); return; }
+
+  const btn = document.getElementById('btn-s2');
+  btn.disabled = true;
+
+  const payload = {
+    midterm_score:   parseFloat(score),
+    midterm_total:   parseFloat(total),
+    midterm_average: parseFloat(document.getElementById('s2-avg').value)    || null,
+    midterm_median:  parseFloat(document.getElementById('s2-median').value) || null,
+    midterm_std:     parseFloat(document.getElementById('s2-std').value)    || null,
+  };
+
+  try {
+    closeModal('modal-step2');
+    showLoading('중간고사 성적을 AI가 분석 중이에요...');
+    const res  = await fetch(`/grade-predict/midterm/${currentPredId}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (data.success) location.reload();
+    else alert('분석 실패: ' + (data.error || '알 수 없는 오류'));
+  } catch (e) {
+    alert('오류: ' + e.message);
+  } finally {
+    hideLoading();
+    btn.disabled = false;
+  }
+}
+
+// ── 3단계: 기말고사 ──────────────────────────────
+async function submitStep3() {
+  const score = document.getElementById('s3-score').value;
+  const total = document.getElementById('s3-total').value;
+  if (!score || !total) { alert('내 점수와 총점을 입력해주세요.'); return; }
+
+  const btn = document.getElementById('btn-s3');
+  btn.disabled = true;
+
+  const payload = {
+    final_score:   parseFloat(score),
+    final_total:   parseFloat(total),
+    final_average: parseFloat(document.getElementById('s3-avg').value)    || null,
+    final_median:  parseFloat(document.getElementById('s3-median').value) || null,
+    final_std:     parseFloat(document.getElementById('s3-std').value)    || null,
+  };
+
+  try {
+    closeModal('modal-step3');
+    showLoading('기말고사 성적을 AI가 분석 중이에요...');
+    const res  = await fetch(`/grade-predict/final/${currentPredId}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (data.success) location.reload();
+    else alert('분석 실패: ' + (data.error || '알 수 없는 오류'));
+  } catch (e) {
+    alert('오류: ' + e.message);
+  } finally {
+    hideLoading();
+    btn.disabled = false;
+  }
+}
+
+// ── 4단계: 최종 점수 ─────────────────────────────
+async function submitStep4() {
+  const assignments = collectAssignments();
+  if (assignments.length === 0) {
+    alert('과제 점수를 최소 1개 입력해주세요.');
+    return;
+  }
+
+  const btn = document.getElementById('btn-s4');
+  btn.disabled = true;
+
+  const payload = {
+    assignments:      assignments,
+    attendance_score: parseFloat(document.getElementById('s4-att-score').value) || null,
+    attendance_total: parseFloat(document.getElementById('s4-att-total').value) || 100,
+    other_score:      parseFloat(document.getElementById('s4-oth-score').value) || null,
+    other_total:      parseFloat(document.getElementById('s4-oth-total').value) || 100,
+  };
+
+  try {
+    closeModal('modal-step4');
+    showLoading('최종 학점을 AI가 예측 중이에요...');
+    const res  = await fetch(`/grade-predict/result/${currentPredId}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (data.success) location.reload();
+    else alert('예측 실패: ' + (data.error || '알 수 없는 오류'));
+  } catch (e) {
+    alert('오류: ' + e.message);
+  } finally {
+    hideLoading();
+    btn.disabled = false;
+  }
+}
+
+// ── 삭제 ─────────────────────────────────────────
+async function deletePrediction(predId) {
+  if (!confirm('이 과목 예측을 삭제하시겠습니까?')) return;
+
+  try {
+    const res  = await fetch(`/grade-predict/delete/${predId}`, { method: 'DELETE' });
+    const data = await res.json();
+
+    if (data.success) {
+      const card = document.getElementById(`card-${predId}`);
+      card.style.transition = 'opacity 0.3s, transform 0.3s';
+      card.style.opacity    = '0';
+      card.style.transform  = 'translateY(-10px)';
+      setTimeout(() => {
+        card.remove();
+        const list = document.querySelector('.subject-list');
+        if (list && list.querySelectorAll('.subject-card').length === 0) {
+          location.reload();
+        }
+      }, 300);
+    } else {
+      alert('삭제에 실패했습니다.');
+    }
+  } catch (e) {
+    alert('오류: ' + e.message);
+  }
+}
+</script>
+{% endblock %}

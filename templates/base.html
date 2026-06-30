@@ -47,7 +47,7 @@
       <a href="{{ url_for('dashboard.dashboard') }}" class="{% if active_menu == 'dashboard' %}active{% endif %}">대시보드</a>
       <a href="{{ url_for('study_history.history') }}" class="{% if active_menu == 'study_history' %}active{% endif %}">학습 기록</a>
       <a href="{{ url_for('analysis.analysis') }}" class="{% if active_menu == 'analysis' %}active{% endif %}">학습 분석</a>
-      <a href="{{ url_for('ai_plan.ai_plan') }}" class="{% if active_menu == 'ai_plan' %}active{% endif %}">AI 학습 계획</a>
+      <a href="{{ url_for('calendar.calendar') }}" class="{% if active_menu == 'calendar' %}active{% endif %}">캘린더</a>
     </nav>
 
     <div class="header-user">
@@ -105,6 +105,53 @@
 
   {% block content %}{% endblock %}
 </main>
+<nav class="mobile-tab-bar">
+  <a href="{{ url_for('dashboard.dashboard') }}" 
+     class="tab-item {% if active_menu == 'dashboard' %}active{% endif %}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+      <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+    </svg>
+    <span>대시보드</span>
+  </a>
+
+  <a href="{{ url_for('study_history.history') }}"
+     class="tab-item {% if active_menu == 'study_history' %}active{% endif %}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="16" y1="13" x2="8" y2="13"/>
+      <line x1="16" y1="17" x2="8" y2="17"/>
+      <polyline points="10 9 9 9 8 9"/>
+    </svg>
+    <span>학습 기록</span>
+  </a>
+
+  <a href="{{ url_for('analysis.analysis') }}"
+     class="tab-item {% if active_menu == 'analysis' %}active{% endif %}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="20" x2="18" y2="10"/>
+      <line x1="12" y1="20" x2="12" y2="4"/>
+      <line x1="6" y1="20" x2="6" y2="14"/>
+    </svg>
+    <span>학습 분석</span>
+  </a>
+
+  <a href="{{ url_for('calendar.calendar') }}"
+     class="tab-item {% if active_menu == 'calendar' %}active{% endif %}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+      <line x1="16" y1="2" x2="16" y2="6"/>
+      <line x1="8" y1="2" x2="8" y2="6"/>
+      <line x1="3" y1="10" x2="21" y2="10"/>
+    </svg>
+    <span>캘린더</span>
+  </a>
+</nav>
 
   <!-- ══════════════════════════════════
        공통 CSS / JS
@@ -131,6 +178,88 @@
     .user-popup-item:hover { background: var(--surface-2); color: var(--text-1); }
     .user-popup-item.active { color: var(--accent); font-weight: 500; }
     .user-popup-item.logout:hover { background: #fef0f0; color: #c0392b; }
+     .mobile-tab-bar {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    .mobile-tab-bar {
+      display: flex;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      background: #fff;
+      border-top: 1px solid #e2e8f0;
+      box-shadow: 0 -4px 16px rgba(0,0,0,.06);
+      z-index: 500;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .tab-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      text-decoration: none;
+      color: #94a3b8;
+      font-size: 10px;
+      font-weight: 500;
+      transition: color .15s;
+      padding: 8px 0;
+    }
+
+    .tab-item svg {
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+    }
+
+    .tab-item span {
+      font-size: 10px;
+      font-weight: 500;
+    }
+
+    .tab-item.active {
+      color: #2563eb;
+    }
+
+    .tab-item.active svg {
+      stroke: #2563eb;
+    }
+
+    /* 탭바 높이만큼 main 하단 여백 */
+    .main {
+      padding-bottom: 72px;
+    }
+  }
+
+  /* 기존 user-popup 스타일 */
+  .user-popup {
+    position: absolute;
+    bottom: 60px; left: 0; right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    overflow: hidden;
+    z-index: 200;
+    animation: fadeUp .2s ease both;
+  }
+  .user-popup-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 11px 16px;
+    font-size: 13px; color: var(--text-2);
+    text-decoration: none;
+    transition: background .15s, color .15s;
+  }
+  .user-popup-item:hover { background: var(--surface-2); color: var(--text-1); }
+  .user-popup-item.active { color: var(--accent); font-weight: 500; }
+  .user-popup-item.logout:hover { background: #fef0f0; color: #c0392b; }
+
   </style>
 
   <script>
