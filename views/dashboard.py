@@ -95,6 +95,8 @@ def dashboard():
     return render_template(
         'dashboard.html',
         username=current_user.username,
+        display_name=current_user.display_name or current_user.username,
+        profile_image=current_user.profile_image,
         total_hours=round(total_hours, 1),
         weekly_hours=round(weekly_hours, 1),
         subject_count=subject_count,

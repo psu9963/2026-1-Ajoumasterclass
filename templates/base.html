@@ -22,7 +22,7 @@
     <span>A+ 스터디 플래너</span>
   </div>
   <div class="mobile-header-user">
-    <img src="https://ui-avatars.com/api/?name={{ current_user.username }}&background=2563eb&color=fff" alt="user" class="mobile-avatar"/>
+    <img src="{{ url_for('static', filename=current_user.profile_image) if current_user.profile_image else 'https://ui-avatars.com/api/?name=' + (current_user.display_name or current_user.username) + '&background=2563eb&color=fff' }}" alt="user" class="mobile-avatar"/>
     <a href="{{ url_for('login.logout') }}" class="mobile-logout header-icon-btn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -50,17 +50,17 @@
       <a href="{{ url_for('ai_plan.ai_plan') }}" class="{% if active_menu == 'ai_plan' %}active{% endif %}">AI 학습 계획</a>
     </nav>
 
-    <div class="header-user">
-      <button class="header-icon-btn">
+    <div class="header-user" style="position:relative;">
+      <button class="header-icon-btn" id="user-chip-btn" onclick="toggleUserMenu()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"/>
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
         </svg>
       </button>
       <div class="header-user-divider"></div>
-      <img src="https://ui-avatars.com/api/?name={{ current_user.username }}&background=2563eb&color=fff" alt="avatar" class="header-avatar"/>
+      <img src="{{ url_for('static', filename=current_user.profile_image) if current_user.profile_image else 'https://ui-avatars.com/api/?name=' + (current_user.display_name or current_user.username) + '&background=2563eb&color=fff' }}" alt="avatar" class="header-avatar"/>
       <div class="header-user-info">
-        <span class="header-user-name">{{ current_user.username }}</span>
+        <span class="header-user-name">{{ current_user.display_name or current_user.username }}</span>
         <span class="header-user-email">{{ current_user.email if current_user.email else '' }}</span>
       </div>
       <a href="{{ url_for('login.logout') }}" class="header-icon-btn" title="로그아웃">
@@ -112,15 +112,17 @@
   <style>
     .user-popup {
       position: absolute;
-      bottom: 60px; left: 0; right: 0;
+      top: calc(100% + 6px); right: 0;
+      min-width: 160px;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
       box-shadow: 0 4px 16px rgba(0,0,0,0.1);
       overflow: hidden;
       z-index: 200;
-      animation: fadeUp .2s ease both;
+      animation: fadeDown .15s ease both;
     }
+    @keyframes fadeDown { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
     .user-popup-item {
       display: flex; align-items: center; gap: 8px;
       padding: 11px 16px;
@@ -142,7 +144,7 @@
   document.addEventListener('click', function(e) {
     const chip = document.getElementById('user-chip-btn');
     const menu = document.getElementById('user-menu');
-    if (chip && !chip.contains(e.target)) menu.style.display = 'none';
+    if (chip && !chip.contains(e.target) && !menu.contains(e.target)) menu.style.display = 'none';
   });
   </script>
 
