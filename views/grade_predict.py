@@ -29,6 +29,29 @@ def parse_json_response(raw):
     return json.loads(raw.strip())
 
 
+# ── 학점 기준 상수 ────────────────────────────────────────────────
+GRADE_CRITERIA = """
+[학점 판단 기준]
+※ 상대평가 기준 (수강인원 정보 있을 때 우선 적용)
+- A+/A0: 상위 30% 이내
+- B+/B0: 상위 30~60%
+- C+/C0: 상위 60~80%
+- D+/D0: 상위 80~95%
+- F    : 하위 5%
+
+※ 절대평가 참고 기준 (통계 정보 없을 때 적용)
+- A+ : 95점 이상
+- A0 : 90점 이상
+- B+ : 85점 이상
+- B0 : 80점 이상
+- C+ : 75점 이상
+- C0 : 70점 이상
+- D+ : 65점 이상
+- D0 : 60점 이상
+- F  : 60점 미만
+"""
+
+
 # ── 환산 점수 계산 헬퍼 ──────────────────────────────────────────
 def calc_normalized(my_score, total_score, ratio):
     """내 점수 / 총점 * 비율 = 환산 점수"""
@@ -44,28 +67,28 @@ def calc_assignment_normalized(assignments, ratio):
     """
     if not assignments:
         return 0, 0, []
-    
-    total_my    = sum(a.get('my_score', 0)    for a in assignments)
-    total_max   = sum(a.get('total_score', 0) for a in assignments)
-    
+
+    total_my  = sum(a.get('my_score', 0)    for a in assignments)
+    total_max = sum(a.get('total_score', 0) for a in assignments)
+
     if total_max == 0:
         return 0, 0, []
-    
+
     weighted = round((total_my / total_max) * ratio, 2)
     pct      = round((total_my / total_max) * 100, 1)
-    
+
     detail = []
     for i, a in enumerate(assignments):
         ts = a.get('total_score', 0)
         ms = a.get('my_score', 0)
         detail.append({
-            "index":      i + 1,
-            "my_score":   ms,
-            "total":      ts,
-            "average":    a.get('average'),
-            "pct":        round(ms / ts * 100, 1) if ts else 0,
+            "index":    i + 1,
+            "my_score": ms,
+            "total":    ts,
+            "average":  a.get('average'),
+            "pct":      round(ms / ts * 100, 1) if ts else 0,
         })
-    
+
     return weighted, pct, detail
 
 
@@ -108,17 +131,25 @@ def ai_midterm_analysis(pred):
              '중앙값' if pred.midterm_median else '',
              '표준편차' if pred.midterm_std else '']
         )})를 활용하여 등수를 예측하세요
-- 제공되지 않은 통계는 예측에서 제외하세요"""
+- 제공되지 않은 통계는 예측에서 제외하세요
+- 반드시 위 [학점 판단 기준]을 참고하여 학점을 결정하세요"""
         if skew_comment:
             analysis_guide += f"\n- 분포 해석: {skew_comment}"
     else:
-        stats_section = "- 통계 정보 없음 (내 점수와 만점만으로 분석)"
+        stats_section  = "- 통계 정보 없음 (내 점수와 만점만으로 분석)"
         analysis_guide = """- 통계 정보가 없으므로 득점률(%)만으로 학점을 예측하세요
 - 등수 예측은 득점률 기반으로 보수적으로 추정하세요
 - distribution_type은 '정보 없음'으로 반환하세요
-- score_position은 '득점률 기반 추정'으로 반환하세요"""
+- score_position은 '득점률 기반 추정'으로 반환하세요
+- 반드시 위 [학점 판단 기준] 절대평가 기준을 참고하여 학점을 결정하세요"""
+
+    # ── 중간고사만 입력된 상태임을 명시 ────────────
+    remaining_ratio = 100 - ratio
+    midterm_max_possible = ratio  # 중간고사 만점 환산
 
     prompt = f"""당신은 대학교 성적 예측 전문가입니다. JSON만 반환하세요.
+
+{GRADE_CRITERIA}
 
 [과목 정보]
 - 과목명: {pred.subject_name}
@@ -127,8 +158,14 @@ def ai_midterm_analysis(pred):
 
 [중간고사 결과]
 - 내 점수: {my_score}점 / {total_score}점 만점 ({pct}%)
-- 환산 점수(반영 후): {weighted}점
+- 환산 점수(반영 후): {weighted}점 / {midterm_max_possible}점 만점
 {stats_section}
+
+[중요 안내]
+- 현재 입력된 항목: 중간고사({ratio}%)만 입력된 상태
+- 나머지 {remaining_ratio}%는 아직 미입력 (기말/과제/출석/기타)
+- predicted_grade_so_far는 중간고사 득점률({pct}%)과 통계 기반으로 현재까지의 예상 학점을 반환하세요
+- 나머지 항목 미입력으로 최종 학점은 달라질 수 있음을 comment에 반드시 언급하세요
 
 [분석 지침]
 {analysis_guide}
@@ -141,7 +178,7 @@ def ai_midterm_analysis(pred):
   "score_position": "평균 대비 위치 또는 득점률 기반 추정",
   "distribution_type": "분포 유형 또는 정보 없음",
   "predicted_grade_so_far": "현재까지_예측학점(A+/A0/B+/B0/C+/C0/D+/D0/F)",
-  "comment": "중간고사 성적 분석 3문장",
+  "comment": "중간고사 성적 분석 3문장 (나머지 항목 미입력 언급 포함)",
   "next_step_tip": "기말고사를 위한 조언 2문장"
 }}"""
 
@@ -163,17 +200,34 @@ def ai_final_analysis(pred):
     weighted    = calc_normalized(my_score, total_score, ratio)
     pct         = round(my_score / total_score * 100, 1) if total_score else 0
 
-    midterm_weighted = midterm_data.get('weighted_score', 0)
-    combined         = round(float(midterm_weighted) + weighted, 2)
+    midterm_weighted  = midterm_data.get('weighted_score', 0)
+    combined          = round(float(midterm_weighted) + weighted, 2)
+    combined_ratio    = (pred.midterm_ratio or 0) + ratio
+    remaining_ratio   = 100 - combined_ratio
 
-    # ── 입력된 지표만 포함 ──────────────────────────
+    # ── 기말 단독 통계 분석 ──────────────────────────
     stats_lines = []
     if pred.final_average:
-        stats_lines.append(f"- 반 평균: {pred.final_average}점")
+        stats_lines.append(f"- 기말 반 평균: {pred.final_average}점 (기말 단독 점수 기준)")
     if pred.final_median:
-        stats_lines.append(f"- 중앙값: {pred.final_median}점")
+        stats_lines.append(f"- 기말 중앙값: {pred.final_median}점 (기말 단독 점수 기준)")
     if pred.final_std:
-        stats_lines.append(f"- 표준편차: {pred.final_std}")
+        stats_lines.append(f"- 기말 표준편차: {pred.final_std}")
+
+    # ── 기말 단독 기준 내 위치 계산 ─────────────────
+    final_rank_comment = ""
+    if pred.final_average:
+        diff_from_avg = round(my_score - pred.final_average, 2)
+        if diff_from_avg >= 20:
+            final_rank_comment = f"기말 단독 기준: 평균({pred.final_average}점) 대비 +{diff_from_avg}점 → 상위 10~15% 추정"
+        elif diff_from_avg >= 10:
+            final_rank_comment = f"기말 단독 기준: 평균({pred.final_average}점) 대비 +{diff_from_avg}점 → 상위 20~30% 추정"
+        elif diff_from_avg >= 0:
+            final_rank_comment = f"기말 단독 기준: 평균({pred.final_average}점) 대비 +{diff_from_avg}점 → 상위 40~50% 추정"
+        elif diff_from_avg >= -10:
+            final_rank_comment = f"기말 단독 기준: 평균({pred.final_average}점) 대비 {diff_from_avg}점 → 상위 50~65% 추정"
+        else:
+            final_rank_comment = f"기말 단독 기준: 평균({pred.final_average}점) 대비 {diff_from_avg}점 → 상위 65% 이하 추정"
 
     skew_comment = ""
     if pred.final_average and pred.final_median:
@@ -187,14 +241,26 @@ def ai_final_analysis(pred):
 
     if stats_lines:
         stats_section  = "\n".join(stats_lines)
-        analysis_guide = "- 제공된 통계를 활용하여 등수를 예측하세요\n- 제공되지 않은 통계는 예측에서 제외하세요"
+        analysis_guide = f"""- 기말 통계(평균/중앙값)는 기말 단독 점수 기준입니다
+- 내 기말 점수({my_score}점)를 기말 평균({pred.final_average}점)과 비교하여 등수를 추정하세요
+- {final_rank_comment}
+- combined_score({combined}점)는 중간+기말 합산이며 {combined_ratio}점 만점입니다
+- combined_score를 기말 통계와 직접 비교하지 마세요 (기준이 다름)
+- 반드시 위 [학점 판단 기준]을 참고하여 학점을 결정하세요"""
         if skew_comment:
             analysis_guide += f"\n- 분포 해석: {skew_comment}"
     else:
         stats_section  = "- 통계 정보 없음 (내 점수와 만점만으로 분석)"
-        analysis_guide = "- 통계 정보가 없으므로 득점률(%)만으로 학점을 예측하세요\n- distribution_type은 '정보 없음'으로 반환하세요"
+        analysis_guide = """- 통계 정보가 없으므로 득점률(%)만으로 학점을 예측하세요
+- distribution_type은 '정보 없음'으로 반환하세요
+- 반드시 위 [학점 판단 기준] 절대평가 기준을 참고하여 학점을 결정하세요"""
+
+    midterm_pct = midterm_data.get('raw_pct', 0)
+    avg_pct     = round((midterm_pct + pct) / 2, 1)
 
     prompt = f"""당신은 대학교 성적 예측 전문가입니다. JSON만 반환하세요.
+
+{GRADE_CRITERIA}
 
 [과목 정보]
 - 과목명: {pred.subject_name}
@@ -204,13 +270,26 @@ def ai_final_analysis(pred):
 
 [중간고사]
 - 내 점수: {pred.midterm_score}점 / {pred.midterm_total}점 만점
-- 반영 후: {midterm_weighted}점
+- 환산 점수(반영 후): {midterm_weighted}점
 
 [기말고사]
-- 내 점수: {my_score}점 / {total_score}점 만점 ({pct}%)
-- 반영 후: {weighted}점
-- 중간+기말 합산: {combined}점
+- 내 점수: {my_score}점 / {total_score}점 만점 (득점률 {pct}%)
+- 환산 점수(반영 후): {weighted}점
+
+[기말고사 통계 - 기말 단독 점수 기준]
 {stats_section}
+- 기말 단독 내 위치: {final_rank_comment}
+
+[중간+기말 합산]
+- 합산 점수: {combined}점 / {combined_ratio}점 만점 (득점률 {round(combined/combined_ratio*100,1) if combined_ratio else 0}%)
+- 나머지 미입력: {remaining_ratio}%
+
+[⚠️ 중요 주의사항]
+- 기말 통계(평균 {pred.final_average}점, 중앙값 {pred.final_median}점)는 기말 100점 만점 기준입니다
+- combined_score({combined}점)는 {combined_ratio}점 만점이므로 기말 통계와 직접 비교 절대 금지
+- 내 기말 점수({my_score}점) vs 기말 평균({pred.final_average}점) 비교로 등수 추정하세요
+- 나머지 {remaining_ratio}%는 중간+기말 평균 득점률({avg_pct}%)로 가정하여 최종 학점 추정
+- 반드시 위 [학점 판단 기준]을 참고하여 학점을 결정하세요
 
 [분석 지침]
 {analysis_guide}
@@ -220,11 +299,12 @@ def ai_final_analysis(pred):
   "midterm_weighted": {midterm_weighted},
   "final_weighted": {weighted},
   "combined_score": {combined},
+  "estimated_total": 나머지_항목_포함_추정_총점,
   "predicted_rank_percent": 상위_퍼센트_숫자,
-  "score_position": "평균 대비 위치 또는 득점률 기반 추정",
+  "score_position": "기말 평균 대비 위치 명시",
   "distribution_type": "분포 유형 또는 정보 없음",
   "predicted_grade": "예측학점(A+/A0/B+/B0/C+/C0/D+/D0/F)",
-  "comment": "중간+기말 합산 분석 3문장",
+  "comment": "기말 단독 통계 기반 분석 3문장 (합산과 기말 통계 혼용 금지)",
   "remaining_tip": "남은 과제/출석으로 학점 올리는 조언 2문장"
 }}"""
 
@@ -259,23 +339,101 @@ def ai_final_result(pred):
         asg_weighted + att_weighted + oth_weighted, 2
     )
 
-    # ── 입력된 항목만 포함 ──────────────────────────
+    # ── 입력된 항목 / 미입력 항목 분리 ────────────
+    entered_ratio = (pred.midterm_ratio or 0) + (pred.final_ratio or 0)
+    missing_items = []
+
     score_lines = [
-        f"- 중간고사: {midterm_weighted}점 (반영 후)",
-        f"- 기말고사: {final_weighted}점 (반영 후)",
-        f"- 과제: {asg_weighted}점 (득점률 {asg_pct}%)",
+        f"- 중간고사: {midterm_weighted}점 (반영 후, {pred.midterm_ratio}%)",
+        f"- 기말고사: {final_weighted}점 (반영 후, {pred.final_ratio}%)",
+        f"- 과제: {asg_weighted}점 (득점률 {asg_pct}%, {pred.assignment_ratio}%)",
     ]
+    entered_ratio += (pred.assignment_ratio or 0)
+
     if pred.attendance_score:
-        score_lines.append(f"- 출석: {att_weighted}점 (반영 후)")
+        score_lines.append(f"- 출석: {att_weighted}점 (반영 후, {pred.attendance_ratio}%)")
+        entered_ratio += (pred.attendance_ratio or 0)
     else:
-        score_lines.append(f"- 출석: 미입력 (예측에서 제외)")
+        score_lines.append(f"- 출석: 미입력 (예측에서 제외, {pred.attendance_ratio}%)")
+        missing_items.append(f"출석({pred.attendance_ratio}%)")
 
     if pred.other_score:
-        score_lines.append(f"- 기타: {oth_weighted}점 (반영 후)")
+        score_lines.append(f"- 기타: {oth_weighted}점 (반영 후, {pred.other_ratio}%)")
+        entered_ratio += (pred.other_ratio or 0)
     else:
-        score_lines.append(f"- 기타: 미입력 (예측에서 제외)")
+        score_lines.append(f"- 기타: 미입력 (예측에서 제외, {pred.other_ratio}%)")
+        if pred.other_ratio:
+            missing_items.append(f"기타({pred.other_ratio}%)")
+
+    missing_str = ", ".join(missing_items) if missing_items else "없음 (모든 항목 입력됨)"
+
+    # ── 중간/기말 통계로 반 평균 총점 추정 ──────────
+    midterm_avg = pred.midterm_average or 0
+    final_avg   = pred.final_average   or 0
+
+    midterm_avg_weighted = round((midterm_avg / (pred.midterm_total or 100)) * (pred.midterm_ratio or 0), 2) if midterm_avg else 0
+    final_avg_weighted   = round((final_avg   / (pred.final_total   or 100)) * (pred.final_ratio   or 0), 2) if final_avg   else 0
+
+    # 과제 평균 환산 (각 과제의 average 필드 활용)
+    asg_avg_weighted = 0
+    asg_avg_lines    = []
+    if assignments:
+        total_avg_score = sum(a.get('average', 0) or 0 for a in assignments)
+        total_max_score = sum(a.get('total_score', 0) or 0 for a in assignments)
+        if total_max_score > 0:
+            asg_avg_weighted = round((total_avg_score / total_max_score) * (pred.assignment_ratio or 0), 2)
+            asg_avg_lines.append(
+                f"- 과제 평균 합계: {total_avg_score}/{total_max_score}점 → 환산 {asg_avg_weighted}점"
+            )
+
+    class_avg_total = round(midterm_avg_weighted + final_avg_weighted + asg_avg_weighted, 2)
+    my_vs_avg_diff  = round(total - class_avg_total, 2)
+
+    # ── 반 평균 대비 내 위치 추정 ───────────────────
+    if class_avg_total > 0:
+        if my_vs_avg_diff >= 15:
+            rank_estimate = "상위 10~20% 추정 (반 평균 대비 +15점 이상)"
+        elif my_vs_avg_diff >= 10:
+            rank_estimate = "상위 20~30% 추정 (반 평균 대비 +10점 이상)"
+        elif my_vs_avg_diff >= 5:
+            rank_estimate = "상위 30~40% 추정 (반 평균 대비 +5점 이상)"
+        elif my_vs_avg_diff >= 0:
+            rank_estimate = "상위 40~55% 추정 (반 평균 근처)"
+        elif my_vs_avg_diff >= -5:
+            rank_estimate = "상위 55~65% 추정 (반 평균 소폭 하회)"
+        else:
+            rank_estimate = "상위 65% 이하 추정 (반 평균 하회)"
+    else:
+        rank_estimate = "통계 정보 부족으로 득점률 기반 추정"
+
+    # ── 통계 섹션 구성 ───────────────────────────────
+    stats_section_lines = []
+    if midterm_avg_weighted:
+        stats_section_lines.append(
+            f"- 중간고사 반 평균 환산: {midterm_avg_weighted}점 (평균 {midterm_avg}점 기준)"
+        )
+    if final_avg_weighted:
+        stats_section_lines.append(
+            f"- 기말고사 반 평균 환산: {final_avg_weighted}점 (평균 {final_avg}점 기준)"
+        )
+    if asg_avg_lines:
+        stats_section_lines.extend(asg_avg_lines)
+    if class_avg_total > 0:
+        stats_section_lines.append(
+            f"- 추정 반 평균 총점: {class_avg_total}점"
+        )
+        stats_section_lines.append(
+            f"- 내 점수 vs 반 평균: {total}점 - {class_avg_total}점 = {my_vs_avg_diff:+.2f}점"
+        )
+        stats_section_lines.append(
+            f"- 위치 추정: {rank_estimate}"
+        )
+
+    stats_section = "\n".join(stats_section_lines) if stats_section_lines else "- 통계 정보 없음"
 
     prompt = f"""당신은 대학교 성적 예측 전문가입니다. JSON만 반환하세요.
+
+{GRADE_CRITERIA}
 
 [과목 정보]
 - 과목명: {pred.subject_name}
@@ -288,16 +446,26 @@ def ai_final_result(pred):
 - 출석: {pred.attendance_ratio}% {'(미입력)' if not pred.attendance_score else ''}
 - 기타: {pred.other_ratio}% {'(미입력)' if not pred.other_score else ''}
 
-[환산 점수]
+[환산 점수 (내 점수)]
 {chr(10).join(score_lines)}
-- 최종 합계: {total}점
+- 현재 합계: {total}점 (입력된 {entered_ratio}% 기준)
+
+[반 평균 통계 기반 위치 분석]
+{stats_section}
+
+[미입력 항목]
+- {missing_str}
 
 [과제 상세]
 {json.dumps(asg_detail, ensure_ascii=False)}
 
-[분석 지침]
-- 미입력 항목은 0점으로 처리되었음을 comment에 언급하세요
-- 실제 학점은 미입력 항목 입력 시 달라질 수 있음을 안내하세요
+[⚠️ 중요 안내]
+- total_score {total}점은 입력된 항목({entered_ratio}%)만의 합산입니다
+- 반드시 반 평균 통계({class_avg_total}점)와 비교하여 상대평가 기준으로 학점을 결정하세요
+- 절대평가(80점=B0)가 아닌 상대평가(반 평균 대비 위치)를 우선 적용하세요
+- 위치 추정: {rank_estimate}
+- 미입력 항목({missing_str})은 0점 처리되어 실제와 다를 수 있음을 overall_comment에 언급하세요
+- 반드시 위 [학점 판단 기준]을 참고하여 학점을 결정하세요
 
 [반환 JSON]
 {{
@@ -307,9 +475,11 @@ def ai_final_result(pred):
   "attendance_weighted": {att_weighted},
   "other_weighted": {oth_weighted},
   "total_score": {total},
+  "class_avg_total": {class_avg_total},
+  "my_vs_avg_diff": {my_vs_avg_diff},
   "predicted_grade": "최종예측학점(A+/A0/B+/B0/C+/C0/D+/D0/F)",
   "predicted_rank_percent": 상위_퍼센트_숫자,
-  "overall_comment": "최종 성적 종합 평가 3문장 (미입력 항목 언급 포함)",
+  "overall_comment": "최종 성적 종합 평가 3문장 (반 평균 대비 위치 및 미입력 항목 언급 포함)",
   "grade_up_tips": ["팁1", "팁2", "팁3"]
 }}"""
 
@@ -436,18 +606,12 @@ def result(pred_id):
 
     data = request.get_json()
 
-    # 과제 데이터 (배열)
     pred.assignment_data  = json.dumps(data.get('assignments', []), ensure_ascii=False)
-
-    # 출석
     pred.attendance_score = data.get('attendance_score')
     pred.attendance_total = data.get('attendance_total', 100)
-
-    # 기타
     pred.other_score      = data.get('other_score')
     pred.other_total      = data.get('other_total', 100)
-
-    pred.current_step = 4
+    pred.current_step     = 4
 
     try:
         result_data = ai_final_result(pred)
