@@ -64,10 +64,11 @@
         <input type="text" id="evTitle" placeholder="일정 제목을 입력하세요"/>
       </div>
 
-      <!-- 카테고리 + 색상 -->
-      <div class="form-row">
-        <div class="form-group">
-          <label>카테고리</label>
+      <!-- 카테고리 (색상 자동 매핑) -->
+      <div class="form-group">
+        <label>카테고리</label>
+        <div class="category-select-wrap">
+          <span class="category-preview-dot" id="categoryDot"></span>
           <select id="evCategory">
             <option value="일반">일반</option>
             <option value="학습">학습</option>
@@ -76,17 +77,6 @@
             <option value="프로젝트">프로젝트</option>
             <option value="기타">기타</option>
           </select>
-        </div>
-        <div class="form-group">
-          <label>색상</label>
-          <div class="color-picker" id="colorPicker">
-            <span class="color-dot active" data-color="blue"   style="background:#2563eb"></span>
-            <span class="color-dot"        data-color="green"  style="background:#16a34a"></span>
-            <span class="color-dot"        data-color="red"    style="background:#dc2626"></span>
-            <span class="color-dot"        data-color="yellow" style="background:#d97706"></span>
-            <span class="color-dot"        data-color="purple" style="background:#7c3aed"></span>
-            <span class="color-dot"        data-color="pink"   style="background:#db2777"></span>
-          </div>
         </div>
       </div>
 
@@ -143,8 +133,28 @@
    상태 변수
 ══════════════════════════════════════════════ */
 let calendar;
-let editingEventId = null;   // null = 추가 모드, 숫자 = 수정 모드
-let selectedColor  = 'blue';
+let editingEventId = null;
+
+/* ══════════════════════════════════════════════
+   카테고리 → 색상 매핑
+══════════════════════════════════════════════ */
+const CATEGORY_COLOR_MAP = {
+  '일반':    { key: 'blue',   hex: '#2563eb' },
+  '학습':    { key: 'green',  hex: '#16a34a' },
+  '시험':    { key: 'red',    hex: '#dc2626' },
+  '과제':    { key: 'yellow', hex: '#d97706' },
+  '프로젝트': { key: 'purple', hex: '#7c3aed' },
+  '기타':    { key: 'pink',   hex: '#db2777' },
+};
+
+function getColorByCategory(category) {
+  return (CATEGORY_COLOR_MAP[category] || CATEGORY_COLOR_MAP['일반']).key;
+}
+
+function updateCategoryDot(category) {
+  const hex = (CATEGORY_COLOR_MAP[category] || CATEGORY_COLOR_MAP['일반']).hex;
+  document.getElementById('categoryDot').style.background = hex;
+}
 
 /* ══════════════════════════════════════════════
    FullCalendar 초기화
@@ -153,25 +163,25 @@ document.addEventListener('DOMContentLoaded', function () {
   const el = document.getElementById('fullcalendar');
 
   calendar = new FullCalendar.Calendar(el, {
-    locale:          'ko',
-    initialView:     'dayGridMonth',
+    locale:       'ko',
+    initialView:  'dayGridMonth',
     headerToolbar: {
       left:   'prev,next today',
       center: 'title',
       right:  'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
     },
     buttonText: {
-      today:     '오늘',
-      month:     '월',
-      week:      '주',
-      day:       '일',
-      list:      '목록'
+      today: '오늘',
+      month: '월',
+      week:  '주',
+      day:   '일',
+      list:  '목록'
     },
-    height:          '100%',
-    editable:        true,
-    selectable:      true,
-    dayMaxEvents:    3,
-    nowIndicator:    true,
+    height:       '100%',
+    editable:     true,
+    selectable:   true,
+    dayMaxEvents: 3,
+    nowIndicator: true,
 
     // 서버에서 이벤트 불러오기
     events: '/api/calendar/events',
@@ -203,7 +213,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const p = e.extendedProps;
       fetchAPI(`/api/calendar/events/${e.id}`, 'PUT', {
         start_date: e.startStr.slice(0, 10),
-        end_date:   e.endStr   ? e.endStr.slice(0, 10) : e.startStr.slice(0, 10),
+        end_date:   e.endStr ? e.endStr.slice(0, 10) : e.startStr.slice(0, 10),
         start_time: p.start_time,
         end_time:   p.end_time,
       });
@@ -217,6 +227,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
   calendar.render();
   updateUpcomingList();
+
+  // 카테고리 변경 시 dot 자동 업데이트
+  document.getElementById('evCategory').addEventListener('change', function () {
+    updateCategoryDot(this.value);
+  });
 });
 
 /* ══════════════════════════════════════════════
@@ -225,15 +240,12 @@ document.addEventListener('DOMContentLoaded', function () {
 function openModal(event, defaultDate) {
   editingEventId = event ? event.id : null;
 
-  // 헤더 텍스트
   document.getElementById('modalTitle').textContent =
     event ? '일정 수정' : '일정 추가';
 
-  // 삭제 버튼
   document.getElementById('btnDelete').style.display =
     event ? 'inline-flex' : 'none';
 
-  // 폼 초기화
   document.getElementById('evTitle').value     = event ? event.title       : '';
   document.getElementById('evStartDate').value = event ? event.start_date  : (defaultDate || '');
   document.getElementById('evEndDate').value   = event ? event.end_date    : '';
@@ -242,8 +254,8 @@ function openModal(event, defaultDate) {
   document.getElementById('evDesc').value      = event ? event.description : '';
   document.getElementById('evCategory').value  = event ? event.category    : '일반';
 
-  // 색상 선택
-  setColor(event ? event.color : 'blue');
+  // 카테고리에 맞는 dot 색상 업데이트
+  updateCategoryDot(event ? event.category : '일반');
 
   document.getElementById('eventModal').classList.add('active');
   document.getElementById('evTitle').focus();
@@ -253,21 +265,6 @@ function closeModal() {
   document.getElementById('eventModal').classList.remove('active');
   editingEventId = null;
 }
-
-/* ══════════════════════════════════════════════
-   색상 선택
-══════════════════════════════════════════════ */
-function setColor(color) {
-  selectedColor = color;
-  document.querySelectorAll('.color-dot').forEach(dot => {
-    dot.classList.toggle('active', dot.dataset.color === color);
-  });
-}
-
-document.getElementById('colorPicker').addEventListener('click', function (e) {
-  const dot = e.target.closest('.color-dot');
-  if (dot) setColor(dot.dataset.color);
-});
 
 /* ══════════════════════════════════════════════
    버튼 이벤트
@@ -285,6 +282,7 @@ document.getElementById('eventModal').addEventListener('click', function (e) {
 document.getElementById('btnSave').addEventListener('click', async function () {
   const title     = document.getElementById('evTitle').value.trim();
   const startDate = document.getElementById('evStartDate').value;
+  const category  = document.getElementById('evCategory').value;
 
   if (!title) {
     alert('제목을 입력해주세요.');
@@ -303,8 +301,8 @@ document.getElementById('btnSave').addEventListener('click', async function () {
     start_time:  document.getElementById('evStartTime').value,
     end_time:    document.getElementById('evEndTime').value,
     description: document.getElementById('evDesc').value.trim(),
-    category:    document.getElementById('evCategory').value,
-    color:       selectedColor,
+    category:    category,
+    color:       getColorByCategory(category),  // ✅ 카테고리로 자동 결정
   };
 
   if (editingEventId) {
@@ -343,7 +341,7 @@ async function fetchAPI(url, method, body) {
    사이드바 : 이번 달 일정 목록
 ══════════════════════════════════════════════ */
 function updateUpcomingList() {
-  const list = document.getElementById('upcomingList');
+  const list   = document.getElementById('upcomingList');
   const events = calendar.getEvents()
     .filter(e => {
       const now   = new Date();

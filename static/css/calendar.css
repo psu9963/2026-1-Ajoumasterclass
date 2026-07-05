@@ -473,3 +473,23 @@
   .cal-main { height: 440px; }
   .fc .fc-toolbar-title { font-size: 13px; }
 }
+
+/* ── 카테고리 선택 wrap ── */
+.category-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.category-select-wrap select {
+  flex: 1;
+}
+
+.category-preview-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #2563eb;
+  transition: background 0.2s ease;
+}
