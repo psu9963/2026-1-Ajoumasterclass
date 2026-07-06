@@ -24,12 +24,29 @@
       </svg>
       <span class="navbar-logo-text">A+ 스터디 플래너</span>
     </div>
+
+    <!-- 데스크탑 메뉴 -->
     <nav class="navbar-links">
       <a href="#feature-1">학습 계획</a>
       <a href="#feature-2">학점 예측</a>
       <a href="#feature-3">학습 분석</a>
       <a href="/login" class="btn-nav-login">로그인</a>
     </nav>
+
+    <!-- 햄버거 버튼 (모바일) -->
+    <button class="navbar-toggle" id="navToggle" aria-label="메뉴 열기">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </div>
+
+  <!-- 모바일 드롭다운 메뉴 -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#feature-1">학습 계획</a>
+    <a href="#feature-2">학점 예측</a>
+    <a href="#feature-3">학습 분석</a>
+    <a href="/login" class="btn-nav-login">로그인</a>
   </div>
 </header>
 
@@ -151,7 +168,6 @@
             class="screen-img"
             onerror="this.parentElement.parentElement.classList.add('screen-placeholder')"
           />
-          <!-- 이미지 없을 때 placeholder -->
           <div class="screen-fallback">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none"
                  stroke="#94a3b8" stroke-width="1.5">
@@ -409,6 +425,23 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.12 });
 
 document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+/* 햄버거 메뉴 토글 */
+const navToggle = document.getElementById('navToggle');
+const mobileMenu = document.getElementById('mobileMenu');
+
+navToggle.addEventListener('click', () => {
+  navToggle.classList.toggle('open');
+  mobileMenu.classList.toggle('open');
+});
+
+/* 모바일 메뉴 링크 클릭 시 닫기 */
+mobileMenu.querySelectorAll('a').forEach(link => {
+  link.addEventListener('click', () => {
+    navToggle.classList.remove('open');
+    mobileMenu.classList.remove('open');
+  });
+});
 </script>
 
 </body>
