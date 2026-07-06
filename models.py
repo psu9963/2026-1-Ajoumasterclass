@@ -59,6 +59,12 @@ class WeeklyCoaching(db.Model):
     content    = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.String(30), nullable=False)
 
+class PlanCoaching(db.Model):
+    id         = db.Column(db.Integer, primary_key=True)
+    user_id    = db.Column(db.Integer, nullable=False, unique=True)
+    content    = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.String(30), nullable=False)
+
 class CalendarEvent(db.Model):
     id          = db.Column(db.Integer, primary_key=True)
     user_id     = db.Column(db.Integer, nullable=False)

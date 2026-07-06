@@ -3,60 +3,13 @@
 {% block title %}학습 분석 — A+ 스터디 플래너{% endblock %}
 
 {% block extra_css %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-  /* analysis 전용 스타일 */
-  .tab-bar { display:flex; gap:4px; background:var(--surface-2); border-radius:var(--radius-md); padding:4px; margin-bottom:28px; width:fit-content; animation:fadeUp .3s ease both; }
-  .tab-btn { padding:8px 24px; border:none; background:none; border-radius:calc(var(--radius-md) - 2px); font-size:13.5px; font-weight:500; color:var(--text-2); cursor:pointer; transition:background .15s,color .15s; font-family:'Pretendard',sans-serif; }
-  .tab-btn.active { background:var(--surface); color:var(--text-1); box-shadow:0 1px 4px rgba(0,0,0,0.08); }
-  .tab-panel { display:none; }
-  .tab-panel.active { display:block; }
-  .chart-grid { display:grid; grid-template-columns:1.6fr 1fr; gap:16px; margin-bottom:16px; }
-  .chart-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; animation:fadeUp .4s ease both; }
-  .chart-body { padding:20px 22px; }
-  .chart-full { grid-column:1/-1; }
-  .subject-chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:24px; animation:fadeUp .3s ease both; }
-  .s-chip { padding:8px 18px; border:1.5px solid var(--border); border-radius:20px; background:var(--surface); font-size:13px; color:var(--text-2); cursor:pointer; transition:all .15s; font-family:'Pretendard',sans-serif; }
-  .s-chip:hover { border-color:var(--border-hover); color:var(--text-1); }
-  .s-chip.active { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:500; }
-  .detail-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px; }
-  .detail-stat { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px; animation:fadeUp .35s ease both; transition:box-shadow .2s,transform .2s; }
-  .detail-stat:hover { box-shadow:0 4px 14px rgba(0,0,0,.06); transform:translateY(-2px); }
-  .detail-stat__label { font-size:11px; font-weight:500; color:var(--text-3); text-transform:uppercase; letter-spacing:.6px; margin-bottom:8px; }
-  .detail-stat__value { font-family:'Pretendard',sans-serif; font-size:24px; font-weight:700; color:var(--text-1); }
-  .ai-feedback-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; animation:fadeUp .45s ease both; }
-  .ai-feedback-body { padding:24px; }
-  .feedback-btn { display:inline-flex; align-items:center; gap:8px; padding:11px 24px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius-md); font-size:13px; font-weight:500; cursor:pointer; transition:background .15s; font-family:'Pretendard',sans-serif; }
-  .feedback-btn:hover { background:var(--accent-hover); }
-  .feedback-btn:disabled { opacity:.5; cursor:not-allowed; }
-  .feedback-result { margin-top:20px; display:none; }
-  .feedback-section { margin-bottom:16px; }
-  .feedback-section h4 { font-size:12px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:.6px; margin-bottom:8px; }
-  .feedback-section p { font-size:13.5px; color:var(--text-1); line-height:1.7; }
-  .feedback-tags { display:flex; flex-wrap:wrap; gap:8px; }
-  .feedback-tag { padding:5px 12px; border-radius:20px; font-size:12.5px; font-weight:500; }
-  .feedback-tag--good { background:var(--c1b); color:var(--c1); }
-  .feedback-tag--bad  { background:var(--c2b); color:var(--c2); }
-  @media(max-width:900px){ .chart-grid{grid-template-columns:1fr} .detail-grid{grid-template-columns:repeat(2,1fr)} .chart-full{grid-column:1} }
-  .plan-card { border-radius:var(--radius-lg); background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--accent); margin-bottom:12px; overflow:hidden; animation:fadeUp .35s ease both; }
-  .plan-card-header { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--border); }
-  .plan-card-body { padding:16px 18px; }
-  .plan-diagnosis { font-size:13.5px; color:var(--text-2); line-height:1.7; margin-bottom:14px; }
-  .plan-weeks-list { display:flex; flex-direction:column; }
-  .plan-week-item { display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); }
-  .plan-week-item:last-child { border-bottom:none; }
-  .plan-week-theme { font-size:13.5px; font-weight:500; color:var(--text-1); }
-  .plan-week-topics { font-size:12px; color:var(--text-3); margin-top:3px; }
-  .plan-tips { margin-top:14px; }
-  .plan-tips summary { font-size:13px; color:var(--accent); cursor:pointer; padding:6px 0; font-family:'Pretendard',sans-serif; }
-  .plan-tips ul { padding-left:20px; margin:8px 0 0; }
-  .plan-tips li { font-size:13px; color:var(--text-2); line-height:1.6; margin-bottom:4px; }
-  /* ── 주간 코칭 카드 */
+  /* ── AI 코칭 카드 ── */
   .coaching-card { border-radius:var(--radius-lg); background:var(--surface); border:1px solid var(--border); overflow:hidden; margin-bottom:20px; animation:fadeUp .35s ease both; }
   .coaching-card-head { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--border); }
   .coaching-card-body { padding:20px; }
   .coaching-badge { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; background:#eff6ff; color:#2563eb; border-radius:20px; font-size:12px; font-weight:600; }
-  .coaching-text { font-size:14.5px; color:var(--text-1); line-height:1.85; margin:0 0 8px; }
+  .coaching-text { font-size:14.5px; color:var(--text-1); line-height:1.85; margin:0 0 8px; white-space:pre-line; }
   .coaching-meta { font-size:12px; color:var(--text-3); margin:0; }
   .coaching-empty { text-align:center; padding:8px 0 4px; }
   .coaching-empty p { font-size:13.5px; color:var(--text-2); margin:0 0 14px; }
@@ -65,19 +18,45 @@
   .coaching-btn:disabled { opacity:.5; cursor:not-allowed; }
   .coaching-btn--sm { padding:7px 16px; background:none; border:1.5px solid var(--border); color:var(--text-2); font-size:12.5px; }
   .coaching-btn--sm:hover { border-color:var(--accent); color:var(--accent); background:none; }
-  /* ── 주간 목표 달성률 */
-  .goal-card { border-radius:var(--radius-lg); background:var(--surface); border:1px solid var(--border); padding:16px 20px; margin-bottom:16px; animation:fadeUp .3s ease both; }
-  .goal-card-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-  .goal-label { font-size:11px; font-weight:500; color:var(--text-3); text-transform:uppercase; letter-spacing:.6px; }
-  .goal-pct { font-size:22px; font-weight:700; color:var(--accent); font-family:'Pretendard',sans-serif; }
-  .goal-pct.full { color:#16a34a; }
-  .goal-bar-wrap { height:8px; background:#f3f4f6; border-radius:4px; overflow:hidden; margin-bottom:10px; }
-  .goal-bar-fill { height:100%; background:var(--accent); border-radius:4px; transition:width .6s ease; }
-  .goal-bar-fill.full { background:#16a34a; }
-  .goal-diff { font-size:12.5px; color:var(--text-3); }
-  .goal-diff .up { color:#16a34a; font-weight:600; }
-  .goal-diff .down { color:#dc2626; font-weight:600; }
-  .goal-summary { font-size:13px; font-weight:500; color:var(--text-2); }
+
+  /* ── 섹션 제목 ── */
+  .section-head { margin-top:24px; margin-bottom:12px; }
+
+  /* ── D-day 뱃지 ── */
+  .dday-badge { display:inline-flex; align-items:center; font-size:12px; font-weight:700; color:#d97706; background:#fef3c7; padding:3px 10px; border-radius:9999px; }
+  .dday-badge.urgent { color:#dc2626; background:#fee2e2; }
+
+  /* ── 다가오는 시험 우선순위 ── */
+  .exam-priority-row { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; background:var(--input-bg); border-radius:var(--radius-lg); margin-bottom:10px; }
+  .exam-priority-row:last-child { margin-bottom:0; }
+  .exam-priority-info { display:flex; flex-direction:column; gap:2px; }
+  .exam-priority-subject { font-size:13.5px; font-weight:600; color:var(--gray-900); }
+  .exam-priority-exam { font-size:12.5px; color:var(--gray-500); }
+
+  /* ── 이번 주 할 일 ── */
+  .todo-row { display:flex; align-items:flex-start; gap:12px; padding:13px 18px; background:var(--input-bg); border-radius:var(--radius-lg); margin-bottom:10px; text-decoration:none; transition:background .15s; }
+  .todo-row:last-child { margin-bottom:0; }
+  .todo-row:hover { background:#eff6ff; }
+  .todo-dot { width:7px; height:7px; border-radius:50%; background:var(--blue-600); margin-top:6px; flex-shrink:0; }
+  .todo-info { display:flex; flex-direction:column; gap:2px; }
+  .todo-subject { font-size:12px; font-weight:600; color:var(--blue-600); }
+  .todo-task { font-size:13.5px; color:var(--gray-900); line-height:1.5; }
+
+  /* ── 과목별 타임라인 진단 ── */
+  .subject-timeline-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px 20px; margin-bottom:12px; animation:fadeUp .3s ease both; }
+  .subject-timeline-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; flex-wrap:wrap; gap:6px; }
+  .subject-timeline-name { font-size:14.5px; font-weight:600; color:var(--gray-900); }
+  .subject-timeline-badges { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .week-badge { font-size:12px; font-weight:600; color:#2563eb; background:#eff6ff; padding:3px 10px; border-radius:9999px; }
+  .week-badge.unregistered { color:var(--gray-500); background:var(--gray-100); }
+  .behind-badge { font-size:12px; font-weight:600; color:#dc2626; background:#fee2e2; padding:3px 10px; border-radius:9999px; }
+  .subject-timeline-topic { font-size:12.5px; color:var(--gray-500); margin-bottom:10px; }
+  .subject-timeline-count { font-size:12.5px; color:var(--gray-500); margin-bottom:6px; }
+  .subject-timeline-count.low { color:#dc2626; font-weight:600; }
+  .subject-timeline-track { width:100%; height:8px; background:var(--gray-200); border-radius:9999px; overflow:hidden; margin-bottom:8px; }
+  .subject-timeline-fill { height:100%; border-radius:9999px; background:var(--blue-600); transition:width .6s cubic-bezier(.22,1,.36,1); }
+  .subject-timeline-fill.low { background:#dc2626; }
+  .subject-timeline-foot { display:flex; align-items:center; gap:8px; }
 </style>
 {% endblock %}
 
@@ -85,34 +64,34 @@
 <header class="topbar">
   <div>
     <h1 class="page-title">학습 분석</h1>
-    <p class="page-sub">학습 기록을 바탕으로 패턴과 개선점을 분석해요</p>
+    <p class="page-sub">지금 어디쯤인지, 이번 주 뭘 하면 되는지 알려드려요</p>
   </div>
 </header>
 
-{% if not has_data %}
+{% if not has_subjects %}
 <div class="card">
   <div class="empty-state">
     <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
       <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
     </svg>
-    <p class="empty-state-title">아직 분석할 학습 기록이 없어요</p>
-    <p class="empty-state-desc">학습 기록이 쌓이면 패턴과 통계를 분석해드려요</p>
-    <a href="{{ url_for('study_history.history') }}" class="empty-state-btn">학습 기록 추가하기</a>
+    <p class="empty-state-title">아직 분석할 데이터가 없어요</p>
+    <p class="empty-state-desc">강의실을 등록하고 학습 계획을 만들면 코칭을 받을 수 있어요</p>
+    <a href="{{ url_for('classroom.classroom') }}" class="empty-state-btn">강의실로 이동하기</a>
   </div>
 </div>
 
 {% else %}
-<!-- ── AI 주간 코칭 리포트 ── -->
+<!-- ① AI 학습 코칭 -->
 <div class="coaching-card" id="coaching-card">
   <div class="coaching-card-head">
     <div style="display:flex;align-items:center;gap:10px;">
       <span class="coaching-badge">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-        AI 주간 코칭
+        AI 학습 코칭
       </span>
-      <span style="font-size:13px;font-weight:600;color:var(--text-1);">이번 주 학습 피드백</span>
+      <span style="font-size:13px;font-weight:600;color:var(--text-1);">어떻게 공부하면 좋을지 알려드려요</span>
     </div>
-    {% if has_enough_data %}
+    {% if has_enough_data and coaching_content %}
     <button class="coaching-btn coaching-btn--sm" id="coaching-regen-btn" onclick="generateCoaching()">다시 분석하기</button>
     {% endif %}
   </div>
@@ -122,281 +101,123 @@
     <p class="coaching-meta" id="coaching-meta">{{ coaching_created }} 생성</p>
     {% elif has_enough_data %}
     <div class="coaching-empty" id="coaching-empty">
-      <p>이번 주 학습 데이터를 분석해 맞춤 코칭 멘트를 드릴게요.</p>
+      <p>현재 주차 진행 상황과 시험 임박도를 분석해 맞춤 코칭을 드릴게요.</p>
       <button class="coaching-btn" onclick="generateCoaching()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-        주간 코칭 받기
+        코칭 받기
       </button>
     </div>
     {% else %}
     <div class="coaching-empty">
-      <p>기록이 3개 이상 쌓이면 코칭을 보여드릴게요.</p>
-      <a href="{{ url_for('study_history.history') }}" class="coaching-btn">학습 기록 추가하기</a>
+      <p>강의실을 등록하고 학습 계획을 만들면 코칭을 받을 수 있어요.</p>
+      <a href="{{ url_for('classroom.classroom') }}" class="coaching-btn">강의실로 이동하기</a>
     </div>
     {% endif %}
   </div>
 </div>
 
-<div class="tab-bar">
-  <button class="tab-btn active" onclick="switchTab('overall',this)">전체 분석</button>
-  <button class="tab-btn" onclick="switchTab('subject',this)">과목별 분석</button>
-  <button class="tab-btn" onclick="switchTab('aiplan',this)">AI 학습 계획</button>
+<!-- ② 다가오는 시험 우선순위 -->
+<div class="card-head section-head" style="margin-top:0;">
+  <h3 class="card-title">다가오는 시험 우선순위</h3>
 </div>
-
-<!-- 전체 분석 -->
-<div id="tab-overall" class="tab-panel active">
-
-  <!-- 주간 목표 달성률 -->
-  <div class="goal-card">
-    <div class="goal-card-row">
-      <span class="goal-label">이번 주 목표 달성률</span>
-      <span class="goal-pct {% if goal_pct >= 100 %}full{% endif %}">{{ goal_pct }}%</span>
+<div class="card">
+  {% if exam_rows %}
+  {% for e in exam_rows %}
+  <div class="exam-priority-row">
+    <div class="exam-priority-info">
+      <span class="exam-priority-subject">{{ e.subject }}</span>
+      <span class="exam-priority-exam">{{ e.exam_name }}</span>
     </div>
-    <div class="goal-bar-wrap">
-      <div class="goal-bar-fill {% if goal_pct >= 100 %}full{% endif %}" style="width:{{ goal_pct }}%"></div>
-    </div>
-    <div class="goal-card-row" style="margin-bottom:0;">
-      <span class="goal-diff">
-        목표 <strong>{{ goal_hours|int }}h</strong> 중 <strong>{{ this_week_h }}h</strong> 달성
-        &nbsp;·&nbsp; 지난주 대비
-        {% if goal_diff > 0 %}<span class="up">+{{ goal_diff }}h</span>
-        {% elif goal_diff < 0 %}<span class="down">{{ goal_diff }}h</span>
-        {% else %}<span>변동 없음</span>{% endif %}
-      </span>
-      <span class="goal-summary">{{ this_week_h }} / {{ goal_hours|int }}h</span>
-    </div>
+    <span class="dday-badge {% if e.d_day <= 3 %}urgent{% endif %}">D-{{ e.d_day }}</span>
   </div>
-
-  <div class="stat-grid" style="margin-bottom:16px; grid-template-columns:repeat(3,1fr);">
-    <div class="stat-card">
-      <div class="stat-card__icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-      <div class="stat-card__label">총 학습 시간</div>
-      <div class="stat-card__value">{{ total_hours }}<span class="stat-unit">h</span></div>
-      <div class="stat-card__bar"><div class="stat-card__bar-fill" style="width:80%"></div></div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-card__icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-      <div class="stat-card__label">이번 주 학습</div>
-      <div class="stat-card__value">{{ week_hours }}<span class="stat-unit">h</span></div>
-      <div class="stat-card__bar"><div class="stat-card__bar-fill" style="width:60%"></div></div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-card__icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
-      <div class="stat-card__label">연속 학습일</div>
-      <div class="stat-card__value">{{ streak }}<span class="stat-unit">일</span></div>
-      <div class="stat-card__bar"><div class="stat-card__bar-fill" style="width:{{ [streak*10,100]|min }}%"></div></div>
-    </div>
-  </div>
-
-  <div class="chart-grid">
-    <div class="chart-card">
-      <div class="card-head"><h3 class="card-title">주간 학습 추이</h3><span class="card-link">최근 8주</span></div>
-      <div class="chart-body"><canvas id="weeklyChart" height="120"></canvas></div>
-    </div>
-    <div class="chart-card">
-      <div class="card-head"><h3 class="card-title">과목별 학습 비율</h3></div>
-      <div class="chart-body"><canvas id="subjectChart" height="120"></canvas></div>
-    </div>
-    <div class="chart-card chart-full">
-      <div class="card-head"><h3 class="card-title">요일별 학습 패턴</h3><span class="card-link">어떤 요일에 가장 많이 공부하나요?</span></div>
-      <div class="chart-body"><canvas id="dayChart" height="70"></canvas></div>
-    </div>
-  </div>
-</div>
-
-<!-- 과목별 분석 -->
-<div id="tab-subject" class="tab-panel">
-  {% if subjects %}
-  <div class="subject-chips">
-    {% for s in subjects %}
-    <button class="s-chip {% if loop.first %}active{% endif %}"
-            onclick="selectSubject('{{ s }}',this)">{{ s }}</button>
-    {% endfor %}
-  </div>
-  <div id="subject-detail"></div>
+  {% endfor %}
   {% else %}
-  <div class="card">
-    <div class="empty-state">
-      <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-      </svg>
-      <p class="empty-state-title">분석할 과목이 없어요</p>
-      <p class="empty-state-desc">학습 기록을 추가하면 과목별 분석이 시작돼요</p>
-      <a href="{{ url_for('study_history.history') }}" class="empty-state-btn">학습 기록 추가하기</a>
-    </div>
+  <div class="empty-state">
+    <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+    </svg>
+    <p class="empty-state-title">등록된 시험이 없어요</p>
+    <p class="empty-state-desc">강의실에서 시험 대비 계획을 만들면 여기에 표시돼요</p>
   </div>
   {% endif %}
 </div>
 
-<!-- AI 학습 계획 탭 -->
-<div id="tab-aiplan" class="tab-panel">
-  <div id="aiplan-list"></div>
+<!-- ③ 이번 주 할 일 -->
+<div class="card-head section-head">
+  <h3 class="card-title">이번 주 할 일</h3>
 </div>
+<div class="card">
+  {% if this_week_todos %}
+  {% for t in this_week_todos %}
+  <a href="{{ url_for('classroom.classroom_detail', subject_id=t.subject_id) }}" class="todo-row">
+    <span class="todo-dot"></span>
+    <div class="todo-info">
+      <span class="todo-subject">{{ t.subject }}</span>
+      <span class="todo-task">{{ t.task }}</span>
+    </div>
+  </a>
+  {% endfor %}
+  {% else %}
+  <div class="empty-state">
+    <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+    </svg>
+    <p class="empty-state-title">이번 주 할 일을 모두 끝냈어요</p>
+    <p class="empty-state-desc">등록된 계획이 없거나 이번 주 항목을 다 완료했어요</p>
+  </div>
+  {% endif %}
+</div>
+
+<!-- ④ 과목별 타임라인 진단 -->
+<div class="card-head section-head">
+  <h3 class="card-title">과목별 타임라인 진단</h3>
+</div>
+{% for s in subject_rows %}
+<div class="subject-timeline-card">
+  <div class="subject-timeline-head">
+    <span class="subject-timeline-name">{{ s.name }}</span>
+    <div class="subject-timeline-badges">
+      {% if s.current_week is not none %}
+      <span class="week-badge">현재 {{ s.current_week }}주차</span>
+      {% else %}
+      <span class="week-badge unregistered">개강일 미등록</span>
+      {% endif %}
+      {% if s.is_behind %}
+      <span class="behind-badge">이번 주 진행 전</span>
+      {% endif %}
+      {% if s.nearest_dday is not none %}
+      <span class="dday-badge {% if s.nearest_dday <= 3 %}urgent{% endif %}">시험 D-{{ s.nearest_dday }}</span>
+      {% endif %}
+    </div>
+  </div>
+  {% if s.week_topic %}
+  <p class="subject-timeline-topic">이번 주 주제 · {{ s.week_topic }}</p>
+  {% endif %}
+  {% if s.total > 0 %}
+  <p class="subject-timeline-count {% if s.percent < low_threshold %}low{% endif %}">
+    {% if s.current_week is not none %}이번 주차까지{% else %}전체{% endif %}
+    {{ s.total }}개 중 {{ s.done }}개 완료 ({{ s.percent }}%)
+  </p>
+  <div class="subject-timeline-track">
+    <div class="subject-timeline-fill {% if s.percent < low_threshold %}low{% endif %}" style="width:{{ s.percent }}%"></div>
+  </div>
+  {% else %}
+  <p class="subject-timeline-count">아직 등록된 계획 항목이 없어요</p>
+  {% endif %}
+</div>
+{% endfor %}
 {% endif %}
 {% endblock %}
 
 {% block extra_js %}
-{% if has_data %}
+{% if has_subjects %}
 <script>
-function switchTab(name,btn){
-  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('tab-'+name).classList.add('active');
-  btn.classList.add('active');
-}
-
-const subjectDetails = {{ subject_details|safe }};
-let subjectChartInst = null;
-const COLORS = ['#2563eb','#16a34a','#9333ea','#ea580c','#6b7280'];
-
-new Chart(document.getElementById('weeklyChart'),{
-  type:'line',
-  data:{labels:{{ weekly_labels|safe }},datasets:[{label:'학습 시간(h)',data:{{ weekly_values|safe }},borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,0.07)',borderWidth:2,pointBackgroundColor:'#2563eb',pointRadius:4,tension:0.4,fill:true}]},
-  options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f3f4f6'}},x:{grid:{display:false}}}}
-});
-
-new Chart(document.getElementById('subjectChart'),{
-  type:'doughnut',
-  data:{labels:{{ subject_labels|safe }},datasets:[{data:{{ subject_values|safe }},backgroundColor:COLORS,borderWidth:0}]},
-  options:{plugins:{legend:{position:'bottom',labels:{font:{size:12},padding:12}}},cutout:'65%'}
-});
-
-const dayVals={{ day_values|safe }};
-const maxDay=Math.max(...dayVals);
-new Chart(document.getElementById('dayChart'),{
-  type:'bar',
-  data:{labels:{{ day_names|safe }},datasets:[{label:'학습 시간(h)',data:dayVals,backgroundColor:dayVals.map(v=>v===maxDay&&maxDay>0?'#2563eb':'#dbeafe'),borderRadius:6}]},
-  options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f3f4f6'}},x:{grid:{display:false}}}}
-});
-
-function selectSubject(subject,btn){
-  document.querySelectorAll('.s-chip').forEach(c=>c.classList.remove('active'));
-  btn.classList.add('active');
-  renderSubjectDetail(subject);
-}
-
-function renderSubjectDetail(subject){
-  const d=subjectDetails[subject];
-  if(!d) return;
-  document.getElementById('subject-detail').innerHTML=`
-    <div class="detail-grid">
-      <div class="detail-stat"><div class="detail-stat__label">총 학습 시간</div><div class="detail-stat__value">${d.total_hours}h</div></div>
-      <div class="detail-stat"><div class="detail-stat__label">학습 세션</div><div class="detail-stat__value">${d.session_count}회</div></div>
-      <div class="detail-stat"><div class="detail-stat__label">평균 세션</div><div class="detail-stat__value">${d.avg_hours}h</div></div>
-      <div class="detail-stat"><div class="detail-stat__label">마지막 학습</div><div class="detail-stat__value" style="font-size:16px">${d.last_date}</div></div>
-    </div>
-    <div class="chart-card" style="margin-bottom:16px;">
-      <div class="card-head"><h3 class="card-title">월별 학습 추이</h3><span class="card-link">${subject}</span></div>
-      <div class="chart-body"><canvas id="subjectMonthlyChart" height="100"></canvas></div>
-    </div>
-    <div class="ai-feedback-card">
-      <div class="card-head"><h3 class="card-title">AI 학습 피드백</h3><span class="card-link">데이터 기반 분석</span></div>
-      <div class="ai-feedback-body">
-        <p style="font-size:13px;color:var(--text-2);margin-bottom:16px;">AI가 학습 패턴을 분석하고 맞춤 피드백을 제공해요.</p>
-        <button class="feedback-btn" id="feedback-btn" onclick="getAIFeedback('${subject}')">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-          AI 피드백 받기
-        </button>
-        <div class="feedback-result" id="feedback-result"></div>
-      </div>
-    </div>`;
-
-  if(subjectChartInst) subjectChartInst.destroy();
-  subjectChartInst=new Chart(document.getElementById('subjectMonthlyChart'),{
-    type:'bar',
-    data:{labels:d.monthly_labels,datasets:[{label:'학습 시간(h)',data:d.monthly_values,backgroundColor:'#2563eb',borderRadius:6}]},
-    options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f3f4f6'}},x:{grid:{display:false}}}}
-  });
-}
-
-function getAIFeedback(subject){
-  const btn=document.getElementById('feedback-btn');
-  const result=document.getElementById('feedback-result');
-  btn.disabled=true;
-  btn.innerHTML=`<span style="display:flex;gap:4px;align-items:center;">
-    <span style="width:8px;height:8px;background:#fff;border-radius:50%;animation:ldBounce 1.2s ease infinite;display:inline-block;"></span>
-    <span style="width:8px;height:8px;background:#fff;border-radius:50%;animation:ldBounce 1.2s .2s ease infinite;display:inline-block;"></span>
-    <span style="width:8px;height:8px;background:#fff;border-radius:50%;animation:ldBounce 1.2s .4s ease infinite;display:inline-block;"></span>
-    분석 중...
-  </span>`;
-  fetch('/analysis/ai-feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({subject})})
-  .then(r=>r.json())
-  .then(data=>{
-    btn.disabled=false;
-    btn.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg> 다시 분석하기`;
-    if(data.success){
-      const f=data.feedback;
-      result.style.display='block';
-      result.innerHTML=`
-        <div class="feedback-section"><h4><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-right:5px;"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>진단</h4><p>${f.diagnosis}</p></div>
-        <div class="feedback-section"><h4><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-right:5px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>잘하고 있는 점</h4><div class="feedback-tags">${f.strengths.map(s=>`<span class="feedback-tag feedback-tag--good">${s}</span>`).join('')}</div></div>
-        <div class="feedback-section"><h4><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-right:5px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>개선할 점</h4><div class="feedback-tags">${f.improvements.map(s=>`<span class="feedback-tag feedback-tag--bad">${s}</span>`).join('')}</div></div>
-        <div class="feedback-section"><h4><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-right:5px;"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg>추천 학습법</h4><p>${f.recommendation}</p></div>`;
-    } else {
-      result.style.display='block';
-      result.innerHTML=`<p style="color:#c0392b;font-size:13px;">오류: ${data.error}</p>`;
-    }
-  }).catch(()=>{
-    btn.disabled=false;
-    btn.innerHTML='AI 피드백 받기';
-  });
-}
-
-const firstSubject={{ subjects|tojson }};
-if(firstSubject.length>0) renderSubjectDetail(firstSubject[0]);
-
-const aiPlansData={{ ai_plans|safe }};
-function renderAIPlans(){
-  const c=document.getElementById('aiplan-list');
-  if(!aiPlansData||!aiPlansData.length){
-    c.innerHTML=`<div class="card"><div class="empty-state">
-      <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-      <p class="empty-state-title">생성된 AI 학습 계획이 없어요</p>
-      <p class="empty-state-desc">AI 학습 계획 탭에서 첫 계획을 만들어보세요</p>
-      <a href="/ai-plan" class="empty-state-btn">계획 만들러 가기</a>
-    </div></div>`;
-    return;
-  }
-  c.innerHTML=aiPlansData.map((p,idx)=>`
-    <div class="plan-card">
-      <div class="plan-card-header">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span class="subject-badge subject-badge--${idx%5}">${p.subject}</span>
-          <span style="font-weight:600;font-size:14px;">${p.goal_weeks}주 학습 계획</span>
-        </div>
-        <span style="font-size:12px;color:var(--text-3);">${p.created_at}</span>
-      </div>
-      <div class="plan-card-body">
-        <p class="plan-diagnosis">${p.plan.diagnosis}</p>
-        <div class="plan-weeks-list">
-          ${p.plan.weeks.map(w=>`
-            <div class="plan-week-item">
-              <span class="subject-badge subject-badge--${(w.week-1)%5}" style="flex-shrink:0;">${w.week}주차</span>
-              <div>
-                <div class="plan-week-theme">${w.theme}</div>
-                <div class="plan-week-topics">${w.topics.join(' · ')}</div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-        ${p.plan.tips&&p.plan.tips.length?`
-          <details class="plan-tips">
-            <summary>학습 팁 ${p.plan.tips.length}개 보기</summary>
-            <ul>${p.plan.tips.map(t=>`<li>${t}</li>`).join('')}</ul>
-          </details>
-        `:''}
-      </div>
-    </div>
-  `).join('');
-}
-renderAIPlans();
-
 function generateCoaching(){
   const regenBtn = document.getElementById('coaching-regen-btn');
   const allBtns  = document.querySelectorAll('[onclick="generateCoaching()"]');
   allBtns.forEach(b=>{b.disabled=true; b.textContent='분석 중...';});
 
-  fetch('/analysis/weekly-coaching',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+  fetch('/analysis/coaching',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
   .then(r=>r.json())
   .then(data=>{
     allBtns.forEach(b=>{b.disabled=false;});
@@ -422,11 +243,11 @@ function generateCoaching(){
         head.appendChild(b);
       }
     } else {
-      const msg = data.error==='insufficient_data' ? '학습 기록이 아직 부족해요.' : ('오류: '+(data.error||''));
+      const msg = data.error==='insufficient_data' ? '분석할 계획 데이터가 아직 부족해요.' : ('오류: '+(data.error||''));
       alert(msg);
     }
   }).catch(()=>{
-    allBtns.forEach(b=>{b.disabled=false; b.textContent=b.id==='coaching-regen-btn'?'다시 분석하기':'주간 코칭 받기';});
+    allBtns.forEach(b=>{b.disabled=false; b.textContent=b.id==='coaching-regen-btn'?'다시 분석하기':'코칭 받기';});
     alert('네트워크 오류가 발생했습니다.');
   });
 }
