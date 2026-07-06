@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AI 학습 설계 — 당신만을 위한 스마트 학습 플래너</title>
-<link rel="stylesheet"
-  href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.min.css"/>
+  <title>A+ 스터디 플래너 — 당신만을 위한 스마트 학습 플래너</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.min.css"/>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"/>
 </head>
 <body>
@@ -13,7 +13,7 @@
 <!-- ══════════════════════════════
      NAVIGATION
 ══════════════════════════════ -->
-<header class="navbar">
+<header class="navbar" id="navbar">
   <div class="navbar-inner">
     <div class="navbar-logo">
       <svg width="32" height="32" viewBox="0 0 24 24" fill="none"
@@ -22,12 +22,12 @@
         <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
         <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>
       </svg>
-      <span class="navbar-logo-text">A+ 스터디 플래너
-      </span>
+      <span class="navbar-logo-text">A+ 스터디 플래너</span>
     </div>
     <nav class="navbar-links">
-      <a href="#features">기능</a>
-      <a href="#about">소개</a>
+      <a href="#feature-1">학습 계획</a>
+      <a href="#feature-2">학점 예측</a>
+      <a href="#feature-3">학습 분석</a>
       <a href="/login" class="btn-nav-login">로그인</a>
     </nav>
   </div>
@@ -37,170 +37,284 @@
      HERO SECTION
 ══════════════════════════════ -->
 <section class="hero-section">
-  <div class="hero-grid">
-    <div class="hero-content">
-      <span class="badge badge--blue">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+  <div class="hero-center fade-in">
+    <span class="badge badge--blue">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3l1.88 5.76a1 1 0 0 0 .95.69h6.06l-4.91 3.57a1 1 0 0 0-.36 1.12L17.5 20l-4.91-3.57a1 1 0 0 0-1.18 0L6.5 20l1.88-5.86a1 1 0 0 0-.36-1.12L3.11 9.45h6.06a1 1 0 0 0 .95-.69L12 3z"/>
+      </svg>
+      AI 기반 맞춤형 학습 플래너
+    </span>
+
+    <h1 class="hero-title">
+      강의계획서 하나로<br/>
+      <span class="hero-title-highlight">완벽한 학습 전략</span>을 세우세요
+    </h1>
+
+    <p class="hero-desc">
+      PDF 업로드 한 번으로 AI가 맞춤 학습 계획을 설계하고,<br/>
+      학점을 예측하고, 학습 패턴을 분석해드립니다.
+    </p>
+
+    <div class="hero-btns">
+      <a href="/login" class="btn-primary">
+        무료로 시작하기
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2"
              stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 3l1.88 5.76a1 1 0 0 0 .95.69h6.06l-4.91 3.57a1 1 0 0 0-.36 1.12L17.5 20l-4.91-3.57a1 1 0 0 0-1.18 0L6.5 20l1.88-5.86a1 1 0 0 0-.36-1.12L3.11 9.45h6.06a1 1 0 0 0 .95-.69L12 3z"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+          <polyline points="12 5 19 12 12 19"/>
         </svg>
-        AI 기반 맞춤형 학습
-      </span>
-
-      <h1 class="hero-title">
-        AI와 함께하는<br/>
-        스마트 학습 설계
-      </h1>
-
-      <p class="hero-desc">
-        에스플이 당신만을 위한 완벽한 학습 계획을 설계합니다.
-        효율적이고 효과적인 학습으로 목표를 달성하세요.
-      </p>
-
-      <div class="hero-btns">
-        <a href="/login" class="btn-primary">
-          시작하기
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2"
-               stroke-linecap="round" stroke-linejoin="round">
-            <line x1="5" y1="12" x2="19" y2="12"/>
-            <polyline points="12 5 19 12 12 19"/>
-          </svg>
-        </a>
-        <a href="#features" class="btn-outline">더 알아보기</a>
-      </div>
+      </a>
+      <a href="#feature-1" class="btn-outline">기능 살펴보기</a>
     </div>
 
-    <div class="hero-image-wrap">
-      <div class="hero-image-blur"></div>
-      <img
-        src="https://i.namu.wiki/i/gAmGz8tEHylNM1qcnUCVlJUXiDl4O4RPZ5LXG6Mk4QEgpdbqsC5_zK7MU5CLAJap5EzpqDx8yEB4-U1gE9KqoA.webp"
-        alt="AI Learning Platform"
-        onerror="this.style.display='none'"
-      />
-    </div>
-  </div>
-</section>
-
-<!-- ══════════════════════════════
-     FEATURES SECTION
-══════════════════════════════ -->
-<section id="features" class="features-section">
-  <div class="features-inner">
-    <div class="section-header">
-      <h2 class="section-title">A+ 스터디 플래너의 핵심 기능</h2>
-      <p class="section-desc">AI 기술로 당신의 학습을 혁신합니다</p>
-    </div>
-
-    <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2"
-               stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
-            <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>
-          </svg>
-        </div>
-        <h3 class="feature-title">AI 기반 학습 설계</h3>
-        <p class="feature-desc">AI가 학습자의 수준과 목표에 맞는 맞춤형 커리큘럼을 자동으로 생성합니다.</p>
+    <!-- 신뢰 지표 -->
+    <div class="hero-trust">
+      <div class="trust-item">
+        <strong>PDF 업로드</strong>
+        <span>강의계획서 자동 분석</span>
       </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2"
-               stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
-            <polyline points="16 7 22 7 22 13"/>
-          </svg>
-        </div>
-        <h3 class="feature-title">실시간 학습 분석</h3>
-        <p class="feature-desc">학습 진행 상황을 실시간으로 분석하고 개선점을 제안합니다.</p>
+      <div class="trust-divider"></div>
+      <div class="trust-item">
+        <strong>AI 학점 예측</strong>
+        <span>성적 시뮬레이션</span>
       </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2"
-               stroke-linecap="round" stroke-linejoin="round">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-            <circle cx="9" cy="7" r="4"/>
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-          </svg>
-        </div>
-        <h3 class="feature-title">협업 학습 환경</h3>
-        <p class="feature-desc">동료 학습자들과 함께 지식을 공유하고 성장하세요.</p>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2"
-               stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-          </svg>
-        </div>
-        <h3 class="feature-title">빠른 학습 최적화</h3>
-        <p class="feature-desc">AI가 가장 효과적인 학습 경로를 찾아 학습 시간을 단축시킵니다.</p>
+      <div class="trust-divider"></div>
+      <div class="trust-item">
+        <strong>학습 분석</strong>
+        <span>데이터 기반 피드백</span>
       </div>
     </div>
   </div>
 </section>
 
 <!-- ══════════════════════════════
-     AI TECHNOLOGY SECTION
+     FEATURE 1 : 학습 계획
 ══════════════════════════════ -->
-<section id="about" class="ai-section">
-  <div class="ai-inner">
-    <div class="ai-grid">
-      <div class="ai-image">
-        <img
-          src="https://images.unsplash.com/photo-1770233621425-5d9ee7a0a700?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800"
-          alt="AI Technology"
-          onerror="this.style.display='none'"
-        />
-      </div>
+<section id="feature-1" class="showcase-section">
+  <div class="showcase-inner">
+    <div class="showcase-grid fade-in">
 
-      <div class="ai-content">
-        <span class="badge badge--purple">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+      <!-- 텍스트 -->
+      <div class="showcase-content">
+        <span class="badge badge--blue">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
                stroke="currentColor" stroke-width="2"
                stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
           </svg>
-          혁신적인 학습 경험
+          강의계획서 분석
         </span>
 
-        <h2 class="ai-title">
-          AI가 만드는<br/>
-          개인 맞춤형 학습
+        <h2 class="showcase-title">
+          PDF 업로드 한 번으로<br/>
+          주차별 학습 계획 완성
         </h2>
 
-        <p class="ai-desc">
-          최신 AI 기술을 활용하여 각 학습자의 수준, 학습 스타일,
-          목표에 완벽하게 맞춘 학습 경로를 제공합니다.
-          데이터 기반 분석으로 지속적으로 최적화되는 학습 경험을 만나보세요.
+        <p class="showcase-desc">
+          강의계획서 PDF를 업로드하면 AI가 자동으로 주차별 학습 주제를 분석하고,
+          시험·과제 일정에 맞춘 최적의 학습 계획을 생성합니다.
         </p>
 
         <ul class="check-list">
           <li class="check-item">
             <span class="check-dot"></span>
-            개인화된 학습 콘텐츠 추천
+            주차별 학습 목표 자동 생성
           </li>
           <li class="check-item">
             <span class="check-dot"></span>
-            실시간 학습 피드백 제공
+            중간·기말고사 대비 계획 수립
           </li>
           <li class="check-item">
             <span class="check-dot"></span>
-            학습 목표 달성률 자동 추적
+            과제 마감일 자동 캘린더 등록
           </li>
         </ul>
+
+        <a href="/login" class="btn-primary btn-sm">
+          지금 시작하기 →
+        </a>
       </div>
+
+      <!-- 스크린샷 -->
+      <div class="showcase-screen">
+        <div class="screen-wrap">
+          <div class="screen-bar">
+            <span></span><span></span><span></span>
+          </div>
+          <img
+            src="{{ url_for('static', filename='img/screenshot-classroom.png') }}"
+            alt="강의실 학습 계획 화면"
+            class="screen-img"
+            onerror="this.parentElement.parentElement.classList.add('screen-placeholder')"
+          />
+          <!-- 이미지 없을 때 placeholder -->
+          <div class="screen-fallback">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none"
+                 stroke="#94a3b8" stroke-width="1.5">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M3 9h18M9 21V9"/>
+            </svg>
+            <p>강의실 화면 스크린샷</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════
+     FEATURE 2 : 학점 예측 (reverse)
+══════════════════════════════ -->
+<section id="feature-2" class="showcase-section showcase-section--gray">
+  <div class="showcase-inner">
+    <div class="showcase-grid showcase-grid--reverse fade-in">
+
+      <!-- 스크린샷 -->
+      <div class="showcase-screen">
+        <div class="screen-wrap">
+          <div class="screen-bar">
+            <span></span><span></span><span></span>
+          </div>
+          <img
+            src="{{ url_for('static', filename='img/screenshot-grade.png') }}"
+            alt="학점 예측 화면"
+            class="screen-img"
+            onerror="this.parentElement.parentElement.classList.add('screen-placeholder')"
+          />
+          <div class="screen-fallback">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none"
+                 stroke="#94a3b8" stroke-width="1.5">
+              <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+              <polyline points="16 7 22 7 22 13"/>
+            </svg>
+            <p>학점 예측 화면 스크린샷</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 텍스트 -->
+      <div class="showcase-content">
+        <span class="badge badge--green">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+            <polyline points="16 7 22 7 22 13"/>
+          </svg>
+          AI 학점 예측
+        </span>
+
+        <h2 class="showcase-title">
+          중간고사 점수 입력하면<br/>
+          최종 학점이 보입니다
+        </h2>
+
+        <p class="showcase-desc">
+          중간고사·기말고사·과제 점수를 입력하면 AI가 최종 학점을 예측하고,
+          목표 학점 달성을 위한 전략을 제시합니다.
+        </p>
+
+        <ul class="check-list">
+          <li class="check-item">
+            <span class="check-dot check-dot--green"></span>
+            실시간 학점 시뮬레이션
+          </li>
+          <li class="check-item">
+            <span class="check-dot check-dot--green"></span>
+            상위 몇 % 인지 자동 분석
+          </li>
+          <li class="check-item">
+            <span class="check-dot check-dot--green"></span>
+            목표 학점 달성 전략 제안
+          </li>
+        </ul>
+
+        <a href="/login" class="btn-primary btn-sm btn--green">
+          학점 예측해보기 →
+        </a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════
+     FEATURE 3 : 학습 분석
+══════════════════════════════ -->
+<section id="feature-3" class="showcase-section">
+  <div class="showcase-inner">
+    <div class="showcase-grid fade-in">
+
+      <!-- 텍스트 -->
+      <div class="showcase-content">
+        <span class="badge badge--purple">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          학습 분석
+        </span>
+
+        <h2 class="showcase-title">
+          내 학습 패턴을 분석해<br/>
+          약점을 정확히 짚어드립니다
+        </h2>
+
+        <p class="showcase-desc">
+          학습 시간, 완료율, 과목별 성취도를 데이터로 시각화하고
+          AI가 개선이 필요한 부분을 콕 집어 알려드립니다.
+        </p>
+
+        <ul class="check-list">
+          <li class="check-item">
+            <span class="check-dot check-dot--purple"></span>
+            과목별 학습 시간 시각화
+          </li>
+          <li class="check-item">
+            <span class="check-dot check-dot--purple"></span>
+            주간·월간 학습 리포트
+          </li>
+          <li class="check-item">
+            <span class="check-dot check-dot--purple"></span>
+            AI 맞춤 개선 피드백
+          </li>
+        </ul>
+
+        <a href="/login" class="btn-primary btn-sm btn--purple">
+          학습 분석 시작하기 →
+        </a>
+      </div>
+
+      <!-- 스크린샷 -->
+      <div class="showcase-screen">
+        <div class="screen-wrap">
+          <div class="screen-bar">
+            <span></span><span></span><span></span>
+          </div>
+          <img
+            src="{{ url_for('static', filename='img/screenshot-analysis.png') }}"
+            alt="학습 분석 화면"
+            class="screen-img"
+            onerror="this.parentElement.parentElement.classList.add('screen-placeholder')"
+          />
+          <div class="screen-fallback">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none"
+                 stroke="#94a3b8" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <p>학습 분석 화면 스크린샷</p>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
@@ -209,9 +323,9 @@
      CTA SECTION
 ══════════════════════════════ -->
 <section class="cta-section">
-  <div class="cta-inner">
-    <h2 class="cta-title">지금 바로 에스플을 시작하세요</h2>
-    <p class="cta-desc">무료로 가입하고 당신만을 위한 학습 계획을 받아보세요</p>
+  <div class="cta-inner fade-in">
+    <h2 class="cta-title">지금 바로 A+ 스터디 플래너를 시작하세요</h2>
+    <p class="cta-desc">강의계획서 PDF 하나로 학습 계획부터 학점 예측까지 한 번에</p>
     <a href="/login" class="btn-cta">
       무료로 시작하기
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -238,17 +352,17 @@
             <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
             <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>
           </svg>
-          AI 학습 설계
+          A+ 스터디 플래너
         </div>
-        <p class="footer-brand-desc">AI 기술로 학습의 미래를 만들어갑니다</p>
+        <p class="footer-brand-desc">AI 기술을 활용해 학습의 컨디션을 최적화한다.</p>
       </div>
 
       <div class="footer-col">
-        <h4>제품</h4>
+        <h4>기능</h4>
         <ul>
-          <li><a href="#">기능</a></li>
-          <li><a href="#">가격</a></li>
-          <li><a href="#">고객 사례</a></li>
+          <li><a href="#feature-1">학습 계획</a></li>
+          <li><a href="#feature-2">학점 예측</a></li>
+          <li><a href="#feature-3">학습 분석</a></li>
         </ul>
       </div>
 
@@ -272,10 +386,30 @@
     </div>
 
     <div class="footer-bottom">
-      <p>&copy; 2026 AI 학습 설계. All rights reserved. 2026 아주마스터 클래스 Team. 상욱이랑 동원이랑</p>
+      <p>&copy; 2026 A+ 스터디 플래너. All rights reserved. 2026 아주마스터 클래스 Team. 상욱이랑 동원이랑</p>
     </div>
   </div>
 </footer>
+
+<!-- ══════════════════════════════
+     JS
+══════════════════════════════ -->
+<script>
+/* 네비게이션 스크롤 shadow */
+window.addEventListener('scroll', () => {
+  const navbar = document.getElementById('navbar');
+  navbar.classList.toggle('scrolled', window.scrollY > 10);
+});
+
+/* 스크롤 fade-in */
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) entry.target.classList.add('visible');
+  });
+}, { threshold: 0.12 });
+
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
 
 </body>
 </html>
