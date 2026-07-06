@@ -38,23 +38,73 @@ def login():
 @login_bp.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        new_id         = request.form.get('new_userid')
-        new_pw         = request.form.get('new_password')
-        new_pw_confirm = request.form.get('new_password_confirm')
+        new_id         = request.form.get('new_userid', '').strip()
+        new_pw         = request.form.get('new_password', '')
+        new_pw_confirm = request.form.get('new_password_confirm', '')
 
+        # ── 유효성 검사 ──────────────────────────
+        # 아이디 빈값
+        if not new_id:
+            return render_template('register.html',
+                error="아이디를 입력해주세요.",
+                userid=new_id)
+
+        # 아이디 길이 (4~20자)
+        if len(new_id) < 4 or len(new_id) > 20:
+            return render_template('register.html',
+                error="아이디는 4자 이상 20자 이하로 입력해주세요.",
+                userid=new_id)
+
+        # 아이디 영문/숫자만
+        if not new_id.replace('_', '').isalnum():
+            return render_template('register.html',
+                error="아이디는 영문, 숫자, 밑줄(_)만 사용할 수 있습니다.",
+                userid=new_id)
+
+        # 비밀번호 빈값
+        if not new_pw:
+            return render_template('register.html',
+                error="비밀번호를 입력해주세요.",
+                userid=new_id)
+
+        # 비밀번호 8자 이상
+        if len(new_pw) < 8:
+            return render_template('register.html',
+                error="비밀번호는 8자 이상이어야 합니다.",
+                userid=new_id)
+
+        # 비밀번호 확인 빈값
+        if not new_pw_confirm:
+            return render_template('register.html',
+                error="비밀번호 확인을 입력해주세요.",
+                userid=new_id)
+
+        # 비밀번호 불일치
         if new_pw != new_pw_confirm:
-            return render_template('register.html', error="비밀번호가 일치하지 않습니다.")
+            return render_template('register.html',
+                error="비밀번호가 일치하지 않습니다.",
+                userid=new_id)
 
+        # 중복 아이디
         existing_user = User.query.filter_by(username=new_id).first()
         if existing_user:
-            return render_template('register.html', error="이미 존재하는 아이디입니다.")
+            return render_template('register.html',
+                error="이미 사용 중인 아이디입니다. 다른 아이디를 입력해주세요.",
+                userid=new_id)
 
-        hashed_password = generate_password_hash(new_pw, method='pbkdf2:sha256')
-        new_user = User(username=new_id, password=hashed_password)
-        db.session.add(new_user)
-        db.session.commit()
-
-        return redirect(url_for('login.login', success="회원가입이 완료되었습니다! 로그인해주세요."))
+        # ── DB 저장 ──────────────────────────────
+        try:
+            hashed_password = generate_password_hash(new_pw, method='pbkdf2:sha256')
+            new_user = User(username=new_id, password=hashed_password)
+            db.session.add(new_user)
+            db.session.commit()
+            return redirect(url_for('login.login',
+                success="회원가입이 완료되었습니다! 로그인해주세요."))
+        except Exception as e:
+            db.session.rollback()
+            return render_template('register.html',
+                error="회원가입 중 오류가 발생했습니다. 다시 시도해주세요.",
+                userid=new_id)
 
     return render_template('register.html')
 
