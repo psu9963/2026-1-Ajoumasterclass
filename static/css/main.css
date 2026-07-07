@@ -44,18 +44,46 @@ img { max-width: 100%; height: auto; display: block; }
   padding: 0 32px; height: 64px;
   display: flex; align-items: center; justify-content: space-between;
 }
-.navbar-logo { display: flex; align-items: center; gap: 8px; }
-.navbar-logo svg { color: var(--blue-600); }
-.navbar-logo-text { font-size: 20px; font-weight: 700; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;}
-.navbar-links { display: flex; align-items: center; gap: 24px; }
-.navbar-links a:not(.btn-nav-login) { font-size: 15px; color: var(--gray-600); transition: color .15s; }
+.navbar-logo { 
+  display: flex; 
+  align-items: center; 
+  gap: 3px;
+  flex-shrink: 0;  /* ← 로고가 찌그러지지 않게 */
+}
+.navbar-logo svg { 
+  color: var(--blue-600);
+  flex-shrink: 0;  /* ← SVG 크기 고정 */
+}
+.navbar-logo-text { 
+  font-size: 16px;  /* ← 20px → 16px */
+  font-weight: 700; 
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  white-space: nowrap;  /* ← 줄바꿈 방지 */
+}
+.navbar-links { 
+  display: flex; 
+  align-items: center; 
+  gap: 24px; 
+}
+.navbar-links a:not(.btn-nav-login) { 
+  font-size: 15px; 
+  color: var(--gray-600); 
+  transition: color .15s;
+  white-space: nowrap;  /* ← 줄바꿈 방지 */
+}
 .navbar-links a:not(.btn-nav-login):hover { color: var(--gray-900); }
 .btn-nav-login {
-  padding: 8px 18px; background: var(--blue-600);
-  color: var(--white) !important; border-radius: 8px;
-  font-size: 14px; font-weight: 600; transition: background .15s;
+  padding: 8px 18px; 
+  background: var(--blue-600);
+  color: var(--white) !important; 
+  border-radius: 8px;
+  font-size: 14px; 
+  font-weight: 600; 
+  transition: background .15s;
+  white-space: nowrap;  /* ← 줄바꿈 방지 */
 }
 .btn-nav-login:hover { background: var(--blue-700) !important; }
+
 
 /* ── HERO ── */
 .hero-section { max-width: 1280px; margin: 0 auto; padding: 80px 32px; }
