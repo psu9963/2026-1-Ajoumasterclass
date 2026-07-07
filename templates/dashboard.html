@@ -4,159 +4,80 @@
 
 {% block content %}
 
-  <!-- 웰컴 -->
-  <div class="welcome">
-    <h1>안녕하세요, {{ display_name }}님!</h1>
+<!-- ── 상단 헤더 ── -->
+<div class="welcome">
+  <div class="welcome-left">
+    <h1>안녕하세요, {{ display_name }}님! </h1>
     <p>오늘도 목표를 향해 한 걸음 더 나아가볼까요?</p>
   </div>
+</div>
 
-  <!-- 통계 카드 -->
-  <div class="stat-grid">
-    <div class="stat-card">
-      <div class="stat-icon-wrap stat-icon-wrap--blue">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round">
-          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-        </svg>
-      </div>
-      <div class="stat-info">
-        <p class="stat-value">{{ total_subjects }}</p>
-        <p class="stat-label">진행 중인 과목</p>
-      </div>
+<!-- ── 통계 카드 4개 ── -->
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-icon-wrap stat-icon-wrap--blue">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+      </svg>
     </div>
-    <div class="stat-card">
-      <div class="stat-icon-wrap stat-icon-wrap--green">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round">
-          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-          <polyline points="22 4 12 14.01 9 11.01"/>
-        </svg>
-      </div>
-      <div class="stat-info">
-        <p class="stat-value">{{ total_records }}</p>
-        <p class="stat-label">완료한 학습</p>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon-wrap stat-icon-wrap--purple">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <polyline points="12 6 12 12 16 14"/>
-        </svg>
-      </div>
-      <div class="stat-info">
-        <p class="stat-value">{{ total_hours }}h</p>
-        <p class="stat-label">총 학습 시간</p>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon-wrap stat-icon-wrap--orange">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <polygon points="10 8 16 12 10 16 10 8"/>
-        </svg>
-      </div>
-      <div class="stat-info">
-        <p class="stat-value">{{ weekly_hours }}h</p>
-        <p class="stat-label">이번 주 학습</p>
-      </div>
+    <div class="stat-info">
+      <p class="stat-value">{{ active_subject_count }}</p>
+      <p class="stat-label">진행 중인 과목</p>
     </div>
   </div>
 
-  <!-- ── 진행 중인 과목 / 주간 목표 설정 / 오늘의 학습 목표 ── -->
-  <div class="triple-grid">
-
-    <!-- 진행 중인 과목 -->
-    <div class="card">
-      <div class="card-header">
-        <h2 class="card-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-               stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue-600)">
-            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-          </svg>
-          진행 중인 과목
-        </h2>
-      </div>
-      {% if active_subjects %}
-        <div style="display:flex;flex-direction:column;gap:10px;padding:4px 0;">
-          {% for s in active_subjects %}
-          <div style="display:flex;align-items:center;justify-content:space-between;
-                      padding:12px 14px;background:var(--input-bg);
-                      border-radius:var(--radius-lg);">
-            <div style="display:flex;align-items:center;gap:10px;">
-              <div style="width:8px;height:8px;border-radius:50%;background:var(--blue-600);"></div>
-              <span style="font-size:14px;font-weight:600;color:var(--gray-900);">{{ s.subject }}</span>
-            </div>
-            <span style="font-size:12px;color:var(--gray-500);font-weight:500;">{{ s.total_hours }}h</span>
-          </div>
-          {% endfor %}
-        </div>
-      {% else %}
-        <div style="text-align:center;padding:20px 0;color:var(--muted-foreground);font-size:14px;">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-               style="display:block;margin:0 auto 8px;color:var(--gray-300)">
-            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-          </svg>
-          진행 중인 과목이 없어요
-        </div>
-      {% endif %}
+  <div class="stat-card">
+    <div class="stat-icon-wrap stat-icon-wrap--green">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+        <polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
     </div>
-
-    <!-- 주간 목표 설정 -->
-    <div class="card">
-      <div class="card-header">
-        <h2 class="card-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-               stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue-600)">
-            <circle cx="12" cy="12" r="10"/>
-            <circle cx="12" cy="12" r="6"/>
-            <circle cx="12" cy="12" r="2"/>
-          </svg>
-          주간 목표 설정
-        </h2>
-      </div>
-      <div style="margin-bottom:16px;">
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-          <span style="font-size:13px;color:var(--gray-600);">이번 주 달성</span>
-          <span style="font-size:13px;font-weight:700;color:var(--blue-600);">
-            {{ weekly_hours }}h / <span id="goal-display">{{ goal_hours }}</span>h
-          </span>
-        </div>
-        <div style="width:100%;height:8px;background:var(--gray-100);border-radius:9999px;overflow:hidden;">
-          <div id="goal-bar" style="height:100%;background:var(--blue-600);border-radius:9999px;
-               width:{{ goal_percent }}%;transition:width .4s;"></div>
-        </div>
-        <p style="font-size:12px;color:var(--gray-500);margin-top:6px;">
-          달성률 <span id="goal-percent">{{ goal_percent }}</span>%
-        </p>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <input id="weekly-goal-input" type="number" min="1" max="100"
-               value="{{ goal_hours }}" placeholder="목표 시간"
-               style="flex:1;padding:10px 12px;border:1px solid var(--gray-200);
-                      border-radius:var(--radius-lg);font-size:14px;
-                      background:var(--input-bg);color:var(--gray-900);outline:none;"/>
-        <button onclick="setWeeklyGoal()"
-                style="padding:10px 16px;background:var(--blue-600);color:#fff;
-                       border-radius:var(--radius-lg);font-size:13px;font-weight:600;
-                       transition:opacity .15s;white-space:nowrap;"
-                onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
-          저장
-        </button>
-      </div>
-      <p id="weekly-goal-msg" style="font-size:12px;color:#16a34a;margin-top:8px;display:none;">
-        ✓ 목표가 저장되었습니다!
-      </p>
+    <div class="stat-info">
+      <p class="stat-value">{{ completed_subject_count }}</p>
+      <p class="stat-label">완료한 과목</p>
     </div>
+  </div>
 
-    <!-- 오늘의 학습 목표 -->
-    <div class="card card--highlight">
+  <div class="stat-card">
+    <div class="stat-icon-wrap stat-icon-wrap--purple">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+    </div>
+    <div class="stat-info">
+      <p class="stat-value">{{ total_hours }}h</p>
+      <p class="stat-label">총 학습 시간</p>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon-wrap stat-icon-wrap--orange">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+      </svg>
+    </div>
+    <div class="stat-info">
+      <p class="stat-value">{{ weekly_hours }}h</p>
+      <p class="stat-label">이번 주 학습</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── 메인 2단 그리드 ── -->
+<div class="content-grid">
+
+  <!-- 왼쪽 -->
+  <div class="content-left">
+
+    <!-- 오늘의 학습 목표 (위로 이동) -->
+    <div class="card">
       <div class="card-header">
         <h2 class="card-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -177,8 +98,9 @@
           <input type="checkbox" {% if g.is_done %}checked{% endif %}
                  onchange="toggleGoal({{ g.id }}, this)"
                  style="width:16px;height:16px;accent-color:var(--blue-600);cursor:pointer;"/>
-          <span style="flex:1;font-size:14px;color:var(--gray-900);
-                {% if g.is_done %}text-decoration:line-through;color:var(--gray-400);{% endif %}"
+          <span style="flex:1;font-size:14px;
+                {% if g.is_done %}text-decoration:line-through;color:var(--gray-400);
+                {% else %}color:var(--gray-900);{% endif %}"
                 id="dg-text-{{ g.id }}">{{ g.goal_text }}</span>
           <button onclick="deleteGoal({{ g.id }})"
                   style="color:var(--gray-400);font-size:16px;line-height:1;transition:color .15s;"
@@ -214,228 +136,260 @@
       </div>
     </div>
 
-  </div><!-- /triple-grid -->
-  <!-- 콘텐츠 그리드 -->
-  <div class="content-grid">
-
-    <!-- 왼쪽: 바로가기 -->
-    <div class="content-left">
-      <div class="card">
-        <div class="card-header">
-          <h2 class="card-title">바로가기</h2>
-        </div>
-        <div style="display:flex; flex-direction:column; gap:12px; padding: 4px 0;">
-          <a href="{{ url_for('classroom.classroom') }}"
-             style="display:flex; align-items:center; gap:14px; padding:16px; background:var(--input-bg); border-radius:var(--radius-lg); text-decoration:none; transition:background .15s;"
-             onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='var(--input-bg)'">
-            <div style="width:42px; height:42px; background:#eff6ff; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-              </svg>
-            </div>
-            <div>
-              <p style="font-size:14px; font-weight:600; color:var(--gray-900); margin-bottom:2px;">강의실</p>
-              <p style="font-size:12px; color:var(--gray-500);">과목별 강의실에 입장하세요</p>
-            </div>
-            <svg style="margin-left:auto; flex-shrink:0;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
-          </a>
-          <a href="{{ url_for('analysis.analysis') }}"
-             style="display:flex;align-items:center;gap:14px;padding:16px;
-                    background:var(--input-bg);border-radius:var(--radius-lg);
-                    text-decoration:none;transition:background .15s;"
-             onmouseover="this.style.background='#eff6ff'"
-             onmouseout="this.style.background='var(--input-bg)'">
-            <div style="width:42px;height:42px;background:#dbeafe;border-radius:10px;
-                        display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb"
-                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-              </svg>
-            </div>
-            <div>
-              <p style="font-size:14px;font-weight:600;color:var(--gray-900);margin-bottom:2px;">학습 분석 보기</p>
-              <p style="font-size:12px;color:var(--gray-500);">내 학습 패턴과 통계를 확인하세요</p>
-            </div>
-            <svg style="margin-left:auto;flex-shrink:0;" width="16" height="16"
-                 viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round">
-              <path d="M9 18l6-6-6-6"/>
-            </svg>
-          </a>
-
-          <a href="{{ url_for('calendar.calendar') }}"
-            style="display:flex;align-items:center;gap:14px;padding:16px;
-                    background:var(--input-bg);border-radius:var(--radius-lg);
-                    text-decoration:none;transition:background .15s;"
-            onmouseover="this.style.background='#eff6ff'"
-            onmouseout="this.style.background='var(--input-bg)'">
-            <div style="width:42px;height:42px;background:#eff6ff;border-radius:10px;
-                        display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb"
-                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                <line x1="16" y1="2" x2="16" y2="6"/>
-                <line x1="8" y1="2" x2="8" y2="6"/>
-                <line x1="3" y1="10" x2="21" y2="10"/>
-              </svg>
-            </div>
-            <div>
-              <p style="font-size:14px;font-weight:600;color:var(--gray-900);margin-bottom:2px;">캘린더</p>
-              <p style="font-size:12px;color:var(--gray-500);">일정을 관리하고 계획을 세워보세요</p>
-            </div>
-            <svg style="margin-left:auto;flex-shrink:0;" width="16" height="16"
-                viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round">
-              <path d="M9 18l6-6-6-6"/>
-            </svg>
-          </a>
-
-          <a href="{{ url_for('mypage.mypage') }}"
-             style="display:flex;align-items:center;gap:14px;padding:16px;
-                    background:var(--input-bg);border-radius:var(--radius-lg);
-                    text-decoration:none;transition:background .15s;"
-             onmouseover="this.style.background='#eff6ff'"
-             onmouseout="this.style.background='var(--input-bg)'">
-            <div style="width:42px;height:42px;background:#dbeafe;border-radius:10px;
-                        display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb"
-                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-              </svg>
-            </div>
-            <div>
-              <p style="font-size:14px;font-weight:600;color:var(--gray-900);margin-bottom:2px;">마이페이지</p>
-              <p style="font-size:12px;color:var(--gray-500);">계정 정보와 설정을 관리하세요</p>
-            </div>
-            <svg style="margin-left:auto;flex-shrink:0;" width="16" height="16"
-                 viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round">
-              <path d="M9 18l6-6-6-6"/>
-            </svg>
-          </a>
-
-        </div>
+    <!-- 바로가기 (아래로 이동) -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">바로가기</h2>
       </div>
-    </div><!-- /content-left -->
+      <div style="display:flex;flex-direction:column;gap:12px;padding:4px 0;">
 
-    <!-- 오른쪽 -->
-    <div class="content-right">
-
-      <!-- 주간 학습 현황 카드 -->
-      <div class="card">
-        <div class="card-header">
-          <h2 class="card-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue-600)">
-              <circle cx="12" cy="12" r="10"/>
-              <circle cx="12" cy="12" r="6"/>
-              <circle cx="12" cy="12" r="2"/>
+        <a href="{{ url_for('classroom.classroom') }}"
+           style="display:flex;align-items:center;gap:14px;padding:16px;
+                  background:var(--input-bg);border-radius:var(--radius-lg);
+                  text-decoration:none;transition:background .15s;"
+           onmouseover="this.style.background='#eff6ff'"
+           onmouseout="this.style.background='var(--input-bg)'">
+          <div style="width:42px;height:42px;background:#eff6ff;border-radius:10px;
+                      display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
             </svg>
-            주간 학습 현황
-          </h2>
-        </div>
-        <div style="text-align:center;padding:16px 0 8px;">
-          <p style="font-size:36px;font-weight:800;color:var(--blue-600);line-height:1;">
-            {{ weekly_hours }}h
-          </p>
-          <p style="font-size:13px;color:var(--gray-500);margin-top:4px;">이번 주 학습 시간</p>
-        </div>
-        <div style="width:100%;height:8px;background:var(--gray-100);border-radius:9999px;overflow:hidden;margin:8px 0;">
-          <div style="height:100%;background:var(--blue-600);border-radius:9999px;
-               width:{{ [weekly_hours * 10, 100] | min }}%;transition:width .4s;"></div>
-        </div>
-        <p style="font-size:12px;color:var(--gray-500);text-align:center;">꾸준히 학습하고 있어요! 🎉</p>
-      </div>
-
-      <!-- 과목별 학습 비율 -->
-      <div class="card">
-        <div class="card-header">
-          <h2 class="card-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue-600)">
-              <line x1="18" y1="20" x2="18" y2="10"/>
-              <line x1="12" y1="20" x2="12" y2="4"/>
-              <line x1="6" y1="20" x2="6" y2="14"/>
-            </svg>
-            과목별 학습 비율
-          </h2>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:14px;padding:4px 0;">
-          {% for s in subject_stats %}
-          <div style="display:flex;flex-direction:column;gap:6px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-              <span style="font-size:13px;font-weight:500;color:var(--gray-900);">{{ s['subject'] }}</span>
-              <span style="font-size:12px;color:var(--gray-500);">{{ s['total_hours'] }}h</span>
-            </div>
-            <div class="progress-track">
-              <div class="progress-fill" style="width:{{ s['percent'] }}%"></div>
-            </div>
           </div>
-          {% else %}
-          <p style="font-size:14px;color:var(--muted-foreground);text-align:center;padding:16px 0;">
-            데이터가 없어요
-          </p>
-          {% endfor %}
-        </div>
+          <div>
+            <p style="font-size:14px;font-weight:600;color:var(--gray-900);margin-bottom:2px;">강의실</p>
+            <p style="font-size:12px;color:var(--gray-500);">과목별 강의실에 입장하세요</p>
+          </div>
+          <svg style="margin-left:auto;flex-shrink:0;" width="16" height="16"
+               viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
+        </a>
+
+        <a href="{{ url_for('analysis.analysis') }}"
+           style="display:flex;align-items:center;gap:14px;padding:16px;
+                  background:var(--input-bg);border-radius:var(--radius-lg);
+                  text-decoration:none;transition:background .15s;"
+           onmouseover="this.style.background='#eff6ff'"
+           onmouseout="this.style.background='var(--input-bg)'">
+          <div style="width:42px;height:42px;background:#dbeafe;border-radius:10px;
+                      display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+          </div>
+          <div>
+            <p style="font-size:14px;font-weight:600;color:var(--gray-900);margin-bottom:2px;">학습 분석 보기</p>
+            <p style="font-size:12px;color:var(--gray-500);">내 학습 패턴과 통계를 확인하세요</p>
+          </div>
+          <svg style="margin-left:auto;flex-shrink:0;" width="16" height="16"
+               viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
+        </a>
+
+        <a href="{{ url_for('calendar.calendar') }}"
+           style="display:flex;align-items:center;gap:14px;padding:16px;
+                  background:var(--input-bg);border-radius:var(--radius-lg);
+                  text-decoration:none;transition:background .15s;"
+           onmouseover="this.style.background='#eff6ff'"
+           onmouseout="this.style.background='var(--input-bg)'">
+          <div style="width:42px;height:42px;background:#eff6ff;border-radius:10px;
+                      display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </div>
+          <div>
+            <p style="font-size:14px;font-weight:600;color:var(--gray-900);margin-bottom:2px;">캘린더</p>
+            <p style="font-size:12px;color:var(--gray-500);">일정을 관리하고 계획을 세워보세요</p>
+          </div>
+          <svg style="margin-left:auto;flex-shrink:0;" width="16" height="16"
+               viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
+        </a>
+
+        <a href="{{ url_for('mypage.mypage') }}"
+           style="display:flex;align-items:center;gap:14px;padding:16px;
+                  background:var(--input-bg);border-radius:var(--radius-lg);
+                  text-decoration:none;transition:background .15s;"
+           onmouseover="this.style.background='#eff6ff'"
+           onmouseout="this.style.background='var(--input-bg)'">
+          <div style="width:42px;height:42px;background:#dbeafe;border-radius:10px;
+                      display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+          <div>
+            <p style="font-size:14px;font-weight:600;color:var(--gray-900);margin-bottom:2px;">마이페이지</p>
+            <p style="font-size:12px;color:var(--gray-500);">계정 정보와 설정을 관리하세요</p>
+          </div>
+          <svg style="margin-left:auto;flex-shrink:0;" width="16" height="16"
+               viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
+        </a>
+
       </div>
+    </div>
 
-      <!-- AI 플랜 배너 -->
-      <div class="card" style="background:linear-gradient(135deg,#1d4ed8,#2563eb);border:none;">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-          <span style="font-size:10px;font-weight:700;letter-spacing:1.5px;
-                       color:rgba(255,255,255,0.7);">학점 예측 서비스</span>
+  </div><!-- /content-left -->
 
-        </div>
-        <h3 style="font-size:16px;font-weight:700;color:#fff;margin-bottom:6px;">
-          학점을 미리 예측해보세요.
-        </h3>
-        <p style="font-size:13px;color:rgba(255,255,255,0.75);margin-bottom:16px;">
-          여러분의 성적을 토대로 AI가 학점을 예측합니다.
-        </p>
-        <a href="{{ url_for('grade_predict.grade_predict') }}"
-           style="display:block;width:100%;padding:11px;background:rgba(255,255,255,0.15);
-                  color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:var(--radius-lg);
-                  font-size:13px;font-weight:600;text-align:center;
-                  transition:background .15s;text-decoration:none;">
-          학점 예측하기
+  <!-- 오른쪽 -->
+  <div class="content-right">
+
+    <!-- 다가오는 일정 -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue-600)">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          다가오는 일정
+        </h2>
+        <a href="{{ url_for('calendar.calendar') }}"
+           style="font-size:12px;color:var(--blue-600);text-decoration:none;font-weight:500;">
+          캘린더 →
         </a>
       </div>
+      {% if upcoming_events %}
+        <div style="display:flex;flex-direction:column;gap:10px;padding:4px 0;">
+          {% for ev in upcoming_events %}
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;
+                      background:var(--input-bg);border-radius:var(--radius-lg);">
+            <div style="width:40px;height:40px;background:#eff6ff;border-radius:10px;
+                        display:flex;flex-direction:column;align-items:center;
+                        justify-content:center;flex-shrink:0;">
+              <span style="font-size:10px;font-weight:700;color:#2563eb;line-height:1;">
+                {{ ev.month }}월
+              </span>
+              <span style="font-size:16px;font-weight:800;color:#1d4ed8;line-height:1.2;">
+                {{ ev.day }}
+              </span>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <p style="font-size:13px;font-weight:600;color:var(--gray-900);
+                        white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                {{ ev.title }}
+              </p>
+              <p style="font-size:11px;color:var(--gray-500);margin-top:2px;">
+                {% if ev.dday == 0 %}오늘!
+                {% elif ev.dday == 1 %}내일
+                {% else %}D-{{ ev.dday }}
+                {% endif %}
+              </p>
+            </div>
+            {% if ev.is_exam %}
+            <span style="font-size:10px;font-weight:700;padding:3px 8px;
+                         background:#fef2f2;color:#dc2626;border-radius:9999px;flex-shrink:0;">
+              시험
+            </span>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <p class="empty-state-title">다가오는 일정이 없어요</p>
+          <p class="empty-state-desc">캘린더에서 일정을 추가해보세요</p>
+        </div>
+      {% endif %}
+    </div>
 
-    </div><!-- /content-right -->
-  </div><!-- /content-grid -->
+    <!-- 과목별 학습 비율 -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue-600)">
+            <line x1="18" y1="20" x2="18" y2="10"/>
+            <line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+          과목별 학습 비율
+        </h2>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;padding:4px 0;">
+        {% for s in subject_stats %}
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:13px;font-weight:500;color:var(--gray-900);">{{ s['subject'] }}</span>
+            <span style="font-size:12px;color:var(--gray-500);">{{ s['total_hours'] }}h</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" style="width:{{ s['percent'] }}%"></div>
+          </div>
+        </div>
+        {% else %}
+        <div class="empty-state">
+          <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"/>
+            <line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+          <p class="empty-state-title">학습 데이터가 없어요</p>
+          <p class="empty-state-desc">강의실에서 학습을 시작해보세요</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- 학점 예측 배너 -->
+    <div class="card" style="background:linear-gradient(135deg,#1d4ed8,#2563eb);border:none;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <span style="font-size:10px;font-weight:700;letter-spacing:1.5px;
+                     color:rgba(255,255,255,0.7);">학점 예측 서비스</span>
+      </div>
+      <h3 style="font-size:16px;font-weight:700;color:#fff;margin-bottom:6px;">
+        학점을 미리 예측해보세요.
+      </h3>
+      <p style="font-size:13px;color:rgba(255,255,255,0.75);margin-bottom:16px;">
+        여러분의 성적을 토대로 AI가 학점을 예측합니다.
+      </p>
+      <a href="{{ url_for('grade_predict.grade_predict') }}"
+         style="display:block;width:100%;padding:11px;background:rgba(255,255,255,0.15);
+                color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:var(--radius-lg);
+                font-size:13px;font-weight:600;text-align:center;
+                transition:background .15s;text-decoration:none;"
+         onmouseover="this.style.background='rgba(255,255,255,0.25)'"
+         onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+        학점 예측하기
+      </a>
+    </div>
+
+  </div><!-- /content-right -->
+</div><!-- /content-grid -->
 
 {% endblock %}
 
 {% block extra_js %}
 <script>
-// ── 주간 목표 설정 ──
-async function setWeeklyGoal() {
-  const val = parseFloat(document.getElementById('weekly-goal-input').value);
-  if (!val || val <= 0) return alert('올바른 시간을 입력하세요');
-
-  const res  = await fetch('/dashboard/set_weekly_goal', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ goal_hours: val })
-  });
-  const data = await res.json();
-  if (data.ok) {
-    const weekly = {{ weekly_hours }};
-    const pct    = Math.min(Math.round(weekly / val * 100), 100);
-    document.getElementById('goal-display').textContent = val;
-    document.getElementById('goal-bar').style.width     = pct + '%';
-    document.getElementById('goal-percent').textContent = pct;
-    const msg = document.getElementById('weekly-goal-msg');
-    msg.style.display = 'block';
-    setTimeout(() => msg.style.display = 'none', 2000);
-  }
-}
-
-// ── 오늘의 목표 추가 ──
 async function addDailyGoal() {
   const input = document.getElementById('daily-goal-input');
   const text  = input.value.trim();
   if (!text) return;
-
   const res  = await fetch('/dashboard/add_daily_goal', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -445,7 +399,6 @@ async function addDailyGoal() {
   if (data.ok) {
     const noMsg = document.getElementById('no-goal-msg');
     if (noMsg) noMsg.remove();
-
     const list = document.getElementById('daily-goal-list');
     const div  = document.createElement('div');
     div.id = 'dg-' + data.id;
@@ -466,7 +419,6 @@ async function addDailyGoal() {
   }
 }
 
-// ── 완료 토글 ──
 async function toggleGoal(id, cb) {
   const res  = await fetch(`/dashboard/toggle_daily_goal/${id}`, { method: 'POST' });
   const data = await res.json();
@@ -480,7 +432,6 @@ async function toggleGoal(id, cb) {
   }
 }
 
-// ── 목표 삭제 ──
 async function deleteGoal(id) {
   const res  = await fetch(`/dashboard/delete_daily_goal/${id}`, { method: 'POST' });
   const data = await res.json();
