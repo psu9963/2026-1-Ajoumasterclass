@@ -307,6 +307,20 @@
       .login-wrap { grid-template-columns: 1fr; }
       .login-form-side { padding: 36px 20px; }
     }
+
+    .login-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .login-logo-text {
+      font-size: 15px;
+      font-weight: 700;
+      color: #111827;
+    }
+
   </style>
 </head>
 <body>
@@ -330,16 +344,18 @@
       </a>
 
       <!-- 로고 -->
-      <div class="login-logo">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round"
-             style="color:#2563eb;">
-          <path d="M12 2a9 9 0 0 1 9 9c0 3.18-1.65 5.97-4.13 7.56L16 21H8l-.87-2.44A9 9 0 0 1 12 2z"/>
-          <path d="M9 12h6M9 9h6M9 15h4"/>
-        </svg>
-        <span class="login-logo-text">A+ 스터디 플래너</span>
-      </div>
+<div class="login-logo">
+  <svg width="24" height="32" viewBox="0 0 31 41" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M7.54297 21.25L11.2197 10.6445H14.0469L17.709 21.25H15.3506L14.5522 18.8037H10.7144L9.91602 21.25H7.54297ZM13.9956 17.0898L12.6699 13.0322H12.5967L11.271 17.0898H13.9956Z" fill="#2563EB"/>
+    <path d="M20.75 10.25V15.25" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>
+    <path d="M18.25 12.75H23.25" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>
+    <path d="M15.25 1.25C6.85 1.25 1.25 7.65 1.25 15.1167C1.25 20.45 4.05 24.7167 8.71667 27.9167V33.25H21.7833V27.9167C26.45 24.7167 29.25 20.45 29.25 15.1167C29.25 7.65 23.65 1.25 15.25 1.25Z" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M11.25 36.25H19.25" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>
+    <path d="M12.25 39.25H18.25" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>
+  </svg>
+  <span class="login-logo-text">스터디 플래너</span>
+</div>
+
 
       <!-- 타이틀 -->
       <div class="login-title-wrap">
