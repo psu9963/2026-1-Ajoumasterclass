@@ -26,13 +26,24 @@ def _make_openai_client():
     )
 
 
-def _current_week(subject, max_week):
-    """개강일부터 몇 주 지났는지로 현재 주차 계산. 개강일 없으면 None."""
+def _parse_start_date(subject):
+    """Subject.start_date 문자열을 date로 파싱. 없거나 형식이 잘못되면 None."""
     if not subject.start_date:
         return None
     try:
-        start = datetime.strptime(subject.start_date, '%Y-%m-%d').date()
+        return datetime.strptime(subject.start_date, '%Y-%m-%d').date()
     except ValueError:
+        return None
+
+
+def _fmt_md(d):
+    """date를 '7/10' 형식(연도 생략)으로 표시."""
+    return f"{d.month}/{d.day}"
+
+
+def _current_week(start, max_week):
+    """개강일부터 몇 주 지났는지로 현재 주차 계산. 개강일 없으면 None."""
+    if start is None:
         return None
     weeks_elapsed = (date.today() - start).days // 7
     week = max(1, weeks_elapsed + 1)
@@ -56,12 +67,20 @@ def _subject_timeline(user_id):
     for subject in subjects:
         weekly_plans = WeeklyPlan.query.filter_by(subject_id=subject.id).order_by(WeeklyPlan.week).all()
         max_week = weekly_plans[-1].week if weekly_plans else None
-        current_week = _current_week(subject, max_week)
+        start = _parse_start_date(subject)
+        current_week = _current_week(start, max_week)
 
         week_topic = None
         if current_week is not None:
             wp = next((w for w in weekly_plans if w.week == current_week), None)
             week_topic = wp.topic if wp else None
+
+        current_week_range = None
+        if current_week is not None and start is not None:
+            wk_start = start + timedelta(days=(current_week - 1) * 7)
+            wk_end = wk_start + timedelta(days=6)
+            current_week_range = f"{_fmt_md(wk_start)}~{_fmt_md(wk_end)}"
+
 
         study_plans = StudyPlan.query.filter_by(subject_id=subject.id).all()
         exam_plans = ExamPlan.query.filter_by(subject_id=subject.id).all()
@@ -111,19 +130,23 @@ def _subject_timeline(user_id):
                     })
 
         nearest_dday = None
+        nearest_exam_date = None
         for ep in exam_plans:
             try:
-                d_day = (datetime.strptime(ep.exam_date, '%Y-%m-%d').date() - today).days
+                exam_date = datetime.strptime(ep.exam_date, '%Y-%m-%d').date()
             except ValueError:
                 continue
+            d_day = (exam_date - today).days
             if d_day < 0:
                 continue
             if nearest_dday is None or d_day < nearest_dday:
                 nearest_dday = d_day
+                nearest_exam_date = _fmt_md(exam_date)
             exam_rows.append({
                 'subject': subject.name,
                 'exam_name': ep.name,
                 'd_day': d_day,
+                'exam_date_label': _fmt_md(exam_date),
             })
 
         is_behind = current_week is not None and this_week_total > 0 and this_week_done == 0
@@ -131,12 +154,14 @@ def _subject_timeline(user_id):
         subject_rows.append({
             'name': subject.name,
             'current_week': current_week,
+            'current_week_range': current_week_range,
             'week_topic': week_topic,
             'done': done,
             'total': total,
             'percent': round(done / total * 100) if total > 0 else None,
             'is_behind': is_behind,
             'nearest_dday': nearest_dday,
+            'nearest_exam_date': nearest_exam_date,
         })
 
     exam_rows.sort(key=lambda e: e['d_day'])
