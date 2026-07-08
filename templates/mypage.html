@@ -59,7 +59,7 @@
       <form method="POST" action="{{ url_for('mypage.update_profile') }}" enctype="multipart/form-data">
         <label class="mp-avatar-wrap" title="사진 변경">
           {% if profile_image %}
-          <img src="{{ url_for('static', filename=profile_image) }}" class="mp-avatar" id="avatar-preview" alt="프로필"/>
+          <img src="{{ url_for('mypage.serve_avatar', filename=profile_image) }}" class="mp-avatar" id="avatar-preview" alt="프로필"/>
           {% else %}
           <div class="mp-avatar-initials" id="avatar-preview">{{ current_user.username[0]|upper }}</div>
           {% endif %}

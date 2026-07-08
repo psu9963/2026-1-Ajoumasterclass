@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, send_from_directory
 from flask_login import login_required, current_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -9,8 +9,10 @@ import os, uuid
 mypage_bp = Blueprint('mypage', __name__)
 
 _STATIC = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static')
-_AVATAR_DIR = os.path.join(_STATIC, 'uploads', 'avatars')
+_UPLOAD_ROOT = os.environ.get("UPLOAD_DIR") or os.path.join(_STATIC, 'uploads')
+_AVATAR_DIR = os.path.join(_UPLOAD_ROOT, 'avatars')
 _ALLOWED_EXT = {'jpg', 'jpeg', 'png', 'gif', 'webp'}
+os.makedirs(_AVATAR_DIR, exist_ok=True)
 
 def _allowed_image(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in _ALLOWED_EXT
@@ -71,13 +73,13 @@ def update_profile():
             os.makedirs(_AVATAR_DIR, exist_ok=True)
             old = current_user.profile_image
             if old:
-                old_path = os.path.join(_STATIC, old)
+                old_path = os.path.join(_AVATAR_DIR, old)
                 if os.path.exists(old_path):
                     os.remove(old_path)
             ext   = file.filename.rsplit('.', 1)[1].lower()  # secure_filename 대신 원본에서 추출
             fname = f"{uuid.uuid4().hex}.{ext}"
             file.save(os.path.join(_AVATAR_DIR, fname))
-            current_user.profile_image = f"uploads/avatars/{fname}"
+            current_user.profile_image = fname
         except Exception:
             flash('이미지 저장에 실패했어요. 다시 시도해 주세요.', 'error')
             db.session.rollback()
@@ -86,6 +88,12 @@ def update_profile():
     db.session.commit()
     flash('프로필이 저장됐어요.', 'success')
     return redirect(url_for('mypage.mypage'))
+
+
+@mypage_bp.route('/mypage/avatar/<path:filename>')
+@login_required
+def serve_avatar(filename):
+    return send_from_directory(_AVATAR_DIR, filename, as_attachment=False)
 
 
 @mypage_bp.route('/mypage/change-password', methods=['POST'])
@@ -139,7 +147,7 @@ def delete_account():
 
     user = User.query.get(user_id)
     if user.profile_image:
-        img_path = os.path.join(_STATIC, user.profile_image)
+        img_path = os.path.join(_AVATAR_DIR, user.profile_image)
         if os.path.exists(img_path):
             os.remove(img_path)
 

@@ -126,7 +126,7 @@
   <div class="exam-priority-row">
     <div class="exam-priority-info">
       <span class="exam-priority-subject">{{ e.subject }}</span>
-      <span class="exam-priority-exam">{{ e.exam_name }}</span>
+      <span class="exam-priority-exam">{{ e.exam_name }}{% if e.exam_date_label %} · {{ e.exam_date_label }}{% endif %}</span>
     </div>
     <span class="dday-badge {% if e.d_day <= 3 %}urgent{% endif %}">D-{{ e.d_day }}</span>
   </div>
@@ -178,7 +178,7 @@
     <span class="subject-timeline-name">{{ s.name }}</span>
     <div class="subject-timeline-badges">
       {% if s.current_week is not none %}
-      <span class="week-badge">현재 {{ s.current_week }}주차</span>
+      <span class="week-badge">현재 {{ s.current_week }}주차{% if s.current_week_range %} · {{ s.current_week_range }}{% endif %}</span>
       {% else %}
       <span class="week-badge unregistered">개강일 미등록</span>
       {% endif %}
@@ -186,12 +186,12 @@
       <span class="behind-badge">이번 주 진행 전</span>
       {% endif %}
       {% if s.nearest_dday is not none %}
-      <span class="dday-badge {% if s.nearest_dday <= 3 %}urgent{% endif %}">시험 D-{{ s.nearest_dday }}</span>
+      <span class="dday-badge {% if s.nearest_dday <= 3 %}urgent{% endif %}">시험 D-{{ s.nearest_dday }}{% if s.nearest_exam_date %} · {{ s.nearest_exam_date }}{% endif %}</span>
       {% endif %}
     </div>
   </div>
   {% if s.week_topic %}
-  <p class="subject-timeline-topic">이번 주 주제 · {{ s.week_topic }}</p>
+  <p class="subject-timeline-topic">이번 주 주제 · {{ s.week_topic }}{% if s.current_week_range %} · {{ s.current_week_range }}{% endif %}</p>
   {% endif %}
   {% if s.total > 0 %}
   <p class="subject-timeline-count {% if s.percent < low_threshold %}low{% endif %}">
