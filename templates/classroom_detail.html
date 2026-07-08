@@ -176,7 +176,136 @@
   </div>
 </div>
 
-<!-- [2] AI 학습 계획 — 전체 폭 -->
+<!-- [2] 학습 시간 기록 — 전체 폭 -->
+<div class="card" style="padding:20px 24px; margin-bottom:16px;">
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:8px; flex-wrap:wrap;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <div style="width:32px; height:32px; background:#eff6ff; border-radius:9px; display:flex; align-items:center; justify-content:center;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+      </div>
+      <h2 style="font-size:15px; font-weight:700; color:var(--gray-900); margin:0;">학습 시간 기록</h2>
+    </div>
+    <button onclick="openStudyTimeModal()"
+            style="padding:7px 16px; background:#2563eb; color:#fff; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; transition:opacity .15s; white-space:nowrap;"
+            onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+      기록
+    </button>
+  </div>
+
+  <div class="study-time-layout">
+    <!-- 왼쪽 60%: 최근 7일 학습량 그래프 -->
+    <div class="study-time-chart-col">
+      {% set max_minutes = (week_chart|map(attribute='minutes')|max) or 1 %}
+      {% set ticks = [max_minutes, (max_minutes*0.75)|round|int, (max_minutes*0.5)|round|int, (max_minutes*0.25)|round|int, 0] %}
+      <div class="week-chart-outer">
+        <div class="week-chart-yaxis" id="week-chart-yaxis">
+          {% for t in ticks %}<span id="week-chart-tick-{{ loop.index0 }}">{{ t }}</span>{% endfor %}
+        </div>
+        <div class="week-chart-body">
+          <div class="week-chart-grid-box">
+            {% for day in week_chart %}
+            <div class="week-chart-bar-col" id="week-chart-col-{{ loop.index0 }}" title="{{ day.minutes | minutes_label }}">
+              <div class="week-chart-bar" id="week-chart-bar-{{ loop.index0 }}" style="height:{{ (day.minutes / max_minutes * 100) if day.minutes else 0 }}%;{% if day.minutes %} min-height:3px;{% endif %}"></div>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="week-chart-labels">
+            {% for day in week_chart %}
+            <span class="week-chart-label">{{ day.weekday }}<br>{{ day.label }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 오른쪽 40%: 요약 -->
+    <div class="study-time-summary-col">
+      <div class="study-summary-stat">
+        <span class="study-summary-label">이번 주 학습시간</span>
+        <span class="study-summary-value" id="study-summary-week">{{ week_minutes | minutes_label }}</span>
+      </div>
+      <div class="study-summary-stat">
+        <span class="study-summary-label">전체 학습시간</span>
+        <span class="study-summary-value" id="study-summary-total">{{ total_minutes | minutes_label }}</span>
+      </div>
+      <button class="study-history-btn" onclick="openStudyHistoryModal()">학습 기록 살펴보기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 학습 기록 모달 -->
+<div id="study-history-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:14px; width:100%; max-width:420px; margin:16px; box-shadow:0 16px 48px rgba(0,0,0,.18); overflow:hidden; max-height:80vh; display:flex; flex-direction:column;">
+    <div style="padding:18px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--gray-100); flex-shrink:0;">
+      <h3 style="font-size:14px; font-weight:700; color:var(--gray-900); margin:0;">학습 기록</h3>
+      <button onclick="closeStudyHistoryModal()" style="color:var(--gray-400); font-size:18px; line-height:1; background:none; cursor:pointer;"
+              onmouseover="this.style.color='#111'" onmouseout="this.style.color='var(--gray-400)'">✕</button>
+    </div>
+    <div id="study-time-list" style="padding:14px 20px 20px; overflow-y:auto; height:260px; box-sizing:border-box; flex-shrink:0;">
+      {% if study_records %}
+        {% for r in study_records %}
+        <div class="study-time-row" id="study-time-row-{{ r.id }}">
+          <div style="min-width:0;">
+            <span class="study-time-date">{{ r.study_date }}</span>
+            <span class="study-time-minutes">{{ (r.duration_hours * 60) | minutes_label }}</span>
+            {% if r.memo %}<span class="study-time-memo">{{ r.memo }}</span>{% endif %}
+          </div>
+          <button class="plan-delete-btn" onclick="deleteStudyTime({{ r.id }}, event)" title="삭제">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+          </button>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p id="no-study-time-msg" style="font-size:13px; color:var(--gray-400); margin:0;">아직 기록된 학습 시간이 없어요.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- 학습 시간 기록 모달 -->
+<div id="study-time-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:14px; width:100%; max-width:340px; margin:16px; box-shadow:0 16px 48px rgba(0,0,0,.18); overflow:hidden;">
+    <div style="padding:18px 20px 0; display:flex; align-items:center; justify-content:space-between;">
+      <h3 style="font-size:14px; font-weight:700; color:var(--gray-900); margin:0;">학습 시간 기록</h3>
+      <button onclick="closeStudyTimeModal()" style="color:var(--gray-400); font-size:18px; line-height:1; background:none; cursor:pointer;"
+              onmouseover="this.style.color='#111'" onmouseout="this.style.color='var(--gray-400)'">✕</button>
+    </div>
+    <div style="padding:16px 20px 20px; display:flex; flex-direction:column; gap:14px;">
+      <div>
+        <label style="font-size:11px; font-weight:600; color:var(--gray-600); display:block; margin-bottom:5px;">날짜</label>
+        <input type="date" id="study-time-date"
+               style="width:100%; padding:8px 10px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; color:var(--gray-900); background:var(--input-bg); outline:none; box-sizing:border-box;"/>
+      </div>
+      <div>
+        <label style="font-size:11px; font-weight:600; color:var(--gray-600); display:block; margin-bottom:5px;">학습 시간(분)</label>
+        <input type="number" id="study-time-minutes" min="1" placeholder="예) 90"
+               style="width:100%; padding:8px 10px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; color:var(--gray-900); background:var(--input-bg); outline:none; box-sizing:border-box;"/>
+      </div>
+      <div>
+        <label style="font-size:11px; font-weight:600; color:var(--gray-600); display:block; margin-bottom:5px;">메모 <span style="font-weight:400; color:var(--gray-400);">(선택)</span></label>
+        <input type="text" id="study-time-memo" maxlength="200" placeholder="예) 3~5주차 복습"
+               style="width:100%; padding:8px 10px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; color:var(--gray-900); background:var(--input-bg); outline:none; box-sizing:border-box;"/>
+      </div>
+      <div id="study-time-error" style="display:none; font-size:12px; color:#ef4444; padding:4px 0;"></div>
+      <div style="display:flex; gap:8px;">
+        <button onclick="closeStudyTimeModal()"
+                style="flex:1; padding:9px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; font-weight:600; color:var(--gray-600); background:#fff; cursor:pointer; transition:background .15s;"
+                onmouseover="this.style.background='var(--input-bg)'" onmouseout="this.style.background='#fff'">
+          취소
+        </button>
+        <button id="study-time-confirm-btn" onclick="addStudyTime()"
+                style="flex:2; padding:9px; background:#2563eb; color:#fff; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; transition:opacity .15s;"
+                onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          기록
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- [3] AI 학습 계획 — 전체 폭 -->
 <div class="card" style="padding:20px 24px; margin-bottom:16px;">
   <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:8px; flex-wrap:wrap;">
     <div style="display:flex; align-items:center; gap:10px;">
@@ -239,8 +368,8 @@
   </div>
 </div>
 
-<!-- [3] 시험 대비 계획 — 전체 폭 -->
-<div class="card" style="padding:20px 24px;">
+<!-- [4] 시험 대비 계획 (등록 + 시험별 대비 계획) — 전체 폭 -->
+<div class="card" style="padding:20px 24px; margin-bottom:16px;">
   <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:8px; flex-wrap:wrap;">
     <div style="display:flex; align-items:center; gap:10px;">
       <div style="width:32px; height:32px; background:#fef3c7; border-radius:9px; display:flex; align-items:center; justify-content:center;">
@@ -252,14 +381,15 @@
         </svg>
       </div>
       <h2 style="font-size:15px; font-weight:700; color:var(--gray-900); margin:0;">시험 대비 계획</h2>
+      {% if exam_plans %}
+      <span style="font-size:10px; font-weight:600; color:#d97706; background:#fef3c7; padding:2px 7px; border-radius:99px; margin-left:2px;">{{ exam_plans|length }}개</span>
+      {% endif %}
     </div>
-    {% if plans %}
-    <button onclick="openExamModal()"
+    <button onclick="openExamRegisterModal()"
             style="padding:7px 16px; background:#d97706; color:#fff; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; transition:opacity .15s; white-space:nowrap;"
             onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
-      시험 대비 계획 만들기
+      시험 등록
     </button>
-    {% endif %}
   </div>
 
   <div id="exam-plan-area">
@@ -269,16 +399,27 @@
         <div class="plan-card-header {% if not loop.first %}collapsed{% endif %}" onclick="toggleExamCard(this)">
           <div style="flex:1; min-width:0;">
             <span class="plan-card-name">{{ ep.name }}</span>
-            <span class="plan-card-meta">시험일 {{ ep.exam_date }} · {{ ep.scope_from }}~{{ ep.scope_to }}주차</span>
+            <span class="plan-card-meta" id="exam-meta-{{ ep.id }}">
+              시험일 {{ ep.exam_date }}
+              {% if ep.d_day is not none %}{% if ep.d_day >= 0 %}· D-{{ ep.d_day }}{% else %}· 종료{% endif %}{% endif %}
+              · {{ ep.scope_from }}~{{ ep.scope_to }}주차
+            </span>
           </div>
           <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+            <button class="plan-delete-btn" onclick='openExamEditModal({{ ep.id }}, {{ ep.name|tojson }}, {{ ep.exam_date|tojson }}, {{ ep.scope_from }}, {{ ep.scope_to }}, event)' title="수정">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
             <button class="plan-delete-btn" onclick="deleteExamPlan({{ ep.id }}, event)" title="삭제">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
             </button>
             <svg class="plan-card-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
           </div>
         </div>
-        <div class="plan-card-body {% if not loop.first %}hidden{% endif %}">
+        <div class="plan-card-body {% if not loop.first %}hidden{% endif %}" id="exam-card-body-{{ ep.id }}">
+          {% if ep.items %}
+          <div class="exam-items-actions">
+            <button class="exam-clear-btn" onclick="clearExamPlanItems({{ ep.id }}, event)">대비 계획 삭제</button>
+          </div>
           {% set items_sorted = ep.items|sort(attribute='d_day', reverse=True) %}
           {% set ns2 = namespace(cur_dday=None) %}
           {% for item in items_sorted %}
@@ -302,83 +443,73 @@
             </label>
           {% endfor %}
           {% if ns2.cur_dday is not none %}</div>{% endif %}
+          {% else %}
+          <button class="generate-plan-btn" id="gen-btn-{{ ep.id }}" onclick="generateExamPlanItems({{ ep.id }}, event)">대비 계획 생성하기</button>
+          <div id="gen-loading-{{ ep.id }}" style="display:none; font-size:12px; color:#d97706; font-weight:500; padding:8px 0 0;">
+            <svg style="display:inline;vertical-align:middle;margin-right:5px;animation:spin 1s linear infinite;" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+            AI가 대비 계획을 짜는 중...
+          </div>
+          <div id="gen-error-{{ ep.id }}" style="display:none; font-size:12px; color:#ef4444; padding:8px 0 0;"></div>
+          {% endif %}
         </div>
       </div>
       {% endfor %}
     {% else %}
-      <p id="no-exam-plans-msg" style="font-size:13px; color:var(--gray-400); margin:0;">
-        {% if plans %}"시험 대비 계획 만들기"를 눌러 날짜별 공부 계획을 생성해줘요.
-        {% else %}주차별 주제가 분석되면 시험 대비 계획을 생성할 수 있어요.{% endif %}
-      </p>
+      <p id="no-exam-plans-msg" style="font-size:13px; color:var(--gray-400); margin:0;">"시험 등록" 버튼으로 시험 일정을 등록해보세요.</p>
     {% endif %}
   </div>
 </div>
 
-<!-- 주차 선택 모달 -->
-<!-- 시험 대비 계획 모달 -->
-<div id="exam-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000; align-items:center; justify-content:center;">
-  <div style="background:#fff; border-radius:14px; width:100%; max-width:400px; margin:16px; box-shadow:0 16px 48px rgba(0,0,0,.18); overflow:hidden; max-height:90vh; overflow-y:auto;">
+<!-- 시험 등록/수정 모달 -->
+<div id="exam-register-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:14px; width:100%; max-width:380px; margin:16px; box-shadow:0 16px 48px rgba(0,0,0,.18); overflow:hidden; max-height:90vh; overflow-y:auto;">
     <div style="padding:18px 20px 0; display:flex; align-items:center; justify-content:space-between;">
-      <h3 style="font-size:14px; font-weight:700; color:var(--gray-900); margin:0;">시험 대비 계획 만들기</h3>
-      <button onclick="closeExamModal()" style="color:var(--gray-400); font-size:18px; line-height:1; background:none; cursor:pointer;"
+      <h3 id="exam-register-title" style="font-size:14px; font-weight:700; color:var(--gray-900); margin:0;">시험 등록</h3>
+      <button onclick="closeExamRegisterModal()" style="color:var(--gray-400); font-size:18px; line-height:1; background:none; cursor:pointer;"
               onmouseover="this.style.color='#111'" onmouseout="this.style.color='var(--gray-400)'">✕</button>
     </div>
     <div style="padding:16px 20px 20px; display:flex; flex-direction:column; gap:14px;">
       <div>
-        <label style="font-size:11px; font-weight:600; color:var(--gray-600); display:block; margin-bottom:5px;">
-          계획 이름 <span style="font-weight:400; color:var(--gray-400);">(선택)</span>
-        </label>
-        <input type="text" id="exam-name" placeholder="예) 중간고사 대비" maxlength="100"
-               style="width:100%; padding:8px 10px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; color:var(--gray-900); background:var(--input-bg); outline:none; box-sizing:border-box; transition:border .15s;"
-               onfocus="this.style.borderColor='#d97706'" onblur="this.style.borderColor='var(--gray-200)'"/>
+        <label style="font-size:11px; font-weight:600; color:var(--gray-600); display:block; margin-bottom:5px;">시험 종류</label>
+        <select id="exam-reg-type" onchange="onExamTypeChange()"
+                style="width:100%; padding:8px 10px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; color:var(--gray-900); background:var(--input-bg); outline:none; box-sizing:border-box;">
+          <option value="중간고사">중간고사</option>
+          <option value="기말고사">기말고사</option>
+          <option value="기타">기타</option>
+        </select>
+        <input type="text" id="exam-reg-custom-name" placeholder="시험 이름을 입력하세요" maxlength="100"
+               style="display:none; margin-top:6px; width:100%; padding:8px 10px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; color:var(--gray-900); background:var(--input-bg); outline:none; box-sizing:border-box;"/>
       </div>
       <div>
         <label style="font-size:11px; font-weight:600; color:var(--gray-600); display:block; margin-bottom:5px;">
           시험 날짜 <span style="color:#ef4444;">*</span>
         </label>
-        <input type="date" id="exam-date"
-               style="width:100%; padding:8px 10px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; color:var(--gray-900); background:var(--input-bg); outline:none; box-sizing:border-box; transition:border .15s;"
-               onfocus="this.style.borderColor='#d97706'" onblur="this.style.borderColor='var(--gray-200)'"/>
-      </div>
-      <div>
-        <label style="font-size:11px; font-weight:600; color:var(--gray-600); display:block; margin-bottom:5px;">시험 범위 주차</label>
-        <div style="display:flex; align-items:center; gap:10px;">
-          <select id="exam-scope-from" style="flex:1; padding:8px 10px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; color:var(--gray-900); background:var(--input-bg); outline:none; box-sizing:border-box;">
-            {% for p in plans %}
-            <option value="{{ p.week }}">{{ p.week }}주 ({{ p.topic[:10] }}{% if p.topic|length > 10 %}…{% endif %})</option>
-            {% endfor %}
-          </select>
-          <span style="font-size:14px; color:var(--gray-400);">~</span>
-          <select id="exam-scope-to" style="flex:1; padding:8px 10px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; color:var(--gray-900); background:var(--input-bg); outline:none; box-sizing:border-box;">
-            {% for p in plans %}
-            <option value="{{ p.week }}" {% if loop.last %}selected{% endif %}>{{ p.week }}주 ({{ p.topic[:10] }}{% if p.topic|length > 10 %}…{% endif %})</option>
-            {% endfor %}
-          </select>
-        </div>
+        <input type="date" id="exam-reg-date"
+               style="width:100%; padding:8px 10px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; color:var(--gray-900); background:var(--input-bg); outline:none; box-sizing:border-box;"/>
       </div>
       <div>
         <label style="font-size:11px; font-weight:600; color:var(--gray-600); display:block; margin-bottom:5px;">
-          추가 참고사항 <span style="font-weight:400; color:var(--gray-400);">(선택)</span>
+          시험 범위 주차 <span style="font-weight:400; color:var(--gray-400);">(선택)</span>
         </label>
-        <textarea id="exam-scope-note" placeholder="예) 캐시 메모리 위주, 계산 문제 중심" maxlength="200" rows="2"
-                  style="width:100%; padding:8px 10px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; color:var(--gray-900); background:var(--input-bg); outline:none; box-sizing:border-box; resize:none; transition:border .15s;"
-                  onfocus="this.style.borderColor='#d97706'" onblur="this.style.borderColor='var(--gray-200)'"></textarea>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <input type="number" id="exam-reg-scope-from" min="1" placeholder="시작"
+                 style="flex:1; padding:8px 10px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; color:var(--gray-900); background:var(--input-bg); outline:none; box-sizing:border-box;"/>
+          <span style="font-size:14px; color:var(--gray-400);">~</span>
+          <input type="number" id="exam-reg-scope-to" min="1" placeholder="끝"
+                 style="flex:1; padding:8px 10px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; color:var(--gray-900); background:var(--input-bg); outline:none; box-sizing:border-box;"/>
+        </div>
       </div>
-      <div id="exam-loading" style="display:none; text-align:center; font-size:12px; color:#d97706; font-weight:500; padding:4px 0;">
-        <svg style="display:inline;vertical-align:middle;margin-right:5px;animation:spin 1s linear infinite;" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-        AI가 시험 대비 계획을 짜는 중...
-      </div>
-      <div id="exam-error" style="display:none; font-size:12px; color:#ef4444; padding:4px 0;"></div>
+      <div id="exam-reg-error" style="display:none; font-size:12px; color:#ef4444; padding:4px 0;"></div>
       <div style="display:flex; gap:8px;">
-        <button onclick="closeExamModal()"
+        <button onclick="closeExamRegisterModal()"
                 style="flex:1; padding:9px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; font-weight:600; color:var(--gray-600); background:#fff; cursor:pointer; transition:background .15s;"
                 onmouseover="this.style.background='var(--input-bg)'" onmouseout="this.style.background='#fff'">
           취소
         </button>
-        <button id="exam-confirm-btn" onclick="generateExamPlan()"
+        <button id="exam-reg-confirm-btn" onclick="submitExamRegister()"
                 style="flex:2; padding:9px; background:#d97706; color:#fff; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; transition:opacity .15s;"
                 onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
-          계획 생성
+          저장
         </button>
       </div>
     </div>
@@ -470,8 +601,38 @@
   .dday-header { display: flex; align-items: center; gap: 8px; padding: 8px 0 4px; border-bottom: 1px solid var(--gray-100, #f1f5f9); margin-bottom: 4px; }
   .dday-label { font-size: 12px; font-weight: 700; color: #d97706; background: #fef3c7; padding: 2px 8px; border-radius: 99px; flex-shrink: 0; }
   .dday-date { font-size: 12px; color: var(--gray-500, #64748b); }
+  .study-time-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; background: var(--input-bg); border-radius: 10px; margin-bottom: 8px; }
+  .study-time-row:last-child { margin-bottom: 0; }
+  .study-time-date { font-size: 12.5px; font-weight: 700; color: var(--gray-900); margin-right: 8px; }
+  .study-time-minutes { font-size: 12.5px; font-weight: 600; color: #2563eb; margin-right: 8px; }
+  .study-time-memo { font-size: 12px; color: var(--gray-500); }
+  .study-time-layout { display: flex; gap: 24px; align-items: stretch; }
+  .study-time-chart-col { flex: 3; min-width: 260px; padding-left: 24px; box-sizing: border-box; }
+  .study-time-summary-col { flex: 2; min-width: 160px; display: flex; flex-direction: column; gap: 22px; justify-content: center; padding-left: 20px; border-left: 1px solid var(--gray-100, #f1f5f9); }
+  .study-summary-stat { display: flex; flex-direction: column; gap: 2px; }
+  .study-summary-label { font-size: 12px; color: var(--gray-500, #64748b); font-weight: 600; }
+  .study-summary-value { font-size: 22px; font-weight: 800; color: var(--gray-900, #0f172a); }
+  .study-history-btn { margin-top: 4px; padding: 8px 14px; border: 1px solid var(--gray-200, #e2e8f0); border-radius: 8px; font-size: 12.5px; font-weight: 600; color: var(--gray-600, #475569); background: #fff; cursor: pointer; transition: border-color .15s, color .15s; align-self: flex-start; }
+  .study-history-btn:hover { border-color: #2563eb; color: #2563eb; }
+  .week-chart-outer { display: flex; gap: 10px; align-items: flex-start; }
+  .week-chart-yaxis { display: flex; flex-direction: column; justify-content: space-between; height: 190px; font-size: 10px; color: var(--gray-400, #94a3b8); text-align: right; flex-shrink: 0; }
+  .week-chart-body { flex: 1; display: flex; flex-direction: column; }
+  .week-chart-grid-box { height: 190px; border-radius: 8px; background-image: repeating-linear-gradient(to top, var(--gray-200, #e2e8f0) 0, var(--gray-200, #e2e8f0) 1px, transparent 1px, transparent 25%); display: flex; gap: 16px; padding: 0 4px; box-sizing: border-box; }
+  .week-chart-bar-col { flex: 1; display: flex; justify-content: center; align-items: flex-end; }
+  .week-chart-bar { width: 100%; max-width: 34px; background: #2563eb; border-radius: 6px 6px 0 0; transition: height .4s cubic-bezier(.22,1,.36,1); }
+  .week-chart-labels { display: flex; gap: 16px; padding: 0 4px; box-sizing: border-box; margin-top: 6px; }
+  .week-chart-label { flex: 1; font-size: 10.5px; color: var(--gray-400, #94a3b8); text-align: center; line-height: 1.3; }
+  .generate-plan-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: #d97706; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity .15s; }
+  .generate-plan-btn:hover { opacity: .85; }
+  .generate-plan-btn:disabled { opacity: .5; cursor: not-allowed; }
+  .exam-items-actions { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+  .exam-clear-btn { padding: 5px 12px; border: 1px solid var(--gray-200, #e2e8f0); border-radius: 7px; font-size: 11.5px; font-weight: 600; color: var(--gray-500, #64748b); background: #fff; cursor: pointer; transition: border-color .15s, color .15s; }
+  .exam-clear-btn:hover { border-color: #ef4444; color: #ef4444; }
   @media (max-width: 640px) {
     .classroom-detail-grid { grid-template-columns: 1fr; }
+    .study-time-layout { flex-direction: column; }
+    .study-time-chart-col { padding-left: 0; }
+    .study-time-summary-col { padding-left: 0; border-left: none; border-top: 1px solid var(--gray-100, #f1f5f9); padding-top: 14px; }
   }
 </style>
 {% endblock %}
@@ -653,79 +814,39 @@ function escHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ── 시험 대비 계획 ────────────────────────────────────────────────────────────
-const EXAM_GENERATE_URL = "{{ url_for('classroom.generate_exam_plan', subject_id=subject.id) }}";
-
-function openExamModal() {
-  const modal = document.getElementById('exam-modal');
-  modal.style.display = 'flex';
-  document.getElementById('exam-loading').style.display = 'none';
-  document.getElementById('exam-error').style.display = 'none';
-  document.getElementById('exam-name').value = '';
-  document.getElementById('exam-date').value = '';
-  document.getElementById('exam-scope-note').value = '';
-  const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
-  document.getElementById('exam-date').min = tomorrow;
-  document.body.style.overflow = 'hidden';
+function formatMinutes(minutes) {
+  minutes = Math.round(minutes);
+  if (minutes < 60) return `${minutes}분`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m ? `${h}시간 ${m}분` : `${h}시간`;
 }
-function closeExamModal() {
-  document.getElementById('exam-modal').style.display = 'none';
-  document.body.style.overflow = '';
-}
-document.getElementById('exam-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeExamModal();
-});
 
-async function generateExamPlan() {
-  const name      = document.getElementById('exam-name').value.trim();
-  const examDate  = document.getElementById('exam-date').value;
-  const scopeFrom = parseInt(document.getElementById('exam-scope-from').value);
-  const scopeTo   = parseInt(document.getElementById('exam-scope-to').value);
-  const scopeNote = document.getElementById('exam-scope-note').value.trim();
-  const errEl     = document.getElementById('exam-error');
-  errEl.style.display = 'none';
-
-  if (!examDate) {
-    errEl.textContent = '시험 날짜를 입력해주세요.';
-    errEl.style.display = 'block';
-    return;
-  }
-  if (scopeTo < scopeFrom) {
-    errEl.textContent = '끝 주차가 시작 주차보다 작을 수 없어요.';
-    errEl.style.display = 'block';
-    return;
-  }
-
-  const loadEl     = document.getElementById('exam-loading');
-  const confirmBtn = document.getElementById('exam-confirm-btn');
-  loadEl.style.display = 'block';
-  confirmBtn.disabled = true;
-  confirmBtn.style.opacity = '.5';
-
-  try {
-    const res  = await fetch(EXAM_GENERATE_URL, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({name, exam_date: examDate, scope_from: scopeFrom, scope_to: scopeTo, scope_note: scopeNote}),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      errEl.textContent = data.error || '오류가 발생했어요.';
-      errEl.style.display = 'block';
-      return;
+// 학습 시간 기록/삭제 후 서버가 돌려준 최신 통계로 그래프·요약을 새로고침 없이 갱신
+function renderStudyStats(stats) {
+  if (!stats) return;
+  const maxMinutes = Math.max(...stats.week_chart.map(d => d.minutes), 1);
+  const ticks = [maxMinutes, Math.round(maxMinutes * 0.75), Math.round(maxMinutes * 0.5), Math.round(maxMinutes * 0.25), 0];
+  ticks.forEach((t, i) => {
+    const tickEl = document.getElementById('week-chart-tick-' + i);
+    if (tickEl) tickEl.textContent = t;
+  });
+  stats.week_chart.forEach((day, i) => {
+    const bar = document.getElementById('week-chart-bar-' + i);
+    const col = document.getElementById('week-chart-col-' + i);
+    if (bar) {
+      bar.style.height = (day.minutes ? (day.minutes / maxMinutes * 100) : 0) + '%';
+      bar.style.minHeight = day.minutes ? '3px' : '';
     }
-    closeExamModal();
-    addExamPlanCard(data);
-  } catch(e) {
-    errEl.textContent = '네트워크 오류가 발생했어요.';
-    errEl.style.display = 'block';
-  } finally {
-    loadEl.style.display = 'none';
-    confirmBtn.disabled = false;
-    confirmBtn.style.opacity = '1';
-  }
+    if (col) col.title = formatMinutes(day.minutes);
+  });
+  const weekEl  = document.getElementById('study-summary-week');
+  const totalEl = document.getElementById('study-summary-total');
+  if (weekEl) weekEl.textContent = formatMinutes(stats.week_minutes);
+  if (totalEl) totalEl.textContent = formatMinutes(stats.total_minutes);
 }
 
+// ── 시험 대비 계획 (등록 + 시험별 대비 계획) ──────────────────────────────────
 function fmtExamDate(dateStr) {
   try {
     const d = new Date(dateStr + 'T00:00:00');
@@ -734,7 +855,131 @@ function fmtExamDate(dateStr) {
   } catch(e) { return dateStr; }
 }
 
-function addExamPlanCard(data) {
+function toggleExamCard(header) {
+  header.classList.toggle('collapsed');
+  header.nextElementSibling.classList.toggle('hidden');
+}
+
+async function deleteExamPlan(planId, event) {
+  event.stopPropagation();
+  if (!confirm('이 시험을 삭제할까요? 등록 정보와 대비 계획이 함께 삭제돼요.')) return;
+  try {
+    const res = await fetch(`/classroom/${SUBJECT_ID}/exam-plan/${planId}/delete`, {method:'POST'});
+    if (res.ok) {
+      document.getElementById('exam-card-' + planId).remove();
+      const area = document.getElementById('exam-plan-area');
+      if (!area.querySelector('.plan-card')) {
+        area.innerHTML = '<p id="no-exam-plans-msg" style="font-size:13px;color:var(--gray-400);margin:0;">"시험 등록" 버튼으로 시험 일정을 등록해보세요.</p>';
+      }
+    }
+  } catch(e) {
+    alert('삭제에 실패했어요. 다시 시도해 주세요.');
+  }
+}
+
+// ── 시험 등록/수정 ─────────────────────────────────────────────────────────
+let examRegEditingId = null;
+
+function onExamTypeChange() {
+  const type = document.getElementById('exam-reg-type').value;
+  document.getElementById('exam-reg-custom-name').style.display = (type === '기타') ? 'block' : 'none';
+}
+
+function openExamRegisterModal() {
+  examRegEditingId = null;
+  document.getElementById('exam-register-title').textContent = '시험 등록';
+  document.getElementById('exam-reg-type').value = '중간고사';
+  document.getElementById('exam-reg-custom-name').style.display = 'none';
+  document.getElementById('exam-reg-custom-name').value = '';
+  document.getElementById('exam-reg-date').value = '';
+  document.getElementById('exam-reg-scope-from').value = '';
+  document.getElementById('exam-reg-scope-to').value = '';
+  document.getElementById('exam-reg-error').style.display = 'none';
+  document.getElementById('exam-register-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function openExamEditModal(id, name, examDate, scopeFrom, scopeTo, event) {
+  if (event) event.stopPropagation();
+  examRegEditingId = id;
+  document.getElementById('exam-register-title').textContent = '시험 수정';
+  const typeSelect = document.getElementById('exam-reg-type');
+  const customInput = document.getElementById('exam-reg-custom-name');
+  if (name === '중간고사' || name === '기말고사') {
+    typeSelect.value = name;
+    customInput.style.display = 'none';
+    customInput.value = '';
+  } else {
+    typeSelect.value = '기타';
+    customInput.style.display = 'block';
+    customInput.value = name;
+  }
+  document.getElementById('exam-reg-date').value = examDate;
+  document.getElementById('exam-reg-scope-from').value = scopeFrom;
+  document.getElementById('exam-reg-scope-to').value = scopeTo;
+  document.getElementById('exam-reg-error').style.display = 'none';
+  document.getElementById('exam-register-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeExamRegisterModal() {
+  document.getElementById('exam-register-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+document.getElementById('exam-register-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeExamRegisterModal();
+});
+
+function examMetaText(data) {
+  let ddayStr = '';
+  if (typeof data.d_day === 'number') {
+    ddayStr = data.d_day >= 0 ? ` · D-${data.d_day}` : ' · 종료';
+  }
+  return `시험일 ${data.exam_date}${ddayStr} · ${data.scope_from}~${data.scope_to}주차`;
+}
+
+async function submitExamRegister() {
+  const type       = document.getElementById('exam-reg-type').value;
+  const customName = document.getElementById('exam-reg-custom-name').value.trim();
+  const name       = (type === '기타') ? customName : type;
+  const examDate   = document.getElementById('exam-reg-date').value;
+  const scopeFrom  = document.getElementById('exam-reg-scope-from').value;
+  const scopeTo    = document.getElementById('exam-reg-scope-to').value;
+  const errEl      = document.getElementById('exam-reg-error');
+  errEl.style.display = 'none';
+
+  if (!name) { errEl.textContent = '시험 이름을 입력해주세요.'; errEl.style.display = 'block'; return; }
+  if (!examDate) { errEl.textContent = '시험 날짜를 입력해주세요.'; errEl.style.display = 'block'; return; }
+
+  const url = examRegEditingId
+    ? `/classroom/${SUBJECT_ID}/exam/${examRegEditingId}/update`
+    : `/classroom/${SUBJECT_ID}/exam/register`;
+
+  const confirmBtn = document.getElementById('exam-reg-confirm-btn');
+  confirmBtn.disabled = true; confirmBtn.style.opacity = '.5';
+  try {
+    const res  = await fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({name, exam_date: examDate, scope_from: scopeFrom, scope_to: scopeTo}),
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error || '오류가 발생했어요.'; errEl.style.display = 'block'; return; }
+    closeExamRegisterModal();
+    if (examRegEditingId) {
+      updateExamCard(data);
+    } else {
+      addExamCard(data);
+    }
+  } catch(e) {
+    errEl.textContent = '네트워크 오류가 발생했어요.';
+    errEl.style.display = 'block';
+  } finally {
+    confirmBtn.disabled = false; confirmBtn.style.opacity = '1';
+  }
+}
+
+function addExamCard(data) {
   const area  = document.getElementById('exam-plan-area');
   const noMsg = document.getElementById('no-exam-plans-msg');
   if (noMsg) noMsg.remove();
@@ -745,66 +990,214 @@ function addExamPlanCard(data) {
   });
 
   const trashSvg   = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
+  const editSvg    = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
   const chevronSvg = `<svg class="plan-card-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>`;
+  const spinSvg    = `<svg style="display:inline;vertical-align:middle;margin-right:5px;animation:spin 1s linear infinite;" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`;
 
-  // d_day 오름차순으로 그룹화 (D-1 먼저)
+  area.insertAdjacentHTML('afterbegin', `
+    <div class="plan-card" id="exam-card-${data.id}">
+      <div class="plan-card-header" onclick="toggleExamCard(this)">
+        <div style="flex:1;min-width:0;">
+          <span class="plan-card-name">${escHtml(data.name)}</span>
+          <span class="plan-card-meta" id="exam-meta-${data.id}">${examMetaText(data)}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+          <button class="plan-delete-btn" onclick='openExamEditModal(${data.id}, ${JSON.stringify(data.name)}, ${JSON.stringify(data.exam_date)}, ${data.scope_from}, ${data.scope_to}, event)' title="수정">${editSvg}</button>
+          <button class="plan-delete-btn" onclick="deleteExamPlan(${data.id},event)" title="삭제">${trashSvg}</button>
+          ${chevronSvg}
+        </div>
+      </div>
+      <div class="plan-card-body" id="exam-card-body-${data.id}">
+        <button class="generate-plan-btn" id="gen-btn-${data.id}" onclick="generateExamPlanItems(${data.id}, event)">대비 계획 생성하기</button>
+        <div id="gen-loading-${data.id}" style="display:none;font-size:12px;color:#d97706;font-weight:500;padding:8px 0 0;">${spinSvg}AI가 대비 계획을 짜는 중...</div>
+        <div id="gen-error-${data.id}" style="display:none;font-size:12px;color:#ef4444;padding:8px 0 0;"></div>
+      </div>
+    </div>`);
+}
+
+function updateExamCard(data) {
+  const card = document.getElementById('exam-card-' + data.id);
+  if (!card) return;
+  const nameEl = card.querySelector('.plan-card-name');
+  const metaEl = document.getElementById('exam-meta-' + data.id);
+  if (nameEl) nameEl.textContent = data.name;
+  if (metaEl) metaEl.textContent = examMetaText(data);
+  const editBtn = card.querySelector('.plan-delete-btn');
+  if (editBtn) editBtn.setAttribute('onclick', `openExamEditModal(${data.id}, ${JSON.stringify(data.name)}, ${JSON.stringify(data.exam_date)}, ${data.scope_from}, ${data.scope_to}, event)`);
+}
+
+// ── 시험별 대비 계획 생성/삭제 ─────────────────────────────────────────────────
+async function generateExamPlanItems(examId, event) {
+  if (event) event.stopPropagation();
+  const btn    = document.getElementById('gen-btn-' + examId);
+  const loadEl = document.getElementById('gen-loading-' + examId);
+  const errEl  = document.getElementById('gen-error-' + examId);
+  if (errEl) errEl.style.display = 'none';
+  if (btn) { btn.disabled = true; btn.style.opacity = '.5'; }
+  if (loadEl) loadEl.style.display = 'block';
+
+  try {
+    const res  = await fetch(`/classroom/${SUBJECT_ID}/exam-plan/${examId}/generate-items`, {method: 'POST'});
+    const data = await res.json();
+    if (!res.ok) {
+      if (errEl) { errEl.textContent = data.error || '오류가 발생했어요.'; errEl.style.display = 'block'; }
+      if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+      if (loadEl) loadEl.style.display = 'none';
+      return;
+    }
+    renderExamPlanItems(examId, data.items);
+  } catch(e) {
+    if (errEl) { errEl.textContent = '네트워크 오류가 발생했어요.'; errEl.style.display = 'block'; }
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+    if (loadEl) loadEl.style.display = 'none';
+  }
+}
+
+function renderExamPlanItems(examId, items) {
+  const body = document.getElementById('exam-card-body-' + examId);
   const grouped = {};
-  for (const item of data.items) {
+  for (const item of items) {
     if (!grouped[item.d_day]) grouped[item.d_day] = [];
     grouped[item.d_day].push(item);
   }
   const ddays = Object.keys(grouped).map(Number).sort((a, b) => b - a);
 
-  let bodyHtml = '';
+  let html = `<div class="exam-items-actions"><button class="exam-clear-btn" onclick="clearExamPlanItems(${examId}, event)">대비 계획 삭제</button></div>`;
   for (const dday of ddays) {
-    const items = grouped[dday];
-    bodyHtml += `<div class="dday-section">
+    const dItems = grouped[dday];
+    html += `<div class="dday-section">
       <div class="dday-header">
         <span class="dday-label">D-${dday}</span>
-        <span class="dday-date">${fmtExamDate(items[0].plan_date)}</span>
+        <span class="dday-date">${fmtExamDate(dItems[0].plan_date)}</span>
       </div>`;
-    for (const item of items) {
-      bodyHtml += `<label style="display:flex;align-items:flex-start;gap:8px;padding:4px 0;cursor:pointer;">
-        <input type="checkbox" ${item.is_done?'checked':''} onchange="toggleExamItem(${data.plan_id},${item.id},this)" style="margin-top:3px;accent-color:#d97706;flex-shrink:0;"/>
+    for (const item of dItems) {
+      html += `<label style="display:flex;align-items:flex-start;gap:8px;padding:4px 0;cursor:pointer;">
+        <input type="checkbox" ${item.is_done?'checked':''} onchange="toggleExamItem(${examId},${item.id},this)" style="margin-top:3px;accent-color:#d97706;flex-shrink:0;"/>
         <span id="exam-task-${item.id}" style="font-size:14px;color:${item.is_done?'var(--gray-400)':'var(--gray-700)'};line-height:1.5;${item.is_done?'text-decoration:line-through;':''}">${escHtml(item.task)}</span>
       </label>`;
     }
-    bodyHtml += '</div>';
+    html += '</div>';
   }
-
-  area.insertAdjacentHTML('afterbegin', `
-    <div class="plan-card" id="exam-card-${data.plan_id}">
-      <div class="plan-card-header" onclick="toggleExamCard(this)">
-        <div style="flex:1;min-width:0;">
-          <span class="plan-card-name">${escHtml(data.name)}</span>
-          <span class="plan-card-meta">시험일 ${data.exam_date}</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-          <button class="plan-delete-btn" onclick="deleteExamPlan(${data.plan_id},event)" title="삭제">${trashSvg}</button>
-          ${chevronSvg}
-        </div>
-      </div>
-      <div class="plan-card-body">${bodyHtml}</div>
-    </div>`);
+  body.innerHTML = html;
 }
 
-function toggleExamCard(header) {
-  header.classList.toggle('collapsed');
-  header.nextElementSibling.classList.toggle('hidden');
-}
-
-async function deleteExamPlan(planId, event) {
-  event.stopPropagation();
-  if (!confirm('이 시험 대비 계획을 삭제할까요?')) return;
+async function clearExamPlanItems(examId, event) {
+  if (event) event.stopPropagation();
+  if (!confirm('생성된 대비 계획을 삭제할까요? 시험 등록 정보는 남아요.')) return;
   try {
-    const res = await fetch(`/classroom/${SUBJECT_ID}/exam-plan/${planId}/delete`, {method:'POST'});
-    if (res.ok) {
-      document.getElementById('exam-card-' + planId).remove();
-      const area = document.getElementById('exam-plan-area');
-      if (!area.querySelector('.plan-card')) {
-        area.innerHTML = '<p id="no-exam-plans-msg" style="font-size:13px;color:var(--gray-400);margin:0;">"시험 대비 계획 만들기"를 눌러 날짜별 공부 계획을 생성해줘요.</p>';
-      }
+    const res = await fetch(`/classroom/${SUBJECT_ID}/exam-plan/${examId}/clear-items`, {method: 'POST'});
+    if (res.ok) renderGenerateButton(examId);
+  } catch(e) {
+    alert('삭제에 실패했어요. 다시 시도해 주세요.');
+  }
+}
+
+function renderGenerateButton(examId) {
+  const body = document.getElementById('exam-card-body-' + examId);
+  const spinSvg = `<svg style="display:inline;vertical-align:middle;margin-right:5px;animation:spin 1s linear infinite;" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`;
+  body.innerHTML = `
+    <button class="generate-plan-btn" id="gen-btn-${examId}" onclick="generateExamPlanItems(${examId}, event)">대비 계획 생성하기</button>
+    <div id="gen-loading-${examId}" style="display:none;font-size:12px;color:#d97706;font-weight:500;padding:8px 0 0;">${spinSvg}AI가 대비 계획을 짜는 중...</div>
+    <div id="gen-error-${examId}" style="display:none;font-size:12px;color:#ef4444;padding:8px 0 0;"></div>`;
+}
+
+// ── 학습 시간 기록 ────────────────────────────────────────────────────────────
+function openStudyTimeModal() {
+  const dateInput = document.getElementById('study-time-date');
+  dateInput.valueAsDate = new Date();
+  document.getElementById('study-time-minutes').value = '';
+  document.getElementById('study-time-memo').value = '';
+  document.getElementById('study-time-error').style.display = 'none';
+  document.getElementById('study-time-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function closeStudyTimeModal() {
+  document.getElementById('study-time-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+document.getElementById('study-time-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeStudyTimeModal();
+});
+
+function openStudyHistoryModal() {
+  document.getElementById('study-history-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function closeStudyHistoryModal() {
+  document.getElementById('study-history-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+document.getElementById('study-history-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeStudyHistoryModal();
+});
+
+async function addStudyTime() {
+  const dateEl    = document.getElementById('study-time-date');
+  const minutesEl = document.getElementById('study-time-minutes');
+  const memoEl    = document.getElementById('study-time-memo');
+  const errEl     = document.getElementById('study-time-error');
+  errEl.style.display = 'none';
+
+  const studyDate = dateEl.value;
+  const minutes   = parseInt(minutesEl.value, 10);
+  const memo      = memoEl.value.trim();
+
+  if (!studyDate) { errEl.textContent = '날짜를 입력해주세요.'; errEl.style.display = 'block'; return; }
+  if (!minutes || minutes <= 0) { errEl.textContent = '학습 시간(분)을 입력해주세요.'; errEl.style.display = 'block'; return; }
+
+  const confirmBtn = document.getElementById('study-time-confirm-btn');
+  confirmBtn.disabled = true; confirmBtn.style.opacity = '.5';
+  try {
+    const res  = await fetch(`/classroom/${SUBJECT_ID}/study-time`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({study_date: studyDate, minutes, memo}),
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error || '오류가 발생했어요.'; errEl.style.display = 'block'; return; }
+
+    closeStudyTimeModal();
+    const list  = document.getElementById('study-time-list');
+    const noMsg = document.getElementById('no-study-time-msg');
+    if (noMsg) noMsg.remove();
+    const memoHtml = data.memo ? `<span class="study-time-memo">${escHtml(data.memo)}</span>` : '';
+    list.insertAdjacentHTML('afterbegin', `
+      <div class="study-time-row" id="study-time-row-${data.id}">
+        <div style="min-width:0;">
+          <span class="study-time-date">${data.study_date}</span>
+          <span class="study-time-minutes">${formatMinutes(data.minutes)}</span>
+          ${memoHtml}
+        </div>
+        <button class="plan-delete-btn" onclick="deleteStudyTime(${data.id}, event)" title="삭제">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+        </button>
+      </div>`);
+    renderStudyStats(data);
+  } catch(e) {
+    errEl.textContent = '네트워크 오류가 발생했어요.';
+    errEl.style.display = 'block';
+  } finally {
+    confirmBtn.disabled = false; confirmBtn.style.opacity = '1';
+  }
+}
+
+async function deleteStudyTime(recordId, event) {
+  event.stopPropagation();
+  if (!confirm('이 학습 기록을 삭제할까요?')) return;
+  try {
+    const res  = await fetch(`/classroom/${SUBJECT_ID}/study-time/${recordId}/delete`, {method: 'POST'});
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      alert((data && data.error) || '삭제에 실패했어요. 다시 시도해 주세요.');
+      return;
     }
+    const row = document.getElementById('study-time-row-' + recordId);
+    if (row) row.remove();
+    const list = document.getElementById('study-time-list');
+    if (list && !list.querySelector('.study-time-row')) {
+      list.innerHTML = '<p id="no-study-time-msg" style="font-size:13px;color:var(--gray-400);margin:0;">아직 기록된 학습 시간이 없어요.</p>';
+    }
+    renderStudyStats(data);
   } catch(e) {
     alert('삭제에 실패했어요. 다시 시도해 주세요.');
   }

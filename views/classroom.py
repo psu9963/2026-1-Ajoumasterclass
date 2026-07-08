@@ -2,15 +2,20 @@ import os
 import uuid
 import json
 import re
-from datetime import datetime, timedelta
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, send_from_directory, abort, jsonify
+from datetime import datetime, date, timedelta
+from flask import Blueprint, render_template, request, redirect, url_for, flash, send_from_directory, abort, jsonify
 from flask_login import login_required, current_user
-from models import db, Subject, WeeklyPlan, StudyPlan, StudyPlanItem, ExamPlan, ExamPlanItem
+from models import db, Subject, WeeklyPlan, StudyPlan, StudyPlanItem, ExamPlan, ExamPlanItem, StudyRecord
 from werkzeug.utils import secure_filename
 from openai import OpenAI
 import pdfplumber
 
 classroom_bp = Blueprint('classroom', __name__)
+
+_STATIC = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static')
+_UPLOAD_ROOT = os.environ.get("UPLOAD_DIR") or os.path.join(_STATIC, 'uploads')
+_SYLLABUS_DIR = os.path.join(_UPLOAD_ROOT, 'syllabi')
+os.makedirs(_SYLLABUS_DIR, exist_ok=True)
 
 ALLOWED_EXTENSIONS = {'pdf'}
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
@@ -134,9 +139,7 @@ def _call_llm_for_weekly_plan(text):
 
 def _run_analysis(subject):
     """PDF 분석 → WeeklyPlan 저장 → syllabus_analyzed=True. 실패 시 flash 메시지."""
-    pdf_path = os.path.join(
-        current_app.root_path, 'static', 'uploads', 'syllabi', subject.syllabus_filename
-    )
+    pdf_path = os.path.join(_SYLLABUS_DIR, subject.syllabus_filename)
     text = _extract_text_from_pdf(pdf_path)
 
     if len(text) < MIN_TEXT_LENGTH:
@@ -192,7 +195,7 @@ def classroom():
 
         safe_name = secure_filename(pdf.filename)
         unique_name = f"{uuid.uuid4().hex}_{safe_name}"
-        upload_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'syllabi')
+        upload_dir = _SYLLABUS_DIR
         pdf.save(os.path.join(upload_dir, unique_name))
 
         subject = Subject(
@@ -215,6 +218,52 @@ def classroom():
     return render_template('classroom.html', subjects=subjects)
 
 
+def _compute_study_stats(user_id, subject_id):
+    """이 과목의 학습 기록 목록 + 최근 7일 그래프 + 이번 주/전체 합계(분)를 계산."""
+    today = date.today()
+    records = (
+        StudyRecord.query.filter_by(user_id=user_id, subject_id=subject_id)
+                         .order_by(StudyRecord.study_date.desc(), StudyRecord.id.desc())
+                         .all()
+    )
+
+    week_start = today - timedelta(days=today.weekday())
+    week_end = week_start + timedelta(days=6)
+    recent_days = [today - timedelta(days=i) for i in range(6, -1, -1)]
+
+    minutes_by_date = {}
+    total_minutes = 0
+    week_minutes = 0
+    for r in records:
+        minutes = r.duration_hours * 60
+        total_minutes += minutes
+        minutes_by_date[r.study_date] = minutes_by_date.get(r.study_date, 0) + minutes
+        try:
+            r_date = datetime.strptime(r.study_date, '%Y-%m-%d').date()
+        except ValueError:
+            continue
+        if week_start <= r_date <= week_end:
+            week_minutes += minutes
+
+    weekday_labels = ['월', '화', '수', '목', '금', '토', '일']
+    week_chart = [
+        {
+            'date': d.strftime('%Y-%m-%d'),
+            'label': f"{d.month}/{d.day}",
+            'weekday': weekday_labels[d.weekday()],
+            'minutes': round(minutes_by_date.get(d.strftime('%Y-%m-%d'), 0)),
+        }
+        for d in recent_days
+    ]
+
+    return {
+        'records': records,
+        'week_chart': week_chart,
+        'week_minutes': round(week_minutes),
+        'total_minutes': round(total_minutes),
+    }
+
+
 @classroom_bp.route('/classroom/<int:subject_id>')
 @login_required
 def classroom_detail(subject_id):
@@ -230,11 +279,24 @@ def classroom_detail(subject_id):
         ExamPlan.query.filter_by(subject_id=subject_id)
                       .order_by(ExamPlan.id.desc()).all()
     )
+    today = date.today()
+    for ep in exam_plans:
+        try:
+            ep.d_day = (datetime.strptime(ep.exam_date, '%Y-%m-%d').date() - today).days
+        except ValueError:
+            ep.d_day = None
+
+    stats = _compute_study_stats(current_user.id, subject_id)
+
     return render_template('classroom_detail.html',
                            subject=subject,
                            plans=plans,
                            study_plans=study_plans,
-                           exam_plans=exam_plans)
+                           exam_plans=exam_plans,
+                           study_records=stats['records'],
+                           week_chart=stats['week_chart'],
+                           week_minutes=stats['week_minutes'],
+                           total_minutes=stats['total_minutes'])
 
 
 @classroom_bp.route('/classroom/<int:subject_id>/analyze', methods=['POST'])
@@ -311,7 +373,7 @@ def delete_weekly_plan_row(subject_id, plan_id):
 @login_required
 def serve_syllabus(filename):
     subject = Subject.query.filter_by(syllabus_filename=filename, user_id=current_user.id).first_or_404()
-    upload_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'syllabi')
+    upload_dir = _SYLLABUS_DIR
     return send_from_directory(upload_dir, filename, as_attachment=False)
 
 
@@ -459,34 +521,114 @@ def delete_study_plan(subject_id, plan_id):
     return jsonify({'ok': True})
 
 
-@classroom_bp.route('/classroom/<int:subject_id>/exam-plan/generate', methods=['POST'])
+@classroom_bp.route('/classroom/<int:subject_id>/exam/register', methods=['POST'])
 @login_required
-def generate_exam_plan(subject_id):
+def register_exam(subject_id):
+    """시험 일정만 가볍게 등록 (AI 일별 계획은 생성하지 않음). ExamPlan을 그대로 재사용."""
     subject = Subject.query.get_or_404(subject_id)
     if subject.user_id != current_user.id:
         abort(403)
 
-    body          = request.json or {}
-    exam_date_str = str(body.get('exam_date', '')).strip()
-    scope_note    = str(body.get('scope_note', '')).strip() or None
-    plan_name     = str(body.get('name', '')).strip()
+    body = request.get_json(silent=True) or {}
+    name = str(body.get('name', '')).strip()
+    exam_date = str(body.get('exam_date', '')).strip()
 
+    if not name:
+        return jsonify({'error': '시험 종류를 입력해주세요.'}), 400
     try:
-        scope_from = int(body.get('scope_from', 1))
-        scope_to   = int(body.get('scope_to', 1))
-    except (TypeError, ValueError):
-        return jsonify({'error': '주차 범위가 올바르지 않아요.'}), 400
-
-    try:
-        exam_date = datetime.strptime(exam_date_str, '%Y-%m-%d').date()
-    except (ValueError, TypeError):
+        datetime.strptime(exam_date, '%Y-%m-%d')
+    except ValueError:
         return jsonify({'error': '시험 날짜가 올바르지 않아요.'}), 400
 
-    today = datetime.now().date()
+    last_week = (
+        WeeklyPlan.query.filter_by(subject_id=subject_id)
+                        .order_by(WeeklyPlan.week.desc()).first()
+    )
+    max_week = last_week.week if last_week else 1
+
+    try:
+        scope_from = int(body['scope_from']) if body.get('scope_from') not in (None, '') else 1
+        scope_to = int(body['scope_to']) if body.get('scope_to') not in (None, '') else max_week
+    except (KeyError, TypeError, ValueError):
+        return jsonify({'error': '시험 범위가 올바르지 않아요.'}), 400
+    if scope_to < scope_from:
+        return jsonify({'error': '끝 주차가 시작 주차보다 작을 수 없어요.'}), 400
+
+    exam = ExamPlan(
+        subject_id=subject_id,
+        name=name[:100],
+        exam_date=exam_date,
+        scope_from=scope_from,
+        scope_to=scope_to,
+        scope_note=None,
+        created_at=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+    )
+    db.session.add(exam)
+    db.session.commit()
+    return jsonify({
+        'ok': True, 'id': exam.id, 'name': exam.name, 'exam_date': exam.exam_date,
+        'scope_from': exam.scope_from, 'scope_to': exam.scope_to,
+        'd_day': (datetime.strptime(exam.exam_date, '%Y-%m-%d').date() - date.today()).days,
+    })
+
+
+@classroom_bp.route('/classroom/<int:subject_id>/exam/<int:exam_id>/update', methods=['POST'])
+@login_required
+def update_exam(subject_id, exam_id):
+    subject = Subject.query.get_or_404(subject_id)
+    if subject.user_id != current_user.id:
+        abort(403)
+    exam = ExamPlan.query.filter_by(id=exam_id, subject_id=subject_id).first_or_404()
+
+    body = request.get_json(silent=True) or {}
+    name = str(body.get('name', '')).strip()
+    exam_date = str(body.get('exam_date', '')).strip()
+
+    if not name:
+        return jsonify({'error': '시험 종류를 입력해주세요.'}), 400
+    try:
+        datetime.strptime(exam_date, '%Y-%m-%d')
+    except ValueError:
+        return jsonify({'error': '시험 날짜가 올바르지 않아요.'}), 400
+
+    try:
+        scope_from = int(body['scope_from']) if body.get('scope_from') not in (None, '') else exam.scope_from
+        scope_to = int(body['scope_to']) if body.get('scope_to') not in (None, '') else exam.scope_to
+    except (KeyError, TypeError, ValueError):
+        return jsonify({'error': '시험 범위가 올바르지 않아요.'}), 400
+    if scope_to < scope_from:
+        return jsonify({'error': '끝 주차가 시작 주차보다 작을 수 없어요.'}), 400
+
+    exam.name = name[:100]
+    exam.exam_date = exam_date
+    exam.scope_from = scope_from
+    exam.scope_to = scope_to
+    db.session.commit()
+    return jsonify({
+        'ok': True, 'id': exam.id, 'name': exam.name, 'exam_date': exam.exam_date,
+        'scope_from': exam.scope_from, 'scope_to': exam.scope_to,
+        'd_day': (datetime.strptime(exam.exam_date, '%Y-%m-%d').date() - date.today()).days,
+    })
+
+
+@classroom_bp.route('/classroom/<int:subject_id>/exam-plan/<int:exam_id>/generate-items', methods=['POST'])
+@login_required
+def generate_exam_plan_items(subject_id, exam_id):
+    """이미 등록된 시험(ExamPlan)의 날짜·범위를 그대로 써서 AI 대비 계획(D-day 체크리스트)을 생성."""
+    subject = Subject.query.get_or_404(subject_id)
+    if subject.user_id != current_user.id:
+        abort(403)
+    exam = ExamPlan.query.filter_by(id=exam_id, subject_id=subject_id).first_or_404()
+
+    try:
+        exam_date = datetime.strptime(exam.exam_date, '%Y-%m-%d').date()
+    except ValueError:
+        return jsonify({'error': '시험 날짜가 올바르지 않아요.'}), 400
+
+    today = date.today()
     if exam_date <= today:
         return jsonify({'error': '시험 날짜는 오늘 이후여야 해요.'}), 400
 
-    # 날짜 목록 코드로 계산 (오늘 ~ 시험 당일)
     total_days = (exam_date - today).days
     day_list = [
         {'date': (today + timedelta(days=i)).strftime('%Y-%m-%d'),
@@ -496,34 +638,20 @@ def generate_exam_plan(subject_id):
 
     weekly_items = WeeklyPlan.query.filter(
         WeeklyPlan.subject_id == subject_id,
-        WeeklyPlan.week >= scope_from,
-        WeeklyPlan.week <= scope_to,
+        WeeklyPlan.week >= exam.scope_from,
+        WeeklyPlan.week <= exam.scope_to,
     ).order_by(WeeklyPlan.week).all()
 
     if not weekly_items:
         return jsonify({'error': '선택한 범위에 등록된 주차 주제가 없어요.'}), 400
 
-    if not plan_name:
-        plan_name = f"{exam_date_str} 시험 대비"
-
-    daily_data = _call_llm_for_exam_plan(weekly_items, scope_note, day_list)
+    daily_data = _call_llm_for_exam_plan(weekly_items, exam.scope_note, day_list)
     if daily_data is None:
         return jsonify({'error': 'AI 계획 생성에 실패했어요. 다시 시도해 주세요.'}), 500
 
     dday_to_date = {d['d_day']: d['date'] for d in day_list}
 
-    exam_plan = ExamPlan(
-        subject_id=subject_id,
-        name=plan_name,
-        exam_date=exam_date_str,
-        scope_from=scope_from,
-        scope_to=scope_to,
-        scope_note=scope_note,
-        created_at=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-    )
-    db.session.add(exam_plan)
-    db.session.flush()
-
+    ExamPlanItem.query.filter_by(exam_plan_id=exam.id).delete()
     for entry in daily_data:
         try:
             d_day_val = int(entry['d_day'])
@@ -538,7 +666,7 @@ def generate_exam_plan(subject_id):
             if not task_text:
                 continue
             db.session.add(ExamPlanItem(
-                exam_plan_id=exam_plan.id,
+                exam_plan_id=exam.id,
                 plan_date=plan_date,
                 d_day=d_day_val,
                 task=task_text,
@@ -550,16 +678,23 @@ def generate_exam_plan(subject_id):
     result_items = [
         {'id': it.id, 'plan_date': it.plan_date, 'd_day': it.d_day,
          'task': it.task, 'is_done': it.is_done}
-        for it in ExamPlanItem.query.filter_by(exam_plan_id=exam_plan.id)
+        for it in ExamPlanItem.query.filter_by(exam_plan_id=exam.id)
                                     .order_by(ExamPlanItem.d_day.asc(), ExamPlanItem.id).all()
     ]
-    return jsonify({
-        'plan_id':    exam_plan.id,
-        'name':       exam_plan.name,
-        'exam_date':  exam_plan.exam_date,
-        'created_at': exam_plan.created_at,
-        'items':      result_items,
-    })
+    return jsonify({'exam_id': exam.id, 'items': result_items})
+
+
+@classroom_bp.route('/classroom/<int:subject_id>/exam-plan/<int:exam_id>/clear-items', methods=['POST'])
+@login_required
+def clear_exam_plan_items(subject_id, exam_id):
+    """시험 등록 정보는 남기고 생성된 대비 계획(체크리스트)만 삭제."""
+    subject = Subject.query.get_or_404(subject_id)
+    if subject.user_id != current_user.id:
+        abort(403)
+    exam = ExamPlan.query.filter_by(id=exam_id, subject_id=subject_id).first_or_404()
+    ExamPlanItem.query.filter_by(exam_plan_id=exam.id).delete()
+    db.session.commit()
+    return jsonify({'ok': True})
 
 
 @classroom_bp.route('/classroom/<int:subject_id>/exam-plan/<int:plan_id>/item/<int:item_id>/toggle', methods=['POST'])
@@ -584,6 +719,67 @@ def delete_exam_plan(subject_id, plan_id):
     db.session.delete(plan)
     db.session.commit()
     return jsonify({'ok': True})
+
+
+@classroom_bp.route('/classroom/<int:subject_id>/study-time', methods=['POST'])
+@login_required
+def add_study_time(subject_id):
+    subject = Subject.query.get_or_404(subject_id)
+    if subject.user_id != current_user.id:
+        abort(403)
+
+    body = request.get_json(silent=True) or {}
+    study_date = str(body.get('study_date', '')).strip()
+    memo = str(body.get('memo', '')).strip() or None
+
+    try:
+        minutes = int(body.get('minutes'))
+    except (TypeError, ValueError):
+        return jsonify({'error': '학습 시간(분)을 입력해주세요.'}), 400
+    if minutes <= 0:
+        return jsonify({'error': '학습 시간은 1분 이상이어야 해요.'}), 400
+
+    try:
+        datetime.strptime(study_date, '%Y-%m-%d')
+    except ValueError:
+        return jsonify({'error': '날짜가 올바르지 않아요.'}), 400
+
+    record = StudyRecord(
+        user_id=current_user.id,
+        subject=subject.name,
+        subject_id=subject.id,
+        duration_hours=round(minutes / 60, 2),
+        study_date=study_date,
+        memo=memo,
+    )
+    db.session.add(record)
+    db.session.commit()
+    stats = _compute_study_stats(current_user.id, subject_id)
+    return jsonify({
+        'ok': True, 'id': record.id, 'study_date': record.study_date,
+        'minutes': minutes, 'memo': record.memo,
+        'week_chart': stats['week_chart'],
+        'week_minutes': stats['week_minutes'],
+        'total_minutes': stats['total_minutes'],
+    })
+
+
+@classroom_bp.route('/classroom/<int:subject_id>/study-time/<int:record_id>/delete', methods=['POST'])
+@login_required
+def delete_study_time(subject_id, record_id):
+    subject = Subject.query.get_or_404(subject_id)
+    if subject.user_id != current_user.id:
+        abort(403)
+    record = StudyRecord.query.filter_by(id=record_id, subject_id=subject_id, user_id=current_user.id).first_or_404()
+    db.session.delete(record)
+    db.session.commit()
+    stats = _compute_study_stats(current_user.id, subject_id)
+    return jsonify({
+        'ok': True,
+        'week_chart': stats['week_chart'],
+        'week_minutes': stats['week_minutes'],
+        'total_minutes': stats['total_minutes'],
+    })
 
 
 @classroom_bp.route('/classroom/<int:subject_id>/rename', methods=['POST'])
@@ -624,7 +820,7 @@ def replace_pdf(subject_id):
         return redirect(url_for('classroom.classroom_detail', subject_id=subject_id))
     pdf.seek(0)
 
-    upload_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'syllabi')
+    upload_dir = _SYLLABUS_DIR
     safe_name = secure_filename(pdf.filename)
     unique_name = f"{uuid.uuid4().hex}_{safe_name}"
     pdf.save(os.path.join(upload_dir, unique_name))
@@ -663,10 +859,11 @@ def delete_subject(subject_id):
         db.session.delete(sp)
     for ep in ExamPlan.query.filter_by(subject_id=subject_id).all():
         db.session.delete(ep)
+    StudyRecord.query.filter_by(subject_id=subject_id).delete()
 
     # PDF 파일 삭제
     if subject.syllabus_filename:
-        upload_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'syllabi')
+        upload_dir = _SYLLABUS_DIR
         pdf_path = os.path.join(upload_dir, subject.syllabus_filename)
         if os.path.exists(pdf_path):
             try:

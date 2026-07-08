@@ -20,6 +20,7 @@ class StudyRecord(db.Model):
     id = db.Column(db.Integer, primary_key=True) # 고유 번호
     user_id = db.Column(db.Integer, nullable=False) # 유저 id (동원 추가)
     subject = db.Column(db.String(100), nullable=False) # 과목명
+    subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=True) # 강의실(Subject) 연결(선택)
     duration_hours = db.Column(db.Float, nullable=False) # 학습 시간 (예: 1.5시간)
     study_date = db.Column(db.String(20), nullable=False) # 학습 날짜 (예: 2023-10-25)
     memo = db.Column(db.Text) # 메모 (선택 사항)
