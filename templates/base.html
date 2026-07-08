@@ -22,7 +22,7 @@
     <span>A+ 스터디 플래너</span>
   </div>
   <div class="mobile-header-user">
-    <img src="{{ url_for('static', filename=current_user.profile_image) if current_user.profile_image else 'https://ui-avatars.com/api/?name=' + (current_user.display_name or current_user.username) + '&background=2563eb&color=fff' }}" alt="user" class="mobile-avatar"/>
+    <img src="{{ url_for('mypage.serve_avatar', filename=current_user.profile_image) if current_user.profile_image else 'https://ui-avatars.com/api/?name=' + (current_user.display_name or current_user.username) + '&background=2563eb&color=fff' }}" alt="user" class="mobile-avatar"/>
     <a href="{{ url_for('login.logout') }}" class="mobile-logout header-icon-btn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -80,7 +80,7 @@
         </div>
       </div>
       <div class="header-user-divider"></div>
-      <img src="{{ url_for('static', filename=current_user.profile_image) if current_user.profile_image else 'https://ui-avatars.com/api/?name=' + (current_user.display_name or current_user.username) + '&background=2563eb&color=fff' }}" alt="avatar" class="header-avatar"/>
+      <img src="{{ url_for('mypage.serve_avatar', filename=current_user.profile_image) if current_user.profile_image else 'https://ui-avatars.com/api/?name=' + (current_user.display_name or current_user.username) + '&background=2563eb&color=fff' }}" alt="avatar" class="header-avatar"/>
       <div class="header-user-info">
         <span class="header-user-name">{{ current_user.display_name or current_user.username }}</span>
         <span class="header-user-email">{{ current_user.email if current_user.email else '' }}</span>

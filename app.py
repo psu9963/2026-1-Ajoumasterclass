@@ -43,6 +43,16 @@ def exam_date_label_filter(date_str):
     except Exception:
         return date_str
 
+
+@app.template_filter('minutes_label')
+def minutes_label_filter(minutes):
+    """분을 '45분' / '1시간' / '1시간 20분' 형식으로 표시."""
+    minutes = int(round(minutes))
+    if minutes < 60:
+        return f"{minutes}분"
+    hours, mins = divmod(minutes, 60)
+    return f"{hours}시간 {mins}분" if mins else f"{hours}시간"
+
 # ── 로그인 매니저 ─────────────────────────────────
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -77,6 +87,11 @@ with app.app_context():
         db.session.rollback()
     try:
         db.session.execute(db.text("ALTER TABLE user ADD COLUMN profile_image VARCHAR(255)"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+    try:
+        db.session.execute(db.text("ALTER TABLE study_record ADD COLUMN subject_id INTEGER"))
         db.session.commit()
     except Exception:
         db.session.rollback()
