@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request, url_for
+from flask import Flask, render_template
 from datetime import datetime as _dt
 from views.login import login_bp
 from views.dashboard import dashboard_bp
@@ -9,8 +9,7 @@ from views.mypage import mypage_bp
 from views.calendar import calendar_bp
 from views.grade_predict import grade_predict_bp
 from models import db, User
-from flask_login import login_user, LoginManager
-import requests
+from flask_login import LoginManager
 from dotenv import load_dotenv
 import os
 
