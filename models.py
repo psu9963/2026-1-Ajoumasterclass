@@ -1,6 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
-from datetime import date, datetime
 
 
 # 데이터베이스 객체 생성
