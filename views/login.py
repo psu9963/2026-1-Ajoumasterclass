@@ -100,7 +100,7 @@ def register():
             db.session.commit()
             return redirect(url_for('login.login',
                 success="회원가입이 완료되었습니다! 로그인해주세요."))
-        except Exception as e:
+        except Exception:
             db.session.rollback()
             return render_template('register.html',
                 error="회원가입 중 오류가 발생했습니다. 다시 시도해주세요.",

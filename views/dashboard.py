@@ -1,18 +1,17 @@
 # views/dashboard.py
-from flask import Blueprint, render_template, session, redirect, url_for, request, jsonify
+from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
 from models import db, StudyRecord, WeeklyGoal, DailyGoal, CalendarEvent, Subject, WeeklyPlan
 from datetime import datetime, date, timedelta
 from sqlalchemy import func
+from study_stats import compute_time_totals
 
 dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
 
 
 def get_dashboard_data(user_id):
 
-    today      = date.today()
-    week_start = today - timedelta(days=today.weekday())
-    week_end   = week_start + timedelta(days=6)
+    today = date.today()
 
     # ── 강의실 과목 연동: 진행 중 / 완료 분류 ──────────────
     subjects = Subject.query.filter_by(user_id=user_id).all()
@@ -47,21 +46,9 @@ def get_dashboard_data(user_id):
         else:
             active_subject_count += 1
 
-    # ── 기본 통계 ──────────────────────────────────────────
-    total_hours_raw = db.session.query(
-        func.coalesce(func.sum(StudyRecord.duration_hours), 0)
-    ).filter(StudyRecord.user_id == user_id).scalar()
-    total_hours = round(float(total_hours_raw), 1)
-
-    # ── 이번 주 학습 시간 ───────────────────────────────────
-    weekly_raw = db.session.query(
-        func.coalesce(func.sum(StudyRecord.duration_hours), 0)
-    ).filter(
-        StudyRecord.user_id    == user_id,
-        StudyRecord.study_date >= week_start.isoformat(),
-        StudyRecord.study_date <= week_end.isoformat()
-    ).scalar()
-    weekly_hours = round(float(weekly_raw), 1)
+    # ── 기본 통계 (전체 / 이번 주 학습 시간, 분 단위) ────────
+    all_records = StudyRecord.query.filter_by(user_id=user_id).all()
+    total_minutes, weekly_minutes = compute_time_totals(all_records)
 
     # ── 과목별 학습 비율 ────────────────────────────────────
     subject_rows = db.session.query(
@@ -114,8 +101,8 @@ def get_dashboard_data(user_id):
     return dict(
         active_subject_count    = active_subject_count,
         completed_subject_count = completed_subject_count,
-        total_hours             = total_hours,
-        weekly_hours            = weekly_hours,
+        total_minutes           = total_minutes,
+        weekly_minutes          = weekly_minutes,
         subject_stats           = subject_stats,
         daily_goals             = daily_goals,
         upcoming_events         = upcoming_events,

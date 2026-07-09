@@ -9,6 +9,7 @@ from models import db, Subject, WeeklyPlan, StudyPlan, StudyPlanItem, ExamPlan, 
 from werkzeug.utils import secure_filename
 from openai import OpenAI
 import pdfplumber
+from study_stats import compute_time_totals
 
 classroom_bp = Blueprint('classroom', __name__)
 
@@ -227,23 +228,12 @@ def _compute_study_stats(user_id, subject_id):
                          .all()
     )
 
-    week_start = today - timedelta(days=today.weekday())
-    week_end = week_start + timedelta(days=6)
     recent_days = [today - timedelta(days=i) for i in range(6, -1, -1)]
 
     minutes_by_date = {}
-    total_minutes = 0
-    week_minutes = 0
     for r in records:
         minutes = r.duration_hours * 60
-        total_minutes += minutes
         minutes_by_date[r.study_date] = minutes_by_date.get(r.study_date, 0) + minutes
-        try:
-            r_date = datetime.strptime(r.study_date, '%Y-%m-%d').date()
-        except ValueError:
-            continue
-        if week_start <= r_date <= week_end:
-            week_minutes += minutes
 
     weekday_labels = ['월', '화', '수', '목', '금', '토', '일']
     week_chart = [
@@ -256,11 +246,13 @@ def _compute_study_stats(user_id, subject_id):
         for d in recent_days
     ]
 
+    total_minutes, week_minutes = compute_time_totals(records)
+
     return {
         'records': records,
         'week_chart': week_chart,
-        'week_minutes': round(week_minutes),
-        'total_minutes': round(total_minutes),
+        'week_minutes': week_minutes,
+        'total_minutes': total_minutes,
     }
 
 

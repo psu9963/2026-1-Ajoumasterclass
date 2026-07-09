@@ -51,7 +51,7 @@
       </svg>
     </div>
     <div class="stat-info">
-      <p class="stat-value">{{ total_hours }}h</p>
+      <p class="stat-value" style="font-size:22px;">{{ total_minutes | minutes_label }}</p>
       <p class="stat-label">총 학습 시간</p>
     </div>
   </div>
@@ -64,7 +64,7 @@
       </svg>
     </div>
     <div class="stat-info">
-      <p class="stat-value">{{ weekly_hours }}h</p>
+      <p class="stat-value" style="font-size:22px;">{{ weekly_minutes | minutes_label }}</p>
       <p class="stat-label">이번 주 학습</p>
     </div>
   </div>

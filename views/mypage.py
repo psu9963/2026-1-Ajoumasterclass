@@ -1,9 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, send_from_directory
 from flask_login import login_required, current_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.utils import secure_filename
 from models import db, User, StudyRecord, Subject, WeeklyPlan, StudyPlan, StudyPlanItem, ExamPlan, ExamPlanItem
-from datetime import datetime
 import os, uuid
 
 mypage_bp = Blueprint('mypage', __name__)
