@@ -1,0 +1,1252 @@
+{% extends "base.html" %}
+{% set active_menu = 'classroom' %}
+{% block title %}{{ subject.name }} — 강의실{% endblock %}
+
+{% block content %}
+<!-- 뒤로가기 -->
+<div style="margin-bottom:14px;">
+  <a href="{{ url_for('classroom.classroom') }}"
+     style="font-size:13px; color:var(--text-3); font-weight:500; display:inline-flex; align-items:center; gap:4px; text-decoration:none; transition:color .15s;"
+     onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='var(--text-3)'">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M15 18l-6-6 6-6"/>
+    </svg>
+    강의실 목록
+  </a>
+</div>
+
+<!-- ── 좌우 2단 레이아웃 ── -->
+<div class="classroom-detail-grid" style="margin-bottom:16px;">
+
+  <!-- 왼쪽: 콤팩트 과목 카드 -->
+  <div class="card" style="padding:18px 20px;">
+    <!-- 과목명 -->
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+      <div style="width:36px; height:36px; background:#eff6ff; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+        </svg>
+      </div>
+      <div style="flex:1; min-width:0;">
+        <h1 id="subject-name-display" style="font-size:1rem; font-weight:800; color:var(--gray-900); margin:0; line-height:1.3; word-break:break-all;">{{ subject.name }}</h1>
+        <div id="subject-name-edit" style="display:none; align-items:center; gap:5px;">
+          <input id="subject-name-input" type="text" value="{{ subject.name }}" maxlength="100"
+                 style="flex:1; min-width:0; padding:3px 7px; border:1.5px solid #2563eb; border-radius:6px; font-size:0.95rem; font-weight:700; color:var(--gray-900); outline:none; background:#fff;"
+                 onkeydown="if(event.key==='Enter')saveRename(); if(event.key==='Escape')cancelRename();"/>
+          <button onclick="saveRename()" title="저장"
+                  style="padding:3px 8px; background:#2563eb; color:#fff; border-radius:5px; font-size:11px; font-weight:600; cursor:pointer; white-space:nowrap;">저장</button>
+          <button onclick="cancelRename()" title="취소"
+                  style="padding:3px 6px; border:1px solid var(--gray-200); border-radius:5px; font-size:11px; color:var(--gray-500); background:#fff; cursor:pointer;">✕</button>
+        </div>
+        <div id="rename-error" style="display:none; font-size:11px; color:#ef4444; margin-top:3px;"></div>
+      </div>
+      <button id="rename-btn" onclick="startRename()" title="과목명 수정"
+              style="padding:4px; background:none; border:none; cursor:pointer; color:var(--gray-300); border-radius:5px; transition:color .15s; flex-shrink:0;"
+              onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='var(--gray-300)'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- 메타 정보 -->
+    <div style="display:flex; flex-direction:column; gap:5px; margin-bottom:14px; padding-bottom:14px; border-bottom:1px solid var(--gray-100);">
+      {% if subject.start_date %}
+      <span style="font-size:12px; color:var(--gray-500); display:inline-flex; align-items:center; gap:5px;">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        개강일 {{ subject.start_date }}
+      </span>
+      {% endif %}
+      <span style="font-size:12px; color:var(--gray-400); display:inline-flex; align-items:center; gap:5px;">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        등록일 {{ subject.created_at[:10] }}
+      </span>
+    </div>
+
+    <!-- PDF 보기 -->
+    {% if subject.syllabus_filename %}
+    <a href="{{ url_for('classroom.serve_syllabus', filename=subject.syllabus_filename) }}" target="_blank"
+       style="display:flex; align-items:center; justify-content:center; gap:6px; width:100%; padding:8px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; font-size:12px; font-weight:600; color:#16a34a; text-decoration:none; transition:opacity .15s; box-sizing:border-box; margin-bottom:6px;"
+       onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+      </svg>
+      강의계획서 PDF 보기
+    </a>
+    <!-- PDF 교체 -->
+    <button onclick="openReplacePdfModal()"
+            style="display:flex; align-items:center; justify-content:center; gap:6px; width:100%; padding:8px; background:#fff; border:1px solid var(--gray-200); border-radius:8px; font-size:12px; font-weight:600; color:var(--gray-500); cursor:pointer; box-sizing:border-box; margin-bottom:10px; transition:border-color .15s, color .15s;"
+            onmouseover="this.style.borderColor='#2563eb';this.style.color='#2563eb'"
+            onmouseout="this.style.borderColor='var(--gray-200)';this.style.color='var(--gray-500)'">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      PDF 교체
+    </button>
+    {% endif %}
+
+    <!-- 재분석 + 삭제 -->
+    <div style="display:flex; flex-direction:column; gap:7px;">
+      {% if subject.syllabus_filename %}
+      <form method="POST" action="{{ url_for('classroom.reanalyze', subject_id=subject.id) }}" style="margin:0;">
+        <button type="submit"
+                style="width:100%; padding:7px; border:1px solid var(--gray-200); border-radius:7px; font-size:11px; font-weight:600; color:var(--gray-500); background:#fff; cursor:pointer; transition:border-color .15s, color .15s; box-sizing:border-box;"
+                onmouseover="this.style.borderColor='#2563eb';this.style.color='#2563eb'"
+                onmouseout="this.style.borderColor='var(--gray-200)';this.style.color='var(--gray-500)'">
+          다시 분석하기
+        </button>
+      </form>
+      {% endif %}
+      <!-- 강의실 삭제 -->
+      <button onclick="deleteSubject()"
+              style="width:100%; padding:7px; border:1px solid #fecaca; border-radius:7px; font-size:11px; font-weight:600; color:#ef4444; background:#fff; cursor:pointer; transition:border-color .15s, background .15s; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:4px;"
+              onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+          <path d="M10 11v6M14 11v6"/>
+        </svg>
+        강의실 삭제
+      </button>
+    </div>
+  </div>
+
+  <!-- 오른쪽: 주차별 주제 카드 -->
+  <div class="card" style="padding:0; overflow:hidden; display:flex; flex-direction:column;">
+    <div style="padding:14px 18px; border-bottom:1px solid var(--gray-100); display:flex; align-items:center; gap:8px; flex-shrink:0;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
+      </svg>
+      <h2 style="font-size:14px; font-weight:700; color:var(--gray-900); margin:0;">주차별 주제</h2>
+      {% if plans %}
+      <span style="font-size:10px; font-weight:600; color:#2563eb; background:#eff6ff; padding:2px 7px; border-radius:99px; margin-left:2px;">{{ plans|length }}주</span>
+      {% endif %}
+    </div>
+
+    {% if plans %}
+    <!-- 2열 그리드로 나눠서 표시 -->
+    {% set half = ((plans|length) + 1) // 2 %}
+    {% set left_plans  = plans[:half] %}
+    {% set right_plans = plans[half:] %}
+    <div class="plans-two-col">
+      <!-- 왼쪽 열 -->
+      <div class="plans-col plans-col-left">
+        {% for p in left_plans %}
+        <div style="display:flex; align-items:center; gap:0; padding:6px 14px; flex:1; border-bottom:1px solid var(--gray-50); {% if loop.last and not right_plans %}border-bottom:none;{% endif %}">
+          <span style="font-size:11px; font-weight:700; color:#2563eb; width:26px; flex-shrink:0; font-variant-numeric:tabular-nums;">{{ p.week }}주</span>
+          <span style="font-size:12px; color:var(--gray-700); line-height:1.4;">{{ p.topic }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      <!-- 오른쪽 열 -->
+      <div class="plans-col">
+        {% for p in right_plans %}
+        <div style="display:flex; align-items:center; gap:0; padding:6px 14px; flex:1; border-bottom:1px solid var(--gray-50); {% if loop.last %}border-bottom:none;{% endif %}">
+          <span style="font-size:11px; font-weight:700; color:#2563eb; width:26px; flex-shrink:0; font-variant-numeric:tabular-nums;">{{ p.week }}주</span>
+          <span style="font-size:12px; color:var(--gray-700); line-height:1.4;">{{ p.topic }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% else %}
+    <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px 18px; text-align:center;">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="display:block; margin:0 auto 10px;">
+        <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
+      </svg>
+      {% if subject.syllabus_analyzed %}
+      <p style="font-size:13px; color:var(--gray-500); margin:0 0 3px;">강의계획서에서 주차별 주제를 찾지 못했어요.</p>
+      <p style="font-size:11px; color:var(--gray-400); margin:0;">"다시 분석하기"를 시도해 보세요.</p>
+      {% else %}
+      <p style="font-size:13px; color:var(--gray-500); margin:0;">아직 분석이 완료되지 않았어요.</p>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- [2] 학습 시간 기록 — 전체 폭 -->
+<div class="card classroom-section-card">
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:8px; flex-wrap:wrap;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <div style="width:32px; height:32px; background:#eff6ff; border-radius:9px; display:flex; align-items:center; justify-content:center;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+      </div>
+      <h2 style="font-size:15px; font-weight:700; color:var(--gray-900); margin:0;">학습 시간 기록</h2>
+    </div>
+    <button onclick="openStudyTimeModal()"
+            style="padding:7px 16px; background:#2563eb; color:#fff; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; transition:opacity .15s; white-space:nowrap;"
+            onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+      기록
+    </button>
+  </div>
+
+  <div class="study-time-layout">
+    <!-- 왼쪽 60%: 최근 7일 학습량 그래프 -->
+    <div class="study-time-chart-col">
+      {% set max_minutes = (week_chart|map(attribute='minutes')|max) or 1 %}
+      {% set ticks = [max_minutes, (max_minutes*0.75)|round|int, (max_minutes*0.5)|round|int, (max_minutes*0.25)|round|int, 0] %}
+      <div class="week-chart-outer">
+        <div class="week-chart-yaxis" id="week-chart-yaxis">
+          {% for t in ticks %}<span id="week-chart-tick-{{ loop.index0 }}">{{ t }}</span>{% endfor %}
+        </div>
+        <div class="week-chart-body">
+          <div class="week-chart-grid-box">
+            {% for day in week_chart %}
+            <div class="week-chart-bar-col" id="week-chart-col-{{ loop.index0 }}" title="{{ day.minutes | minutes_label }}">
+              <div class="week-chart-bar" id="week-chart-bar-{{ loop.index0 }}" style="height:{{ (day.minutes / max_minutes * 100) if day.minutes else 0 }}%;{% if day.minutes %} min-height:3px;{% endif %}"></div>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="week-chart-labels">
+            {% for day in week_chart %}
+            <span class="week-chart-label">{{ day.weekday }}<br>{{ day.label }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 오른쪽 40%: 요약 -->
+    <div class="study-time-summary-col">
+      <div class="study-summary-stat">
+        <span class="study-summary-label">이번 주 학습시간</span>
+        <span class="study-summary-value" id="study-summary-week">{{ week_minutes | minutes_label }}</span>
+      </div>
+      <div class="study-summary-stat">
+        <span class="study-summary-label">전체 학습시간</span>
+        <span class="study-summary-value" id="study-summary-total">{{ total_minutes | minutes_label }}</span>
+      </div>
+      <button class="study-history-btn" onclick="openStudyHistoryModal()">학습 기록 살펴보기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 학습 기록 모달 -->
+<div id="study-history-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:14px; width:100%; max-width:420px; margin:16px; box-shadow:0 16px 48px rgba(0,0,0,.18); overflow:hidden; max-height:80vh; display:flex; flex-direction:column;">
+    <div style="padding:18px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--gray-100); flex-shrink:0;">
+      <h3 style="font-size:14px; font-weight:700; color:var(--gray-900); margin:0;">학습 기록</h3>
+      <button onclick="closeStudyHistoryModal()" style="color:var(--gray-400); font-size:18px; line-height:1; background:none; cursor:pointer;"
+              onmouseover="this.style.color='#111'" onmouseout="this.style.color='var(--gray-400)'">✕</button>
+    </div>
+    <div id="study-time-list" style="padding:14px 20px 20px; overflow-y:auto; height:260px; box-sizing:border-box; flex-shrink:0;">
+      {% if study_records %}
+        {% for r in study_records %}
+        <div class="study-time-row" id="study-time-row-{{ r.id }}">
+          <div style="min-width:0;">
+            <span class="study-time-date">{{ r.study_date }}</span>
+            <span class="study-time-minutes">{{ (r.duration_hours * 60) | minutes_label }}</span>
+            {% if r.memo %}<span class="study-time-memo">{{ r.memo }}</span>{% endif %}
+          </div>
+          <button class="plan-delete-btn" onclick="deleteStudyTime({{ r.id }}, event)" title="삭제">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+          </button>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p id="no-study-time-msg" style="font-size:13px; color:var(--gray-400); margin:0;">아직 기록된 학습 시간이 없어요.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- 학습 시간 기록 모달 -->
+<div id="study-time-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:14px; width:100%; max-width:340px; margin:16px; box-shadow:0 16px 48px rgba(0,0,0,.18); overflow:hidden;">
+    <div style="padding:18px 20px 0; display:flex; align-items:center; justify-content:space-between;">
+      <h3 style="font-size:14px; font-weight:700; color:var(--gray-900); margin:0;">학습 시간 기록</h3>
+      <button onclick="closeStudyTimeModal()" style="color:var(--gray-400); font-size:18px; line-height:1; background:none; cursor:pointer;"
+              onmouseover="this.style.color='#111'" onmouseout="this.style.color='var(--gray-400)'">✕</button>
+    </div>
+    <div style="padding:16px 20px 20px; display:flex; flex-direction:column; gap:14px;">
+      <div>
+        <label style="font-size:11px; font-weight:600; color:var(--gray-600); display:block; margin-bottom:5px;">날짜</label>
+        <input type="date" id="study-time-date"
+               style="width:100%; padding:8px 10px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; color:var(--gray-900); background:var(--input-bg); outline:none; box-sizing:border-box;"/>
+      </div>
+      <div>
+        <label style="font-size:11px; font-weight:600; color:var(--gray-600); display:block; margin-bottom:5px;">학습 시간(분)</label>
+        <input type="number" id="study-time-minutes" min="1" placeholder="예) 90"
+               style="width:100%; padding:8px 10px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; color:var(--gray-900); background:var(--input-bg); outline:none; box-sizing:border-box;"/>
+      </div>
+      <div>
+        <label style="font-size:11px; font-weight:600; color:var(--gray-600); display:block; margin-bottom:5px;">메모 <span style="font-weight:400; color:var(--gray-400);">(선택)</span></label>
+        <input type="text" id="study-time-memo" maxlength="200" placeholder="예) 3~5주차 복습"
+               style="width:100%; padding:8px 10px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; color:var(--gray-900); background:var(--input-bg); outline:none; box-sizing:border-box;"/>
+      </div>
+      <div id="study-time-error" style="display:none; font-size:12px; color:#ef4444; padding:4px 0;"></div>
+      <div style="display:flex; gap:8px;">
+        <button onclick="closeStudyTimeModal()"
+                style="flex:1; padding:9px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; font-weight:600; color:var(--gray-600); background:#fff; cursor:pointer; transition:background .15s;"
+                onmouseover="this.style.background='var(--input-bg)'" onmouseout="this.style.background='#fff'">
+          취소
+        </button>
+        <button id="study-time-confirm-btn" onclick="addStudyTime()"
+                style="flex:2; padding:9px; background:#2563eb; color:#fff; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; transition:opacity .15s;"
+                onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          기록
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- [3] AI 학습 계획 — 전체 폭 -->
+<div class="card classroom-section-card">
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:8px; flex-wrap:wrap;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <div style="width:32px; height:32px; background:#eff6ff; border-radius:9px; display:flex; align-items:center; justify-content:center;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+        </svg>
+      </div>
+      <h2 style="font-size:15px; font-weight:700; color:var(--gray-900); margin:0;">AI 학습 계획</h2>
+    </div>
+    {% if plans and not study_plans %}
+    <button id="plan-btn" onclick="generatePlan()"
+            style="padding:7px 16px; background:#2563eb; color:#fff; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; transition:opacity .15s; white-space:nowrap;"
+            onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+      학습 계획하기
+    </button>
+    {% endif %}
+  </div>
+
+  <div id="plan-loading" style="display:none; font-size:12px; color:#2563eb; font-weight:500; padding:4px 0; margin-bottom:10px;">
+    <svg style="display:inline;vertical-align:middle;margin-right:5px;animation:spin 1s linear infinite;" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+    AI가 학습 계획을 짜는 중이에요. 잠시만 기다려 주세요...
+  </div>
+  <div id="plan-error" style="display:none; font-size:12px; color:#ef4444; margin-bottom:10px;"></div>
+
+  <div id="study-plan-area">
+    {% if study_plans %}
+      {% set sp = study_plans[0] %}
+      <div class="plan-list">
+        {% set ns = namespace(cur_week=None) %}
+        {% for item in sp.items|sort(attribute='week') %}
+          {% if item.week != ns.cur_week %}
+            {% if ns.cur_week is not none %}</div></div>{% endif %}
+            {% set ns.cur_week = item.week %}
+            <div class="plan-accordion">
+            <button class="acc-header" onclick="toggleAccordion(this)">
+              <span>{{ item.week }}주차 · {{ item.topic }}</span>
+              <svg class="acc-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <div class="acc-body">
+          {% endif %}
+          <label class="check-item-label" style="display:flex; align-items:flex-start; gap:8px; cursor:pointer;">
+            <input type="checkbox" {% if item.is_done %}checked{% endif %}
+                   onchange="toggleItem({{ sp.id }}, {{ item.id }}, this)"
+                   style="margin-top:3px; accent-color:#2563eb; flex-shrink:0;"/>
+            <span id="task-{{ item.id }}" style="font-size:14px; color:var(--gray-700); line-height:1.5;
+                  {% if item.is_done %}text-decoration:line-through; color:var(--gray-400);{% endif %}">
+              {{ item.task }}
+            </span>
+          </label>
+        {% endfor %}
+        {% if ns.cur_week is not none %}</div></div>{% endif %}
+      </div>
+    {% else %}
+      <p id="no-plans-msg" style="font-size:13px; color:var(--gray-400); margin:0;">
+        {% if plans %}"학습 계획하기"를 눌러 AI가 전체 주차 학습 계획을 생성해줘요.
+        {% else %}주차별 주제가 분석되면 AI 학습 계획을 생성할 수 있어요.{% endif %}
+      </p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- [4] 시험 대비 계획 (등록 + 시험별 대비 계획) — 전체 폭 -->
+<div class="card classroom-section-card">
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:8px; flex-wrap:wrap;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <div style="width:32px; height:32px; background:#fef3c7; border-radius:9px; display:flex; align-items:center; justify-content:center;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+      </div>
+      <h2 style="font-size:15px; font-weight:700; color:var(--gray-900); margin:0;">시험 대비 계획</h2>
+      {% if exam_plans %}
+      <span style="font-size:10px; font-weight:600; color:#d97706; background:#fef3c7; padding:2px 7px; border-radius:99px; margin-left:2px;">{{ exam_plans|length }}개</span>
+      {% endif %}
+    </div>
+    <button onclick="openExamRegisterModal()"
+            style="padding:7px 16px; background:#d97706; color:#fff; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; transition:opacity .15s; white-space:nowrap;"
+            onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+      시험 등록
+    </button>
+  </div>
+
+  <div id="exam-plan-area">
+    {% if exam_plans %}
+      {% for ep in exam_plans %}
+      <div class="plan-card" id="exam-card-{{ ep.id }}">
+        <div class="plan-card-header {% if not loop.first %}collapsed{% endif %}" onclick="toggleExamCard(this)">
+          <div style="flex:1; min-width:0;">
+            <span class="plan-card-name">{{ ep.name }}</span>
+            <span class="plan-card-meta" id="exam-meta-{{ ep.id }}">
+              시험일 {{ ep.exam_date }}
+              {% if ep.d_day is not none %}{% if ep.d_day >= 0 %}· D-{{ ep.d_day }}{% else %}· 종료{% endif %}{% endif %}
+              · {{ ep.scope_from }}~{{ ep.scope_to }}주차
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+            <button class="plan-delete-btn" onclick='openExamEditModal({{ ep.id }}, {{ ep.name|tojson }}, {{ ep.exam_date|tojson }}, {{ ep.scope_from }}, {{ ep.scope_to }}, event)' title="수정">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="plan-delete-btn" onclick="deleteExamPlan({{ ep.id }}, event)" title="삭제">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            </button>
+            <svg class="plan-card-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+        </div>
+        <div class="plan-card-body {% if not loop.first %}hidden{% endif %}" id="exam-card-body-{{ ep.id }}">
+          {% if ep.items %}
+          <div class="exam-items-actions">
+            <button class="exam-clear-btn" onclick="clearExamPlanItems({{ ep.id }}, event)">대비 계획 삭제</button>
+          </div>
+          {% set items_sorted = ep.items|sort(attribute='d_day', reverse=True) %}
+          {% set ns2 = namespace(cur_dday=None) %}
+          {% for item in items_sorted %}
+            {% if item.d_day != ns2.cur_dday %}
+              {% if ns2.cur_dday is not none %}</div>{% endif %}
+              {% set ns2.cur_dday = item.d_day %}
+              <div class="dday-section">
+              <div class="dday-header">
+                <span class="dday-label">D-{{ item.d_day }}</span>
+                <span class="dday-date">{{ item.plan_date | exam_date_label }}</span>
+              </div>
+            {% endif %}
+            <label class="check-item-label check-item-label--compact" style="display:flex; align-items:flex-start; gap:8px; cursor:pointer;">
+              <input type="checkbox" {% if item.is_done %}checked{% endif %}
+                     onchange="toggleExamItem({{ ep.id }}, {{ item.id }}, this)"
+                     style="margin-top:3px; accent-color:#d97706; flex-shrink:0;"/>
+              <span id="exam-task-{{ item.id }}" style="font-size:14px; color:var(--gray-700); line-height:1.5;
+                    {% if item.is_done %}text-decoration:line-through; color:var(--gray-400);{% endif %}">
+                {{ item.task }}
+              </span>
+            </label>
+          {% endfor %}
+          {% if ns2.cur_dday is not none %}</div>{% endif %}
+          {% else %}
+          <button class="generate-plan-btn" id="gen-btn-{{ ep.id }}" onclick="generateExamPlanItems({{ ep.id }}, event)">대비 계획 생성하기</button>
+          <div id="gen-loading-{{ ep.id }}" style="display:none; font-size:12px; color:#d97706; font-weight:500; padding:8px 0 0;">
+            <svg style="display:inline;vertical-align:middle;margin-right:5px;animation:spin 1s linear infinite;" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+            AI가 대비 계획을 짜는 중...
+          </div>
+          <div id="gen-error-{{ ep.id }}" style="display:none; font-size:12px; color:#ef4444; padding:8px 0 0;"></div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p id="no-exam-plans-msg" style="font-size:13px; color:var(--gray-400); margin:0;">"시험 등록" 버튼으로 시험 일정을 등록해보세요.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- 시험 등록/수정 모달 -->
+<div id="exam-register-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:14px; width:100%; max-width:380px; margin:16px; box-shadow:0 16px 48px rgba(0,0,0,.18); overflow:hidden; max-height:90vh; overflow-y:auto;">
+    <div style="padding:18px 20px 0; display:flex; align-items:center; justify-content:space-between;">
+      <h3 id="exam-register-title" style="font-size:14px; font-weight:700; color:var(--gray-900); margin:0;">시험 등록</h3>
+      <button onclick="closeExamRegisterModal()" style="color:var(--gray-400); font-size:18px; line-height:1; background:none; cursor:pointer;"
+              onmouseover="this.style.color='#111'" onmouseout="this.style.color='var(--gray-400)'">✕</button>
+    </div>
+    <div style="padding:16px 20px 20px; display:flex; flex-direction:column; gap:14px;">
+      <div>
+        <label style="font-size:11px; font-weight:600; color:var(--gray-600); display:block; margin-bottom:5px;">시험 종류</label>
+        <select id="exam-reg-type" onchange="onExamTypeChange()"
+                style="width:100%; padding:8px 10px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; color:var(--gray-900); background:var(--input-bg); outline:none; box-sizing:border-box;">
+          <option value="중간고사">중간고사</option>
+          <option value="기말고사">기말고사</option>
+          <option value="기타">기타</option>
+        </select>
+        <input type="text" id="exam-reg-custom-name" placeholder="시험 이름을 입력하세요" maxlength="100"
+               style="display:none; margin-top:6px; width:100%; padding:8px 10px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; color:var(--gray-900); background:var(--input-bg); outline:none; box-sizing:border-box;"/>
+      </div>
+      <div>
+        <label style="font-size:11px; font-weight:600; color:var(--gray-600); display:block; margin-bottom:5px;">
+          시험 날짜 <span style="color:#ef4444;">*</span>
+        </label>
+        <input type="date" id="exam-reg-date"
+               style="width:100%; padding:8px 10px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; color:var(--gray-900); background:var(--input-bg); outline:none; box-sizing:border-box;"/>
+      </div>
+      <div>
+        <label style="font-size:11px; font-weight:600; color:var(--gray-600); display:block; margin-bottom:5px;">
+          시험 범위 주차 <span style="font-weight:400; color:var(--gray-400);">(선택)</span>
+        </label>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <input type="number" id="exam-reg-scope-from" min="1" placeholder="시작"
+                 style="flex:1; padding:8px 10px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; color:var(--gray-900); background:var(--input-bg); outline:none; box-sizing:border-box;"/>
+          <span style="font-size:14px; color:var(--gray-400);">~</span>
+          <input type="number" id="exam-reg-scope-to" min="1" placeholder="끝"
+                 style="flex:1; padding:8px 10px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; color:var(--gray-900); background:var(--input-bg); outline:none; box-sizing:border-box;"/>
+        </div>
+      </div>
+      <div id="exam-reg-error" style="display:none; font-size:12px; color:#ef4444; padding:4px 0;"></div>
+      <div style="display:flex; gap:8px;">
+        <button onclick="closeExamRegisterModal()"
+                style="flex:1; padding:9px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; font-weight:600; color:var(--gray-600); background:#fff; cursor:pointer; transition:background .15s;"
+                onmouseover="this.style.background='var(--input-bg)'" onmouseout="this.style.background='#fff'">
+          취소
+        </button>
+        <button id="exam-reg-confirm-btn" onclick="submitExamRegister()"
+                style="flex:2; padding:9px; background:#d97706; color:#fff; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; transition:opacity .15s;"
+                onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          저장
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PDF 교체 모달 -->
+<div id="replace-pdf-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:14px; width:100%; max-width:400px; margin:16px; box-shadow:0 16px 48px rgba(0,0,0,.18); overflow:hidden;">
+    <div style="padding:18px 20px 0; display:flex; align-items:center; justify-content:space-between;">
+      <h3 style="font-size:14px; font-weight:700; color:var(--gray-900); margin:0;">강의계획서 PDF 교체</h3>
+      <button onclick="closeReplacePdfModal()" style="color:var(--gray-400); font-size:18px; line-height:1; background:none; cursor:pointer;"
+              onmouseover="this.style.color='#111'" onmouseout="this.style.color='var(--gray-400)'">✕</button>
+    </div>
+    <form id="replace-pdf-form" method="POST" action="{{ url_for('classroom.replace_pdf', subject_id=subject.id) }}" enctype="multipart/form-data"
+          style="padding:16px 20px 20px; display:flex; flex-direction:column; gap:14px;">
+      <p style="font-size:12px; color:var(--gray-500); margin:0; line-height:1.7;">
+        새 PDF를 올리면 주차별 주제가 새로 분석돼요.<br>
+        이미 만들어진 학습 계획·시험 대비 계획은 그대로 유지됩니다.
+      </p>
+      <label id="replace-file-drop"
+             style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:24px 16px; border:2px dashed var(--gray-200); border-radius:10px; cursor:pointer; transition:border .15s, background .15s; background:var(--input-bg);"
+             onmouseover="this.style.borderColor='#2563eb';this.style.background='#eff6ff'"
+             onmouseout="this.style.borderColor='var(--gray-200)';this.style.background='var(--input-bg)'">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        <span id="replace-file-label" style="font-size:13px; color:var(--gray-500);">PDF 파일을 선택하세요</span>
+        <span style="font-size:11px; color:var(--gray-400);">최대 10MB · .pdf 만 허용</span>
+        <input type="file" name="syllabus" id="replace-pdf-input" accept=".pdf" required
+               style="display:none;" onchange="updateReplacePdfLabel(this)"/>
+      </label>
+      <div id="replace-pdf-loading" style="display:none; text-align:center; font-size:12px; color:#2563eb; font-weight:500; padding:4px 0;">
+        <svg style="display:inline;vertical-align:middle;margin-right:5px;animation:spin 1s linear infinite;" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+        PDF를 분석하는 중이에요. 잠시만 기다려 주세요...
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button type="button" onclick="closeReplacePdfModal()" id="replace-cancel-btn"
+                style="flex:1; padding:9px; border:1px solid var(--gray-200); border-radius:8px; font-size:13px; font-weight:600; color:var(--gray-600); background:#fff; cursor:pointer; transition:background .15s;"
+                onmouseover="this.style.background='var(--input-bg)'" onmouseout="this.style.background='#fff'">
+          취소
+        </button>
+        <button type="submit" id="replace-confirm-btn"
+                style="flex:2; padding:9px; background:#2563eb; color:#fff; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; transition:opacity .15s;"
+                onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          교체 및 분석
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  .classroom-detail-grid {
+    display: grid;
+    grid-template-columns: minmax(200px, 260px) 1fr;
+    gap: 16px;
+    align-items: stretch;
+  }
+  .plan-card { border: 1px solid var(--gray-200, #e2e8f0); border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
+  .plan-card:last-child { margin-bottom: 0; }
+  .plan-card-header { display: flex; align-items: center; padding: 14px 16px; background: #f8faff; cursor: pointer; gap: 12px; transition: background .15s; user-select: none; }
+  .plan-card-header:hover { background: #eff6ff; }
+  .plan-card-header.collapsed .plan-card-arrow { transform: rotate(-90deg); }
+  .plan-card-name { font-size: 14px; font-weight: 700; color: var(--gray-900, #0f172a); display: block; }
+  .plan-card-meta { font-size: 11px; color: var(--gray-400, #94a3b8); display: block; margin-top: 2px; }
+  .plan-card-arrow { flex-shrink: 0; transition: transform .2s; }
+  .plan-card-body { padding: 14px 16px 16px; }
+  .plan-card-body.hidden { display: none; }
+  .plan-delete-btn { padding: 5px; background: none; border: none; cursor: pointer; color: var(--gray-300, #cbd5e1); border-radius: 6px; transition: color .15s, background .15s; display: flex; align-items: center; justify-content: center; }
+  .plan-delete-btn:hover { color: #ef4444; background: #fef2f2; }
+  .plan-list { display: flex; flex-direction: column; gap: 8px; }
+  .plan-accordion { border: 1px solid var(--gray-100, #f1f5f9); border-radius: 10px; overflow: hidden; }
+  .acc-header {
+    width: 100%; display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 14px; background: #f8faff; border: none; cursor: pointer;
+    font-size: 13px; font-weight: 700; color: #2563eb; text-align: left;
+    gap: 8px; transition: background .15s;
+  }
+  .acc-header:hover { background: #eff6ff; }
+  .acc-arrow { flex-shrink: 0; transition: transform .2s; }
+  .acc-header.collapsed .acc-arrow { transform: rotate(-90deg); }
+  .acc-body { padding: 8px 14px 12px; display: flex; flex-direction: column; }
+  .acc-body.hidden { display: none; }
+  .check-item-label { padding: 5px 0; }
+  .check-item-label--compact { padding: 4px 0; }
+  .dday-section { margin-bottom: 10px; }
+  .dday-section:last-child { margin-bottom: 0; }
+  .dday-header { display: flex; align-items: center; gap: 8px; padding: 8px 0 4px; border-bottom: 1px solid var(--gray-100, #f1f5f9); margin-bottom: 4px; }
+  .dday-label { font-size: 12px; font-weight: 700; color: #d97706; background: #fef3c7; padding: 2px 8px; border-radius: 99px; flex-shrink: 0; }
+  .dday-date { font-size: 12px; color: var(--gray-500, #64748b); }
+  .study-time-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; background: var(--input-bg); border-radius: 10px; margin-bottom: 8px; }
+  .study-time-row:last-child { margin-bottom: 0; }
+  .study-time-date { font-size: 12.5px; font-weight: 700; color: var(--gray-900); margin-right: 8px; }
+  .study-time-minutes { font-size: 12.5px; font-weight: 600; color: #2563eb; margin-right: 8px; }
+  .study-time-memo { font-size: 12px; color: var(--gray-500); }
+  .study-time-layout { display: flex; gap: 24px; align-items: stretch; }
+  .study-time-chart-col { flex: 3; min-width: 260px; padding-left: 24px; box-sizing: border-box; }
+  .study-time-summary-col { flex: 2; min-width: 160px; display: flex; flex-direction: column; gap: 22px; justify-content: center; padding-left: 20px; border-left: 1px solid var(--gray-100, #f1f5f9); }
+  .study-summary-stat { display: flex; flex-direction: column; gap: 2px; }
+  .study-summary-label { font-size: 12px; color: var(--gray-500, #64748b); font-weight: 600; }
+  .study-summary-value { font-size: 22px; font-weight: 800; color: var(--gray-900, #0f172a); }
+  .study-history-btn { margin-top: 4px; padding: 8px 14px; border: 1px solid var(--gray-200, #e2e8f0); border-radius: 8px; font-size: 12.5px; font-weight: 600; color: var(--gray-600, #475569); background: #fff; cursor: pointer; transition: border-color .15s, color .15s; align-self: flex-start; }
+  .study-history-btn:hover { border-color: #2563eb; color: #2563eb; }
+  .week-chart-outer { display: flex; gap: 10px; align-items: flex-start; }
+  .week-chart-yaxis { display: flex; flex-direction: column; justify-content: space-between; height: 190px; font-size: 10px; color: var(--gray-400, #94a3b8); text-align: right; flex-shrink: 0; }
+  .week-chart-body { flex: 1; display: flex; flex-direction: column; }
+  .week-chart-grid-box { height: 190px; border-radius: 8px; background-image: repeating-linear-gradient(to top, var(--gray-200, #e2e8f0) 0, var(--gray-200, #e2e8f0) 1px, transparent 1px, transparent 25%); display: flex; gap: 16px; padding: 0 4px; box-sizing: border-box; }
+  .week-chart-bar-col { flex: 1; display: flex; justify-content: center; align-items: flex-end; }
+  .week-chart-bar { width: 100%; max-width: 34px; background: #2563eb; border-radius: 6px 6px 0 0; transition: height .4s cubic-bezier(.22,1,.36,1); }
+  .week-chart-labels { display: flex; gap: 16px; padding: 0 4px; box-sizing: border-box; margin-top: 6px; }
+  .week-chart-label { flex: 1; font-size: 10.5px; color: var(--gray-400, #94a3b8); text-align: center; line-height: 1.3; }
+  .generate-plan-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: #d97706; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity .15s; }
+  .generate-plan-btn:hover { opacity: .85; }
+  .generate-plan-btn:disabled { opacity: .5; cursor: not-allowed; }
+  .exam-items-actions { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+  .exam-clear-btn { padding: 5px 12px; border: 1px solid var(--gray-200, #e2e8f0); border-radius: 7px; font-size: 11.5px; font-weight: 600; color: var(--gray-500, #64748b); background: #fff; cursor: pointer; transition: border-color .15s, color .15s; }
+  .exam-clear-btn:hover { border-color: #ef4444; color: #ef4444; }
+  .classroom-section-card { padding: 20px 24px; margin-bottom: 16px; }
+  .plans-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0; flex: 1; min-height: 0; }
+  .plans-col { display: flex; flex-direction: column; }
+  .plans-col-left { border-right: 1px solid var(--gray-100); }
+  @media (max-width: 640px) {
+    .classroom-detail-grid { grid-template-columns: 1fr; }
+    .study-time-layout { flex-direction: column; }
+    .study-time-chart-col { padding-left: 0; min-width: 0; }
+    .study-time-summary-col { padding-left: 0; border-left: none; border-top: 1px solid var(--gray-100, #f1f5f9); padding-top: 14px; min-width: 0; }
+
+    .plans-two-col { grid-template-columns: 1fr; }
+    .plans-col-left { border-right: none; border-bottom: 1px solid var(--gray-100); }
+
+    .classroom-section-card { padding: 14px 16px; margin-bottom: 12px; }
+
+    .week-chart-outer { gap: 6px; }
+    .week-chart-yaxis { font-size: 9px; }
+    .week-chart-grid-box { gap: 6px; padding: 0 2px; }
+    .week-chart-bar { max-width: 22px; }
+    .week-chart-bar-col { min-width: 0; }
+    .week-chart-labels { gap: 6px; padding: 0 2px; }
+    .week-chart-label { font-size: 8.5px; min-width: 0; }
+
+    .acc-header { align-items: flex-start; padding: 8px 10px; font-size: 12px; gap: 6px; }
+    .acc-header span { flex: 1; min-width: 0; word-break: keep-all; overflow-wrap: break-word; }
+    .acc-body { padding: 6px 10px 8px; }
+    .plan-list { gap: 6px; }
+    .plan-card-header { padding: 10px 12px; }
+    .plan-card-body { padding: 10px 12px 12px; }
+    .check-item-label { padding: 3px 0; }
+    .check-item-label--compact { padding: 2px 0; }
+  }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const GENERATE_URL = "{{ url_for('classroom.generate_study_plan', subject_id=subject.id) }}";
+const SUBJECT_ID   = {{ subject.id }};
+
+// ── 이름 수정 ──────────────────────────────────────────────────────────────────
+function startRename() {
+  document.getElementById('subject-name-display').style.display = 'none';
+  document.getElementById('rename-btn').style.display = 'none';
+  const editDiv = document.getElementById('subject-name-edit');
+  editDiv.style.display = 'flex';
+  document.getElementById('rename-error').style.display = 'none';
+  const input = document.getElementById('subject-name-input');
+  input.value = document.getElementById('subject-name-display').textContent.trim();
+  input.focus();
+  input.select();
+}
+function cancelRename() {
+  document.getElementById('subject-name-edit').style.display = 'none';
+  document.getElementById('rename-error').style.display = 'none';
+  document.getElementById('subject-name-display').style.display = '';
+  document.getElementById('rename-btn').style.display = '';
+}
+async function saveRename() {
+  const name = document.getElementById('subject-name-input').value.trim();
+  const errEl = document.getElementById('rename-error');
+  if (!name) { errEl.textContent = '과목명을 입력해주세요.'; errEl.style.display = 'block'; return; }
+  try {
+    const res  = await fetch(`/classroom/${SUBJECT_ID}/rename`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({name}),
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error || '저장에 실패했어요.'; errEl.style.display = 'block'; return; }
+    document.getElementById('subject-name-display').textContent = data.name;
+    document.title = data.name + ' — 강의실';
+    cancelRename();
+  } catch(e) {
+    errEl.textContent = '네트워크 오류가 발생했어요.';
+    errEl.style.display = 'block';
+  }
+}
+
+// ── PDF 교체 ───────────────────────────────────────────────────────────────────
+function openReplacePdfModal() {
+  document.getElementById('replace-pdf-modal').style.display = 'flex';
+  document.getElementById('replace-file-label').textContent = 'PDF 파일을 선택하세요';
+  document.getElementById('replace-file-label').style.color = 'var(--gray-500)';
+  document.getElementById('replace-pdf-input').value = '';
+  document.getElementById('replace-pdf-loading').style.display = 'none';
+  document.body.style.overflow = 'hidden';
+}
+function closeReplacePdfModal() {
+  document.getElementById('replace-pdf-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+document.getElementById('replace-pdf-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeReplacePdfModal();
+});
+function updateReplacePdfLabel(input) {
+  const label = document.getElementById('replace-file-label');
+  label.textContent = input.files[0] ? input.files[0].name : 'PDF 파일을 선택하세요';
+  label.style.color = input.files[0] ? 'var(--gray-900)' : 'var(--gray-500)';
+}
+document.getElementById('replace-pdf-form').addEventListener('submit', function() {
+  document.getElementById('replace-pdf-loading').style.display = 'block';
+  document.getElementById('replace-confirm-btn').disabled = true;
+  document.getElementById('replace-confirm-btn').style.opacity = '.5';
+  document.getElementById('replace-cancel-btn').disabled = true;
+});
+
+// ── 강의실 삭제 ────────────────────────────────────────────────────────────────
+async function deleteSubject() {
+  if (!confirm('이 강의실과 모든 데이터(주차별 주제, 학습 계획, 시험 대비 계획)를 삭제할까요?\n이 작업은 되돌릴 수 없어요.')) return;
+  try {
+    const res = await fetch(`/classroom/${SUBJECT_ID}/delete`, {method: 'POST'});
+    const data = await res.json();
+    if (data.ok) {
+      window.location.href = "{{ url_for('classroom.classroom') }}";
+    }
+  } catch(e) {
+    alert('삭제에 실패했어요. 다시 시도해 주세요.');
+  }
+}
+
+// ── AI 학습 계획 ───────────────────────────────────────────────────────────────
+async function generatePlan() {
+  const loadEl = document.getElementById('plan-loading');
+  const errEl  = document.getElementById('plan-error');
+  const planBtn = document.getElementById('plan-btn');
+  errEl.style.display = 'none';
+  loadEl.style.display = 'block';
+  if (planBtn) { planBtn.disabled = true; planBtn.style.opacity = '.5'; }
+
+  try {
+    const res  = await fetch(GENERATE_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({}),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      errEl.textContent = data.error || '오류가 발생했어요.';
+      errEl.style.display = 'block';
+      if (planBtn) { planBtn.disabled = false; planBtn.style.opacity = '1'; }
+      return;
+    }
+    loadEl.style.display = 'none';
+    if (planBtn) planBtn.style.display = 'none';
+    renderPlanAccordions(data);
+  } catch(e) {
+    errEl.textContent = '네트워크 오류가 발생했어요.';
+    errEl.style.display = 'block';
+    if (planBtn) { planBtn.disabled = false; planBtn.style.opacity = '1'; }
+  } finally {
+    loadEl.style.display = 'none';
+  }
+}
+
+function renderPlanAccordions(data) {
+  const area = document.getElementById('study-plan-area');
+  const noMsg = document.getElementById('no-plans-msg');
+  if (noMsg) noMsg.remove();
+
+  const arrowSvg = `<svg class="acc-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>`;
+
+  let html = '<div class="plan-list">';
+  let curWeek = null;
+  for (const item of data.items) {
+    if (item.week !== curWeek) {
+      if (curWeek !== null) html += '</div></div>';
+      curWeek = item.week;
+      html += `<div class="plan-accordion">
+        <button class="acc-header" onclick="toggleAccordion(this)">
+          <span>${item.week}주차 · ${escHtml(item.topic)}</span>${arrowSvg}
+        </button>
+        <div class="acc-body">`;
+    }
+    html += `<label class="check-item-label" style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;">
+      <input type="checkbox" ${item.is_done?'checked':''} onchange="toggleItem(${data.plan_id},${item.id},this)" style="margin-top:3px;accent-color:#2563eb;flex-shrink:0;"/>
+      <span id="task-${item.id}" style="font-size:14px;color:${item.is_done?'var(--gray-400)':'var(--gray-700)'};line-height:1.5;${item.is_done?'text-decoration:line-through;':''}">${escHtml(item.task)}</span>
+    </label>`;
+  }
+  if (curWeek !== null) html += '</div></div>';
+  html += '</div>';
+
+  area.innerHTML = html;
+}
+
+function toggleAccordion(btn) {
+  btn.classList.toggle('collapsed');
+  btn.nextElementSibling.classList.toggle('hidden');
+}
+
+async function toggleItem(planId, itemId, cb) {
+  const url = `/classroom/${SUBJECT_ID}/study-plan/${planId}/item/${itemId}/toggle`;
+  const span = document.getElementById('task-' + itemId);
+  try {
+    const res  = await fetch(url, {method:'POST'});
+    const data = await res.json();
+    if (data.is_done) {
+      span.style.textDecoration = 'line-through';
+      span.style.color = 'var(--gray-400)';
+    } else {
+      span.style.textDecoration = 'none';
+      span.style.color = 'var(--gray-700)';
+    }
+  } catch(e) {
+    cb.checked = !cb.checked;
+  }
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function formatMinutes(minutes) {
+  minutes = Math.round(minutes);
+  if (minutes < 60) return `${minutes}분`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m ? `${h}시간 ${m}분` : `${h}시간`;
+}
+
+// 학습 시간 기록/삭제 후 서버가 돌려준 최신 통계로 그래프·요약을 새로고침 없이 갱신
+function renderStudyStats(stats) {
+  if (!stats) return;
+  const maxMinutes = Math.max(...stats.week_chart.map(d => d.minutes), 1);
+  const ticks = [maxMinutes, Math.round(maxMinutes * 0.75), Math.round(maxMinutes * 0.5), Math.round(maxMinutes * 0.25), 0];
+  ticks.forEach((t, i) => {
+    const tickEl = document.getElementById('week-chart-tick-' + i);
+    if (tickEl) tickEl.textContent = t;
+  });
+  stats.week_chart.forEach((day, i) => {
+    const bar = document.getElementById('week-chart-bar-' + i);
+    const col = document.getElementById('week-chart-col-' + i);
+    if (bar) {
+      bar.style.height = (day.minutes ? (day.minutes / maxMinutes * 100) : 0) + '%';
+      bar.style.minHeight = day.minutes ? '3px' : '';
+    }
+    if (col) col.title = formatMinutes(day.minutes);
+  });
+  const weekEl  = document.getElementById('study-summary-week');
+  const totalEl = document.getElementById('study-summary-total');
+  if (weekEl) weekEl.textContent = formatMinutes(stats.week_minutes);
+  if (totalEl) totalEl.textContent = formatMinutes(stats.total_minutes);
+}
+
+// ── 시험 대비 계획 (등록 + 시험별 대비 계획) ──────────────────────────────────
+function fmtExamDate(dateStr) {
+  try {
+    const d = new Date(dateStr + 'T00:00:00');
+    const days = ['일','월','화','수','목','금','토'];
+    return `${d.getMonth()+1}월 ${d.getDate()}일(${days[d.getDay()]})`;
+  } catch(e) { return dateStr; }
+}
+
+function toggleExamCard(header) {
+  header.classList.toggle('collapsed');
+  header.nextElementSibling.classList.toggle('hidden');
+}
+
+async function deleteExamPlan(planId, event) {
+  event.stopPropagation();
+  if (!confirm('이 시험을 삭제할까요? 등록 정보와 대비 계획이 함께 삭제돼요.')) return;
+  try {
+    const res = await fetch(`/classroom/${SUBJECT_ID}/exam-plan/${planId}/delete`, {method:'POST'});
+    if (res.ok) {
+      document.getElementById('exam-card-' + planId).remove();
+      const area = document.getElementById('exam-plan-area');
+      if (!area.querySelector('.plan-card')) {
+        area.innerHTML = '<p id="no-exam-plans-msg" style="font-size:13px;color:var(--gray-400);margin:0;">"시험 등록" 버튼으로 시험 일정을 등록해보세요.</p>';
+      }
+    }
+  } catch(e) {
+    alert('삭제에 실패했어요. 다시 시도해 주세요.');
+  }
+}
+
+// ── 시험 등록/수정 ─────────────────────────────────────────────────────────
+let examRegEditingId = null;
+
+function onExamTypeChange() {
+  const type = document.getElementById('exam-reg-type').value;
+  document.getElementById('exam-reg-custom-name').style.display = (type === '기타') ? 'block' : 'none';
+}
+
+function openExamRegisterModal() {
+  examRegEditingId = null;
+  document.getElementById('exam-register-title').textContent = '시험 등록';
+  document.getElementById('exam-reg-type').value = '중간고사';
+  document.getElementById('exam-reg-custom-name').style.display = 'none';
+  document.getElementById('exam-reg-custom-name').value = '';
+  document.getElementById('exam-reg-date').value = '';
+  document.getElementById('exam-reg-scope-from').value = '';
+  document.getElementById('exam-reg-scope-to').value = '';
+  document.getElementById('exam-reg-error').style.display = 'none';
+  document.getElementById('exam-register-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function openExamEditModal(id, name, examDate, scopeFrom, scopeTo, event) {
+  if (event) event.stopPropagation();
+  examRegEditingId = id;
+  document.getElementById('exam-register-title').textContent = '시험 수정';
+  const typeSelect = document.getElementById('exam-reg-type');
+  const customInput = document.getElementById('exam-reg-custom-name');
+  if (name === '중간고사' || name === '기말고사') {
+    typeSelect.value = name;
+    customInput.style.display = 'none';
+    customInput.value = '';
+  } else {
+    typeSelect.value = '기타';
+    customInput.style.display = 'block';
+    customInput.value = name;
+  }
+  document.getElementById('exam-reg-date').value = examDate;
+  document.getElementById('exam-reg-scope-from').value = scopeFrom;
+  document.getElementById('exam-reg-scope-to').value = scopeTo;
+  document.getElementById('exam-reg-error').style.display = 'none';
+  document.getElementById('exam-register-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeExamRegisterModal() {
+  document.getElementById('exam-register-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+document.getElementById('exam-register-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeExamRegisterModal();
+});
+
+function examMetaText(data) {
+  let ddayStr = '';
+  if (typeof data.d_day === 'number') {
+    ddayStr = data.d_day >= 0 ? ` · D-${data.d_day}` : ' · 종료';
+  }
+  return `시험일 ${data.exam_date}${ddayStr} · ${data.scope_from}~${data.scope_to}주차`;
+}
+
+async function submitExamRegister() {
+  const type       = document.getElementById('exam-reg-type').value;
+  const customName = document.getElementById('exam-reg-custom-name').value.trim();
+  const name       = (type === '기타') ? customName : type;
+  const examDate   = document.getElementById('exam-reg-date').value;
+  const scopeFrom  = document.getElementById('exam-reg-scope-from').value;
+  const scopeTo    = document.getElementById('exam-reg-scope-to').value;
+  const errEl      = document.getElementById('exam-reg-error');
+  errEl.style.display = 'none';
+
+  if (!name) { errEl.textContent = '시험 이름을 입력해주세요.'; errEl.style.display = 'block'; return; }
+  if (!examDate) { errEl.textContent = '시험 날짜를 입력해주세요.'; errEl.style.display = 'block'; return; }
+
+  const url = examRegEditingId
+    ? `/classroom/${SUBJECT_ID}/exam/${examRegEditingId}/update`
+    : `/classroom/${SUBJECT_ID}/exam/register`;
+
+  const confirmBtn = document.getElementById('exam-reg-confirm-btn');
+  confirmBtn.disabled = true; confirmBtn.style.opacity = '.5';
+  try {
+    const res  = await fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({name, exam_date: examDate, scope_from: scopeFrom, scope_to: scopeTo}),
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error || '오류가 발생했어요.'; errEl.style.display = 'block'; return; }
+    closeExamRegisterModal();
+    if (examRegEditingId) {
+      updateExamCard(data);
+    } else {
+      addExamCard(data);
+    }
+  } catch(e) {
+    errEl.textContent = '네트워크 오류가 발생했어요.';
+    errEl.style.display = 'block';
+  } finally {
+    confirmBtn.disabled = false; confirmBtn.style.opacity = '1';
+  }
+}
+
+function addExamCard(data) {
+  const area  = document.getElementById('exam-plan-area');
+  const noMsg = document.getElementById('no-exam-plans-msg');
+  if (noMsg) noMsg.remove();
+
+  area.querySelectorAll('#exam-plan-area > .plan-card .plan-card-header:not(.collapsed)').forEach(h => {
+    h.classList.add('collapsed');
+    h.nextElementSibling.classList.add('hidden');
+  });
+
+  const trashSvg   = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
+  const editSvg    = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
+  const chevronSvg = `<svg class="plan-card-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>`;
+  const spinSvg    = `<svg style="display:inline;vertical-align:middle;margin-right:5px;animation:spin 1s linear infinite;" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`;
+
+  area.insertAdjacentHTML('afterbegin', `
+    <div class="plan-card" id="exam-card-${data.id}">
+      <div class="plan-card-header" onclick="toggleExamCard(this)">
+        <div style="flex:1;min-width:0;">
+          <span class="plan-card-name">${escHtml(data.name)}</span>
+          <span class="plan-card-meta" id="exam-meta-${data.id}">${examMetaText(data)}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+          <button class="plan-delete-btn" onclick='openExamEditModal(${data.id}, ${JSON.stringify(data.name)}, ${JSON.stringify(data.exam_date)}, ${data.scope_from}, ${data.scope_to}, event)' title="수정">${editSvg}</button>
+          <button class="plan-delete-btn" onclick="deleteExamPlan(${data.id},event)" title="삭제">${trashSvg}</button>
+          ${chevronSvg}
+        </div>
+      </div>
+      <div class="plan-card-body" id="exam-card-body-${data.id}">
+        <button class="generate-plan-btn" id="gen-btn-${data.id}" onclick="generateExamPlanItems(${data.id}, event)">대비 계획 생성하기</button>
+        <div id="gen-loading-${data.id}" style="display:none;font-size:12px;color:#d97706;font-weight:500;padding:8px 0 0;">${spinSvg}AI가 대비 계획을 짜는 중...</div>
+        <div id="gen-error-${data.id}" style="display:none;font-size:12px;color:#ef4444;padding:8px 0 0;"></div>
+      </div>
+    </div>`);
+}
+
+function updateExamCard(data) {
+  const card = document.getElementById('exam-card-' + data.id);
+  if (!card) return;
+  const nameEl = card.querySelector('.plan-card-name');
+  const metaEl = document.getElementById('exam-meta-' + data.id);
+  if (nameEl) nameEl.textContent = data.name;
+  if (metaEl) metaEl.textContent = examMetaText(data);
+  const editBtn = card.querySelector('.plan-delete-btn');
+  if (editBtn) editBtn.setAttribute('onclick', `openExamEditModal(${data.id}, ${JSON.stringify(data.name)}, ${JSON.stringify(data.exam_date)}, ${data.scope_from}, ${data.scope_to}, event)`);
+}
+
+// ── 시험별 대비 계획 생성/삭제 ─────────────────────────────────────────────────
+async function generateExamPlanItems(examId, event) {
+  if (event) event.stopPropagation();
+  const btn    = document.getElementById('gen-btn-' + examId);
+  const loadEl = document.getElementById('gen-loading-' + examId);
+  const errEl  = document.getElementById('gen-error-' + examId);
+  if (errEl) errEl.style.display = 'none';
+  if (btn) { btn.disabled = true; btn.style.opacity = '.5'; }
+  if (loadEl) loadEl.style.display = 'block';
+
+  try {
+    const res  = await fetch(`/classroom/${SUBJECT_ID}/exam-plan/${examId}/generate-items`, {method: 'POST'});
+    const data = await res.json();
+    if (!res.ok) {
+      if (errEl) { errEl.textContent = data.error || '오류가 발생했어요.'; errEl.style.display = 'block'; }
+      if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+      if (loadEl) loadEl.style.display = 'none';
+      return;
+    }
+    renderExamPlanItems(examId, data.items);
+  } catch(e) {
+    if (errEl) { errEl.textContent = '네트워크 오류가 발생했어요.'; errEl.style.display = 'block'; }
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+    if (loadEl) loadEl.style.display = 'none';
+  }
+}
+
+function renderExamPlanItems(examId, items) {
+  const body = document.getElementById('exam-card-body-' + examId);
+  const grouped = {};
+  for (const item of items) {
+    if (!grouped[item.d_day]) grouped[item.d_day] = [];
+    grouped[item.d_day].push(item);
+  }
+  const ddays = Object.keys(grouped).map(Number).sort((a, b) => b - a);
+
+  let html = `<div class="exam-items-actions"><button class="exam-clear-btn" onclick="clearExamPlanItems(${examId}, event)">대비 계획 삭제</button></div>`;
+  for (const dday of ddays) {
+    const dItems = grouped[dday];
+    html += `<div class="dday-section">
+      <div class="dday-header">
+        <span class="dday-label">D-${dday}</span>
+        <span class="dday-date">${fmtExamDate(dItems[0].plan_date)}</span>
+      </div>`;
+    for (const item of dItems) {
+      html += `<label class="check-item-label check-item-label--compact" style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;">
+        <input type="checkbox" ${item.is_done?'checked':''} onchange="toggleExamItem(${examId},${item.id},this)" style="margin-top:3px;accent-color:#d97706;flex-shrink:0;"/>
+        <span id="exam-task-${item.id}" style="font-size:14px;color:${item.is_done?'var(--gray-400)':'var(--gray-700)'};line-height:1.5;${item.is_done?'text-decoration:line-through;':''}">${escHtml(item.task)}</span>
+      </label>`;
+    }
+    html += '</div>';
+  }
+  body.innerHTML = html;
+}
+
+async function clearExamPlanItems(examId, event) {
+  if (event) event.stopPropagation();
+  if (!confirm('생성된 대비 계획을 삭제할까요? 시험 등록 정보는 남아요.')) return;
+  try {
+    const res = await fetch(`/classroom/${SUBJECT_ID}/exam-plan/${examId}/clear-items`, {method: 'POST'});
+    if (res.ok) renderGenerateButton(examId);
+  } catch(e) {
+    alert('삭제에 실패했어요. 다시 시도해 주세요.');
+  }
+}
+
+function renderGenerateButton(examId) {
+  const body = document.getElementById('exam-card-body-' + examId);
+  const spinSvg = `<svg style="display:inline;vertical-align:middle;margin-right:5px;animation:spin 1s linear infinite;" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`;
+  body.innerHTML = `
+    <button class="generate-plan-btn" id="gen-btn-${examId}" onclick="generateExamPlanItems(${examId}, event)">대비 계획 생성하기</button>
+    <div id="gen-loading-${examId}" style="display:none;font-size:12px;color:#d97706;font-weight:500;padding:8px 0 0;">${spinSvg}AI가 대비 계획을 짜는 중...</div>
+    <div id="gen-error-${examId}" style="display:none;font-size:12px;color:#ef4444;padding:8px 0 0;"></div>`;
+}
+
+// ── 학습 시간 기록 ────────────────────────────────────────────────────────────
+function openStudyTimeModal() {
+  const dateInput = document.getElementById('study-time-date');
+  dateInput.valueAsDate = new Date();
+  document.getElementById('study-time-minutes').value = '';
+  document.getElementById('study-time-memo').value = '';
+  document.getElementById('study-time-error').style.display = 'none';
+  document.getElementById('study-time-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function closeStudyTimeModal() {
+  document.getElementById('study-time-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+document.getElementById('study-time-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeStudyTimeModal();
+});
+
+function openStudyHistoryModal() {
+  document.getElementById('study-history-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function closeStudyHistoryModal() {
+  document.getElementById('study-history-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+document.getElementById('study-history-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeStudyHistoryModal();
+});
+
+async function addStudyTime() {
+  const dateEl    = document.getElementById('study-time-date');
+  const minutesEl = document.getElementById('study-time-minutes');
+  const memoEl    = document.getElementById('study-time-memo');
+  const errEl     = document.getElementById('study-time-error');
+  errEl.style.display = 'none';
+
+  const studyDate = dateEl.value;
+  const minutes   = parseInt(minutesEl.value, 10);
+  const memo      = memoEl.value.trim();
+
+  if (!studyDate) { errEl.textContent = '날짜를 입력해주세요.'; errEl.style.display = 'block'; return; }
+  if (!minutes || minutes <= 0) { errEl.textContent = '학습 시간(분)을 입력해주세요.'; errEl.style.display = 'block'; return; }
+
+  const confirmBtn = document.getElementById('study-time-confirm-btn');
+  confirmBtn.disabled = true; confirmBtn.style.opacity = '.5';
+  try {
+    const res  = await fetch(`/classroom/${SUBJECT_ID}/study-time`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({study_date: studyDate, minutes, memo}),
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error || '오류가 발생했어요.'; errEl.style.display = 'block'; return; }
+
+    closeStudyTimeModal();
+    const list  = document.getElementById('study-time-list');
+    const noMsg = document.getElementById('no-study-time-msg');
+    if (noMsg) noMsg.remove();
+    const memoHtml = data.memo ? `<span class="study-time-memo">${escHtml(data.memo)}</span>` : '';
+    list.insertAdjacentHTML('afterbegin', `
+      <div class="study-time-row" id="study-time-row-${data.id}">
+        <div style="min-width:0;">
+          <span class="study-time-date">${data.study_date}</span>
+          <span class="study-time-minutes">${formatMinutes(data.minutes)}</span>
+          ${memoHtml}
+        </div>
+        <button class="plan-delete-btn" onclick="deleteStudyTime(${data.id}, event)" title="삭제">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+        </button>
+      </div>`);
+    renderStudyStats(data);
+  } catch(e) {
+    errEl.textContent = '네트워크 오류가 발생했어요.';
+    errEl.style.display = 'block';
+  } finally {
+    confirmBtn.disabled = false; confirmBtn.style.opacity = '1';
+  }
+}
+
+async function deleteStudyTime(recordId, event) {
+  event.stopPropagation();
+  if (!confirm('이 학습 기록을 삭제할까요?')) return;
+  try {
+    const res  = await fetch(`/classroom/${SUBJECT_ID}/study-time/${recordId}/delete`, {method: 'POST'});
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      alert((data && data.error) || '삭제에 실패했어요. 다시 시도해 주세요.');
+      return;
+    }
+    const row = document.getElementById('study-time-row-' + recordId);
+    if (row) row.remove();
+    const list = document.getElementById('study-time-list');
+    if (list && !list.querySelector('.study-time-row')) {
+      list.innerHTML = '<p id="no-study-time-msg" style="font-size:13px;color:var(--gray-400);margin:0;">아직 기록된 학습 시간이 없어요.</p>';
+    }
+    renderStudyStats(data);
+  } catch(e) {
+    alert('삭제에 실패했어요. 다시 시도해 주세요.');
+  }
+}
+
+async function toggleExamItem(planId, itemId, cb) {
+  const url  = `/classroom/${SUBJECT_ID}/exam-plan/${planId}/item/${itemId}/toggle`;
+  const span = document.getElementById('exam-task-' + itemId);
+  try {
+    const res  = await fetch(url, {method:'POST'});
+    const data = await res.json();
+    if (data.is_done) {
+      span.style.textDecoration = 'line-through';
+      span.style.color = 'var(--gray-400)';
+    } else {
+      span.style.textDecoration = 'none';
+      span.style.color = 'var(--gray-700)';
+    }
+  } catch(e) {
+    cb.checked = !cb.checked;
+  }
+}
+</script>
+{% endblock %}

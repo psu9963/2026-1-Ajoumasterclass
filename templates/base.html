@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}A+ 스터디 플래너{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.min.css"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}"/>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<header class="mobile-header">
+  <div class="mobile-header-logo">
+    <svg width="20" height="26" viewBox="0 0 31 41" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M7.54297 21.25L11.2197 10.6445H14.0469L17.709 21.25H15.3506L14.5522 18.8037H10.7144L9.91602 21.25H7.54297ZM13.9956 17.0898L12.6699 13.0322H12.5967L11.271 17.0898H13.9956Z" fill="#2563EB"/>
+      <path d="M20.75 10.25V15.25" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>
+      <path d="M18.25 12.75H23.25" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>
+      <path d="M15.25 1.25C6.85 1.25 1.25 7.65 1.25 15.1167C1.25 20.45 4.05 24.7167 8.71667 27.9167V33.25H21.7833V27.9167C26.45 24.7167 29.25 20.45 29.25 15.1167C29.25 7.65 23.65 1.25 15.25 1.25Z" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M11.25 36.25H19.25" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>
+      <path d="M12.25 39.25H18.25" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <span>A+ 스터디 플래너</span>
+  </div>
+  <div class="mobile-header-user">
+    <a href="{{ url_for('mypage.mypage') }}" class="mobile-avatar-link">
+      <img src="{{ url_for('mypage.serve_avatar', filename=current_user.profile_image) if current_user.profile_image else 'https://ui-avatars.com/api/?name=' + (current_user.display_name or current_user.username) + '&background=2563eb&color=fff' }}" alt="user" class="mobile-avatar"/>
+    </a>
+    <a href="{{ url_for('login.logout') }}" class="mobile-logout header-icon-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+    </a>
+  </div>
+</header>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="header-logo">
+      <svg width="24" height="30" viewBox="0 0 31 41" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7.54297 21.25L11.2197 10.6445H14.0469L17.709 21.25H15.3506L14.5522 18.8037H10.7144L9.91602 21.25H7.54297ZM13.9956 17.0898L12.6699 13.0322H12.5967L11.271 17.0898H13.9956Z" fill="#2563EB"/>
+        <path d="M20.75 10.25V15.25" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>
+        <path d="M18.25 12.75H23.25" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>
+        <path d="M15.25 1.25C6.85 1.25 1.25 7.65 1.25 15.1167C1.25 20.45 4.05 24.7167 8.71667 27.9167V33.25H21.7833V27.9167C26.45 24.7167 29.25 20.45 29.25 15.1167C29.25 7.65 23.65 1.25 15.25 1.25Z" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M11.25 36.25H19.25" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>
+        <path d="M12.25 39.25H18.25" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span class="header-logo-text">스터디 플래너</span>
+    </div>
+
+    <nav class="header-nav">
+      <a href="{{ url_for('dashboard.dashboard') }}" class="{% if active_menu == 'dashboard' %}active{% endif %}">대시보드</a>
+      <a href="{{ url_for('classroom.classroom') }}" class="{% if active_menu == 'classroom' %}active{% endif %}">강의실</a>
+      <a href="{{ url_for('analysis.analysis') }}" class="{% if active_menu == 'analysis' %}active{% endif %}">학습 분석</a>
+      <a href="{{ url_for('calendar.calendar') }}" class="{% if active_menu == 'calendar' %}active{% endif %}">캘린더</a>
+    </nav>
+
+    <div class="header-user">
+      <div class="user-menu-wrap" style="position:relative;">
+        <button class="header-icon-btn" id="user-chip-btn" onclick="toggleUserMenu()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </button>
+
+        <!-- 팝업 메뉴: 톱니바퀴 버튼 기준으로 위치 -->
+        <div id="user-menu" class="user-popup" style="display:none;">
+          <a href="{{ url_for('mypage.mypage') }}"
+             class="user-popup-item {% if active_menu == 'mypage' %}active{% endif %}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            마이페이지
+          </a>
+          <a href="{{ url_for('login.logout') }}" class="user-popup-item logout">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            로그아웃
+          </a>
+        </div>
+      </div>
+      <div class="header-user-divider"></div>
+      <img src="{{ url_for('mypage.serve_avatar', filename=current_user.profile_image) if current_user.profile_image else 'https://ui-avatars.com/api/?name=' + (current_user.display_name or current_user.username) + '&background=2563eb&color=fff' }}" alt="avatar" class="header-avatar"/>
+      <div class="header-user-info">
+        <span class="header-user-name">{{ current_user.display_name or current_user.username }}</span>
+        <span class="header-user-email">{{ current_user.email if current_user.email else '' }}</span>
+      </div>
+      <a href="{{ url_for('login.logout') }}" class="header-icon-btn" title="로그아웃">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+</header>
+
+<main class="main">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+      <div class="flash flash-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</main>
+<nav class="mobile-tab-bar">
+  <a href="{{ url_for('dashboard.dashboard') }}" 
+     class="tab-item {% if active_menu == 'dashboard' %}active{% endif %}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+      <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+    </svg>
+    <span>대시보드</span>
+  </a>
+
+  <a href="{{ url_for('classroom.classroom') }}"
+     class="tab-item {% if active_menu == 'classroom' %}active{% endif %}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+    </svg>
+    <span>강의실</span>
+  </a>
+
+  <a href="{{ url_for('analysis.analysis') }}"
+     class="tab-item {% if active_menu == 'analysis' %}active{% endif %}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="20" x2="18" y2="10"/>
+      <line x1="12" y1="20" x2="12" y2="4"/>
+      <line x1="6" y1="20" x2="6" y2="14"/>
+    </svg>
+    <span>학습 분석</span>
+  </a>
+
+  <a href="{{ url_for('calendar.calendar') }}"
+     class="tab-item {% if active_menu == 'calendar' %}active{% endif %}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+      <line x1="16" y1="2" x2="16" y2="6"/>
+      <line x1="8" y1="2" x2="8" y2="6"/>
+      <line x1="3" y1="10" x2="21" y2="10"/>
+    </svg>
+    <span>캘린더</span>
+  </a>
+</nav>
+
+  <!-- ══════════════════════════════════
+       공통 CSS / JS
+  ══════════════════════════════════════ -->
+  <style>
+    .user-popup {
+      position: absolute;
+      top: calc(100% + 6px); right: 0;
+      min-width: 160px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      overflow: hidden;
+      z-index: 200;
+      animation: fadeDown .15s ease both;
+    }
+    @keyframes fadeDown { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+    .user-popup-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 11px 16px;
+      font-size: 13px; color: var(--text-2);
+      text-decoration: none;
+      transition: background .15s, color .15s;
+    }
+    .user-popup-item:hover { background: var(--surface-2); color: var(--text-1); }
+    .user-popup-item.active { color: var(--accent); font-weight: 500; }
+    .user-popup-item.logout:hover { background: #fef0f0; color: #c0392b; }
+     .mobile-tab-bar {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    .mobile-tab-bar {
+      display: flex;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      background: #fff;
+      border-top: 1px solid #e2e8f0;
+      box-shadow: 0 -4px 16px rgba(0,0,0,.06);
+      z-index: 500;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .tab-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      text-decoration: none;
+      color: #94a3b8;
+      font-size: 10px;
+      font-weight: 500;
+      transition: color .15s;
+      padding: 8px 0;
+    }
+
+    .tab-item svg {
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+    }
+
+    .tab-item span {
+      font-size: 10px;
+      font-weight: 500;
+    }
+
+    .tab-item.active {
+      color: #2563eb;
+    }
+
+    .tab-item.active svg {
+      stroke: #2563eb;
+    }
+
+    /* 탭바 높이만큼 main 하단 여백 */
+    .main {
+      padding-bottom: 72px;
+    }
+  }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+
+  <script>
+  function toggleUserMenu() {
+    const menu = document.getElementById('user-menu');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+  }
+  document.addEventListener('click', function(e) {
+    const chip = document.getElementById('user-chip-btn');
+    const menu = document.getElementById('user-menu');
+    if (chip && !chip.contains(e.target) && !menu.contains(e.target)) menu.style.display = 'none';
+  });
+  </script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>
