@@ -25,7 +25,9 @@
     <span>A+ 스터디 플래너</span>
   </div>
   <div class="mobile-header-user">
-    <img src="{{ url_for('mypage.serve_avatar', filename=current_user.profile_image) if current_user.profile_image else 'https://ui-avatars.com/api/?name=' + (current_user.display_name or current_user.username) + '&background=2563eb&color=fff' }}" alt="user" class="mobile-avatar"/>
+    <a href="{{ url_for('mypage.mypage') }}" class="mobile-avatar-link">
+      <img src="{{ url_for('mypage.serve_avatar', filename=current_user.profile_image) if current_user.profile_image else 'https://ui-avatars.com/api/?name=' + (current_user.display_name or current_user.username) + '&background=2563eb&color=fff' }}" alt="user" class="mobile-avatar"/>
+    </a>
     <a href="{{ url_for('login.logout') }}" class="mobile-logout header-icon-btn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>

@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
 from models import db, CalendarEvent
-from datetime import datetime
+from datetime import datetime, timedelta
 
 calendar_bp = Blueprint('calendar', __name__)
 
@@ -34,9 +34,13 @@ def get_events():
             start += f'T{e.start_time}'
 
         # 종료 datetime
-        end = e.end_date or e.start_date
+        end_date_raw = e.end_date or e.start_date
         if e.end_time:
-            end += f'T{e.end_time}'
+            end = end_date_raw + f'T{e.end_time}'
+        else:
+            # FullCalendar는 all-day 이벤트의 end를 exclusive로 처리하므로
+            # 사용자가 입력한 종료일 하루 전체가 표시되도록 +1일 보정
+            end = (datetime.strptime(end_date_raw, '%Y-%m-%d') + timedelta(days=1)).strftime('%Y-%m-%d')
 
         result.append({
             'id':              e.id,
