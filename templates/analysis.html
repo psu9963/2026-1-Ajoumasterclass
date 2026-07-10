@@ -57,6 +57,32 @@
   .subject-timeline-fill { height:100%; border-radius:9999px; background:var(--blue-600); transition:width .6s cubic-bezier(.22,1,.36,1); }
   .subject-timeline-fill.low { background:#dc2626; }
   .subject-timeline-foot { display:flex; align-items:center; gap:8px; }
+
+  /* ── 모바일 ── */
+  @media (max-width: 768px) {
+    .section-head { margin-top:18px; margin-bottom:10px; }
+
+    /* AI 코칭 */
+    .coaching-card { margin-bottom:16px; }
+    .coaching-card-head { flex-direction:column; align-items:flex-start; gap:10px; padding:14px 16px; }
+    .coaching-card-head > div:first-child { flex-wrap:wrap; }
+    .coaching-btn--sm { align-self:flex-start; }
+    .coaching-card-body { padding:16px; }
+    .coaching-text { font-size:13.5px; line-height:1.75; }
+
+    /* 다가오는 시험 우선순위 */
+    .exam-priority-row { align-items:flex-start; padding:12px 14px; gap:8px; }
+    .exam-priority-info { flex:1; min-width:0; }
+    .exam-priority-row .dday-badge { flex-shrink:0; }
+
+    /* 이번 주 할 일 */
+    .todo-row { padding:11px 14px; gap:10px; margin-bottom:8px; }
+    .todo-info { flex:1; min-width:0; }
+
+    /* 과목별 타임라인 진단 */
+    .subject-timeline-card { padding:14px 16px; margin-bottom:10px; }
+    .week-badge, .behind-badge, .subject-timeline-badges .dday-badge { font-size:11px; padding:2px 8px; }
+  }
 </style>
 {% endblock %}
 

@@ -240,6 +240,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   color: var(--gray-900);
   font-family: 'Pretendard', -apple-system, sans-serif;
 }
+.stat-card .stat-value.stat-value--time { font-size: 22px; }
 
 /* 값 없는 카드 텍스트 */
 .stat-card .stat-label {
@@ -648,6 +649,15 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .empty-state-btn:hover { opacity: .85; }
 
+.streak-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  background: var(--gray-200);
+}
+.streak-dot--filled { background: var(--blue-600); }
+
 /* =============================================
    CARD VARIANTS
    ============================================= */
@@ -866,6 +876,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   .mobile-header-user {
     display: flex; align-items: center; gap: 8px;
   }
+  .mobile-avatar-link { display: flex; }
   .mobile-avatar {
     width: 30px; height: 30px;
     border-radius: 50%; object-fit: cover;
@@ -884,22 +895,39 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 
   .stat-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    margin-bottom: 20px;
+    gap: 10px;
+    margin-bottom: 16px;
   }
-  .stat-card { padding: 16px; }
-  .stat-value { font-size: 20px; }
+  .stat-card { padding: 12px 14px; min-height: 0; }
+  .stat-card:has(.stat-info) { gap: 10px; }
+  .stat-icon-wrap { width: 36px; height: 36px; }
+  .stat-icon-wrap svg { width: 18px; height: 18px; }
+  .stat-card .stat-value {
+    font-size: 15px;
+    white-space: nowrap;
+  }
+  .stat-card .stat-value.stat-value--time { font-size: 13px; }
 
   .content-grid {
     grid-template-columns: 1fr;
     gap: 16px;
   }
-  .content-left  { grid-column: 1; }
-  .content-right { grid-column: 1; }
+  .content-left  { grid-column: 1; gap: 12px; }
+  .content-right { grid-column: 1; gap: 12px; }
   .triple-grid { grid-template-columns: 1fr; gap: 16px; }
 
   .card { padding: 16px; }
+  .card-header { margin-bottom: 16px; }
   .card-title { font-size: 16px; }
+
+  .empty-state {
+    padding: 16px 12px;
+    gap: 4px;
+  }
+  .empty-state-icon {
+    width: 28px; height: 28px;
+    margin-bottom: 2px;
+  }
 
   .mobile-tabbar {
     display: flex;

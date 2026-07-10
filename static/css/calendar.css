@@ -148,6 +148,9 @@
 }
 #fullcalendar { height: 100%; }
 
+/* 선택한 날짜의 일정 (모바일 전용, 기본은 숨김) */
+.cal-day-agenda { display: none; }
+
 /* FullCalendar 커스텀 */
 .fc .fc-toolbar-title {
   font-size: 18px;
@@ -380,21 +383,16 @@
     gap: 10px;
   }
 
-  /* 카테고리 칩 형태로 가로 스크롤 */
+  /* 카테고리 칩 형태로 줄바꿈 */
   .cal-legend {
     padding: 14px;
     border-radius: 14px;
   }
   .cal-legend ul {
     flex-direction: row;
-    flex-wrap: nowrap;
-    overflow-x: auto;
+    flex-wrap: wrap;
     gap: 8px;
-    padding-bottom: 4px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
   }
-  .cal-legend ul::-webkit-scrollbar { display: none; }
   .cal-legend li {
     flex-shrink: 0;
     background: #f8fafc;
@@ -409,12 +407,78 @@
   /* 이번 달 일정 숨김 */
   .cal-upcoming { display: none; }
 
-  /* 캘린더 본체 */
+  /* 캘린더 본체 : 달력 + 날짜별 일정 목록을 세로로 쌓음 */
   .cal-main {
     flex: none;
-    height: 500px;
+    height: auto;
     padding: 14px;
     border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  #fullcalendar { height: auto; flex-shrink: 0; }
+  .fc-daygrid-day-frame { min-height: 56px; }
+
+  /* 선택한 날짜의 일정 */
+  .cal-day-agenda {
+    display: block;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 12px;
+  }
+  .cal-day-agenda-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 8px;
+  }
+  .cal-day-agenda-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 180px;
+    overflow-y: auto;
+  }
+  .cal-day-agenda-empty {
+    font-size: 12.5px;
+    color: #94a3b8;
+    text-align: center;
+    padding: 16px 0;
+  }
+  .cal-day-agenda-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: #f8fafc;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .cal-day-agenda-item:active { background: #eff6ff; }
+  .cal-day-agenda-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .cal-day-agenda-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .cal-day-agenda-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
+    word-break: break-word;
+  }
+  .cal-day-agenda-time {
+    font-size: 11.5px;
+    color: #94a3b8;
   }
 
   /* FullCalendar 모바일 */
@@ -430,18 +494,23 @@
     border-radius: 7px !important;
   }
 
-  /* 주/일/목록 버튼 숨김 */
-  .fc .fc-timeGridWeek-button,
-  .fc .fc-timeGridDay-button,
-  .fc .fc-listMonth-button {
-    display: none !important;
-  }
-
-  .fc-daygrid-day-number { font-size: 11px; }
+  /* 터치 영역 확보 */
+  .fc-daygrid-day-number { font-size: 11px; padding: 4px 6px; }
+  .fc-daygrid-more-link { padding: 2px 5px; display: inline-block; }
   .fc-col-header-cell-cushion { font-size: 11px; }
-  .fc-event {
-    font-size: 10px !important;
-    padding: 1px 4px !important;
+
+  /* 이벤트는 제목 대신 색 막대로만 표시 (순수 CSS, JS 콜백 없이 처리) */
+  .fc-dayGridMonth-view .fc-daygrid-event .fc-event-main-frame,
+  .fc-dayGridMonth-view .fc-daygrid-event .fc-event-time,
+  .fc-dayGridMonth-view .fc-daygrid-event .fc-event-title-container {
+    display: none;
+  }
+  .fc-dayGridMonth-view .fc-daygrid-event {
+    min-height: 6px;
+    padding: 0 !important;
+  }
+  .fc-dayGridMonth-view .fc-daygrid-event-harness {
+    margin-bottom: 2px;
   }
 
   /* 모달 */
@@ -470,7 +539,7 @@
 }
 
 @media (max-width: 360px) {
-  .cal-main { height: 440px; }
+  .fc-daygrid-day-frame { min-height: 48px; }
   .fc .fc-toolbar-title { font-size: 13px; }
 }
 
