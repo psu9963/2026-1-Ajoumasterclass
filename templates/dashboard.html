@@ -1,0 +1,452 @@
+{% extends "base.html" %}
+{% set active_menu = 'dashboard' %}
+{% block title %}대시보드 — AI 학습 설계{% endblock %}
+
+{% block content %}
+
+<!-- ── 상단 헤더 ── -->
+<div class="welcome">
+  <div class="welcome-left">
+    <h1>안녕하세요, {{ display_name }}님! </h1>
+    <p>오늘도 목표를 향해 한 걸음 더 나아가볼까요?</p>
+  </div>
+</div>
+
+<!-- ── 통계 카드 4개 ── -->
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-icon-wrap stat-icon-wrap--blue">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+      </svg>
+    </div>
+    <div class="stat-info">
+      <p class="stat-value">{{ active_subject_count }}</p>
+      <p class="stat-label">진행 중인 과목</p>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon-wrap stat-icon-wrap--green">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+        <polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+    </div>
+    <div class="stat-info">
+      <p class="stat-value">{{ completed_subject_count }}</p>
+      <p class="stat-label">완료한 과목</p>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon-wrap stat-icon-wrap--purple">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+    </div>
+    <div class="stat-info">
+      <p class="stat-value stat-value--time">{{ total_minutes | minutes_label }}</p>
+      <p class="stat-label">총 학습 시간</p>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon-wrap stat-icon-wrap--orange">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+      </svg>
+    </div>
+    <div class="stat-info">
+      <p class="stat-value stat-value--time">{{ weekly_minutes | minutes_label }}</p>
+      <p class="stat-label">이번 주 학습</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── 메인 2단 그리드 ── -->
+<div class="content-grid">
+
+  <!-- 왼쪽 -->
+  <div class="content-left">
+
+    <!-- 오늘의 학습 목표 (위로 이동) -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue-600)">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+          오늘의 학습 목표
+        </h2>
+      </div>
+      <div id="daily-goal-list"
+           style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;
+                  min-height:80px;max-height:200px;overflow-y:auto;">
+        {% for g in daily_goals %}
+        <div id="dg-{{ g.id }}"
+             style="display:flex;align-items:center;gap:10px;padding:10px 12px;
+                    background:var(--input-bg);border-radius:var(--radius-lg);">
+          <input type="checkbox" {% if g.is_done %}checked{% endif %}
+                 onchange="toggleGoal({{ g.id }}, this)"
+                 style="width:16px;height:16px;accent-color:var(--blue-600);cursor:pointer;"/>
+          <span style="flex:1;font-size:14px;
+                {% if g.is_done %}text-decoration:line-through;color:var(--gray-400);
+                {% else %}color:var(--gray-900);{% endif %}"
+                id="dg-text-{{ g.id }}">{{ g.goal_text }}</span>
+          <button onclick="deleteGoal({{ g.id }})"
+                  style="color:var(--gray-400);font-size:16px;line-height:1;transition:color .15s;"
+                  onmouseover="this.style.color='#ef4444'"
+                  onmouseout="this.style.color='var(--gray-400)'">✕</button>
+        </div>
+        {% else %}
+        <div id="no-goal-msg" class="empty-state">
+          <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+          <p class="empty-state-title">아직 오늘의 목표가 없어요</p>
+          <p class="empty-state-desc">아래 입력창에 첫 번째 목표를 적어보세요</p>
+        </div>
+        {% endfor %}
+      </div>
+      <div style="display:flex;gap:8px;margin-top:auto;">
+        <input id="daily-goal-input" type="text" placeholder="오늘 학습할 내용을 입력하세요"
+               maxlength="100"
+               style="flex:1;padding:10px 12px;border:1px solid var(--gray-200);
+                      border-radius:var(--radius-lg);font-size:14px;
+                      background:var(--input-bg);color:var(--gray-900);outline:none;"
+               onkeydown="if(event.key==='Enter') addDailyGoal()"/>
+        <button onclick="addDailyGoal()"
+                style="padding:10px 14px;background:var(--blue-600);color:#fff;
+                       border-radius:var(--radius-lg);font-size:13px;font-weight:600;
+                       transition:opacity .15s;"
+                onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          추가
+        </button>
+      </div>
+    </div>
+
+    <!-- 바로가기 (아래로 이동) -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">바로가기</h2>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;padding:4px 0;">
+
+        <a href="{{ url_for('classroom.classroom') }}"
+           style="display:flex;align-items:center;gap:14px;padding:16px;
+                  background:var(--input-bg);border-radius:var(--radius-lg);
+                  text-decoration:none;transition:background .15s;"
+           onmouseover="this.style.background='#eff6ff'"
+           onmouseout="this.style.background='var(--input-bg)'">
+          <div style="width:42px;height:42px;background:#eff6ff;border-radius:10px;
+                      display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+            </svg>
+          </div>
+          <div>
+            <p style="font-size:14px;font-weight:600;color:var(--gray-900);margin-bottom:2px;">강의실</p>
+            <p style="font-size:12px;color:var(--gray-500);">과목별 강의실에 입장하세요</p>
+          </div>
+          <svg style="margin-left:auto;flex-shrink:0;" width="16" height="16"
+               viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
+        </a>
+
+        <a href="{{ url_for('analysis.analysis') }}"
+           style="display:flex;align-items:center;gap:14px;padding:16px;
+                  background:var(--input-bg);border-radius:var(--radius-lg);
+                  text-decoration:none;transition:background .15s;"
+           onmouseover="this.style.background='#eff6ff'"
+           onmouseout="this.style.background='var(--input-bg)'">
+          <div style="width:42px;height:42px;background:#dbeafe;border-radius:10px;
+                      display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+          </div>
+          <div>
+            <p style="font-size:14px;font-weight:600;color:var(--gray-900);margin-bottom:2px;">학습 분석 보기</p>
+            <p style="font-size:12px;color:var(--gray-500);">내 학습 패턴과 통계를 확인하세요</p>
+          </div>
+          <svg style="margin-left:auto;flex-shrink:0;" width="16" height="16"
+               viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
+        </a>
+
+        <a href="{{ url_for('calendar.calendar') }}"
+           style="display:flex;align-items:center;gap:14px;padding:16px;
+                  background:var(--input-bg);border-radius:var(--radius-lg);
+                  text-decoration:none;transition:background .15s;"
+           onmouseover="this.style.background='#eff6ff'"
+           onmouseout="this.style.background='var(--input-bg)'">
+          <div style="width:42px;height:42px;background:#eff6ff;border-radius:10px;
+                      display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </div>
+          <div>
+            <p style="font-size:14px;font-weight:600;color:var(--gray-900);margin-bottom:2px;">캘린더</p>
+            <p style="font-size:12px;color:var(--gray-500);">일정을 관리하고 계획을 세워보세요</p>
+          </div>
+          <svg style="margin-left:auto;flex-shrink:0;" width="16" height="16"
+               viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
+        </a>
+
+        <a href="{{ url_for('mypage.mypage') }}"
+           style="display:flex;align-items:center;gap:14px;padding:16px;
+                  background:var(--input-bg);border-radius:var(--radius-lg);
+                  text-decoration:none;transition:background .15s;"
+           onmouseover="this.style.background='#eff6ff'"
+           onmouseout="this.style.background='var(--input-bg)'">
+          <div style="width:42px;height:42px;background:#dbeafe;border-radius:10px;
+                      display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+          <div>
+            <p style="font-size:14px;font-weight:600;color:var(--gray-900);margin-bottom:2px;">마이페이지</p>
+            <p style="font-size:12px;color:var(--gray-500);">계정 정보와 설정을 관리하세요</p>
+          </div>
+          <svg style="margin-left:auto;flex-shrink:0;" width="16" height="16"
+               viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
+        </a>
+
+      </div>
+    </div>
+
+  </div><!-- /content-left -->
+
+  <!-- 오른쪽 -->
+  <div class="content-right">
+
+    <!-- 다가오는 일정 -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue-600)">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          다가오는 일정
+        </h2>
+        <a href="{{ url_for('calendar.calendar') }}"
+           style="font-size:12px;color:var(--blue-600);text-decoration:none;font-weight:500;">
+          캘린더 →
+        </a>
+      </div>
+      {% if upcoming_events %}
+        <div style="display:flex;flex-direction:column;gap:10px;padding:4px 0;">
+          {% for ev in upcoming_events %}
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;
+                      background:var(--input-bg);border-radius:var(--radius-lg);">
+            <div style="width:40px;height:40px;background:#eff6ff;border-radius:10px;
+                        display:flex;flex-direction:column;align-items:center;
+                        justify-content:center;flex-shrink:0;">
+              <span style="font-size:10px;font-weight:700;color:#2563eb;line-height:1;">
+                {{ ev.month }}월
+              </span>
+              <span style="font-size:16px;font-weight:800;color:#1d4ed8;line-height:1.2;">
+                {{ ev.day }}
+              </span>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <p style="font-size:13px;font-weight:600;color:var(--gray-900);
+                        white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                {{ ev.title }}
+              </p>
+              <p style="font-size:11px;color:var(--gray-500);margin-top:2px;">
+                {% if ev.dday == 0 %}오늘!
+                {% elif ev.dday == 1 %}내일
+                {% else %}D-{{ ev.dday }}
+                {% endif %}
+              </p>
+            </div>
+            {% if ev.is_exam %}
+            <span style="font-size:10px;font-weight:700;padding:3px 8px;
+                         background:#fef2f2;color:#dc2626;border-radius:9999px;flex-shrink:0;">
+              시험
+            </span>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <p class="empty-state-title">다가오는 일정이 없어요</p>
+          <p class="empty-state-desc">캘린더에서 일정을 추가해보세요</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- 연속 학습일 -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue-600)">
+            <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+          </svg>
+          연속 학습일
+        </h2>
+      </div>
+
+      {% if streak_days > 0 %}
+      <div style="text-align:center;padding:6px 0 2px;">
+        <p style="font-size:32px;font-weight:800;color:var(--blue-600);line-height:1.2;">
+          {{ streak_days }}일 <span style="font-size:15px;font-weight:600;color:var(--gray-500);">연속</span>
+        </p>
+      </div>
+      {% else %}
+      <div class="empty-state" style="padding:6px 0 2px;">
+        <p class="empty-state-title">오늘부터 시작해보세요</p>
+      </div>
+      {% endif %}
+
+      <div style="display:flex;justify-content:space-between;gap:4px;padding:14px 4px 4px;">
+        {% for d in last_7_days %}
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <span style="font-size:11px;color:var(--gray-500);">{{ d.label }}</span>
+          <span class="streak-dot{% if d.has_record %} streak-dot--filled{% endif %}"></span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- 학점 예측 배너 -->
+    <div class="card" style="background:linear-gradient(135deg,#1d4ed8,#2563eb);border:none;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <span style="font-size:10px;font-weight:700;letter-spacing:1.5px;
+                     color:rgba(255,255,255,0.7);">학점 예측 서비스</span>
+      </div>
+      <h3 style="font-size:16px;font-weight:700;color:#fff;margin-bottom:6px;">
+        학점을 미리 예측해보세요.
+      </h3>
+      <p style="font-size:13px;color:rgba(255,255,255,0.75);margin-bottom:16px;">
+        여러분의 성적을 토대로 AI가 학점을 예측합니다.
+      </p>
+      <a href="{{ url_for('grade_predict.grade_predict') }}"
+         style="display:block;width:100%;padding:11px;background:rgba(255,255,255,0.15);
+                color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:var(--radius-lg);
+                font-size:13px;font-weight:600;text-align:center;
+                transition:background .15s;text-decoration:none;"
+         onmouseover="this.style.background='rgba(255,255,255,0.25)'"
+         onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+        학점 예측하기
+      </a>
+    </div>
+
+  </div><!-- /content-right -->
+</div><!-- /content-grid -->
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function addDailyGoal() {
+  const input = document.getElementById('daily-goal-input');
+  const text  = input.value.trim();
+  if (!text) return;
+  const res  = await fetch('/dashboard/add_daily_goal', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ goal_text: text })
+  });
+  const data = await res.json();
+  if (data.ok) {
+    const noMsg = document.getElementById('no-goal-msg');
+    if (noMsg) noMsg.remove();
+    const list = document.getElementById('daily-goal-list');
+    const div  = document.createElement('div');
+    div.id = 'dg-' + data.id;
+    div.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 12px;' +
+                        'background:var(--input-bg);border-radius:var(--radius-lg);';
+    div.innerHTML = `
+      <input type="checkbox" onchange="toggleGoal(${data.id}, this)"
+             style="width:16px;height:16px;accent-color:var(--blue-600);cursor:pointer;"/>
+      <span id="dg-text-${data.id}"
+            style="flex:1;font-size:14px;color:var(--gray-900);">${data.goal_text}</span>
+      <button onclick="deleteGoal(${data.id})"
+              style="color:var(--gray-400);font-size:16px;line-height:1;"
+              onmouseover="this.style.color='#ef4444'"
+              onmouseout="this.style.color='var(--gray-400)'">✕</button>
+    `;
+    list.appendChild(div);
+    input.value = '';
+  }
+}
+
+async function toggleGoal(id, cb) {
+  const res  = await fetch(`/dashboard/toggle_daily_goal/${id}`, { method: 'POST' });
+  const data = await res.json();
+  const span = document.getElementById('dg-text-' + id);
+  if (data.is_done) {
+    span.style.textDecoration = 'line-through';
+    span.style.color          = 'var(--gray-400)';
+  } else {
+    span.style.textDecoration = 'none';
+    span.style.color          = 'var(--gray-900)';
+  }
+}
+
+async function deleteGoal(id) {
+  const res  = await fetch(`/dashboard/delete_daily_goal/${id}`, { method: 'POST' });
+  const data = await res.json();
+  if (data.ok) {
+    document.getElementById('dg-' + id).remove();
+    const list = document.getElementById('daily-goal-list');
+    if (list.children.length === 0) {
+      list.innerHTML = `
+        <div id="no-goal-msg" class="empty-state">
+          <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="1.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+          <p class="empty-state-title">아직 오늘의 목표가 없어요</p>
+          <p class="empty-state-desc">아래 입력창에 첫 번째 목표를 적어보세요</p>
+        </div>`;
+    }
+  }
+}
+</script>
+{% endblock %}

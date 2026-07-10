@@ -1,0 +1,466 @@
+{% extends "base.html" %}
+{% block title %}캘린더 — AI 학습 설계{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/calendar.css') }}"/>
+{% endblock %}
+
+{% block content %}
+<div class="calendar-page">
+
+  <!-- ── 사이드바 ── -->
+  <aside class="cal-sidebar">
+    <button class="cal-add-btn" id="openAddModal">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.5">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      일정 추가
+    </button>
+
+    <!-- 카테고리 범례 -->
+    <div class="cal-legend">
+      <p class="cal-legend-title">카테고리</p>
+      <ul>
+        <li><span class="dot" style="background:#2563eb"></span>일반</li>
+        <li><span class="dot" style="background:#16a34a"></span>학습</li>
+        <li><span class="dot" style="background:#dc2626"></span>시험</li>
+        <li><span class="dot" style="background:#d97706"></span>과제</li>
+        <li><span class="dot" style="background:#7c3aed"></span>프로젝트</li>
+        <li><span class="dot" style="background:#db2777"></span>기타</li>
+      </ul>
+    </div>
+
+    <!-- 이번 달 일정 목록 -->
+    <div class="cal-upcoming">
+      <p class="cal-legend-title">이번 달 일정</p>
+      <ul id="upcomingList">
+        <li class="cal-upcoming-empty">일정이 없습니다</li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- ── 캘린더 본체 ── -->
+  <div class="cal-main">
+    <div id="fullcalendar"></div>
+
+    <!-- 선택한 날짜의 일정 (모바일 전용) -->
+    <div class="cal-day-agenda" id="calDayAgenda">
+      <p class="cal-day-agenda-title" id="calDayAgendaTitle"></p>
+      <ul class="cal-day-agenda-list" id="calDayAgendaList"></ul>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     모달 : 일정 추가 / 수정
+════════════════════════════════════════ -->
+<div class="modal-overlay" id="eventModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="modalTitle">일정 추가</h3>
+      <button class="modal-close" id="closeModal">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- 제목 -->
+      <div class="form-group">
+        <label>제목 <span class="required">*</span></label>
+        <input type="text" id="evTitle" placeholder="일정 제목을 입력하세요"/>
+      </div>
+
+      <!-- 카테고리 (색상 자동 매핑) -->
+      <div class="form-group">
+        <label>카테고리</label>
+        <div class="category-select-wrap">
+          <span class="category-preview-dot" id="categoryDot"></span>
+          <select id="evCategory">
+            <option value="일반">일반</option>
+            <option value="학습">학습</option>
+            <option value="시험">시험</option>
+            <option value="과제">과제</option>
+            <option value="프로젝트">프로젝트</option>
+            <option value="기타">기타</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 날짜 -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>시작일 <span class="required">*</span></label>
+          <input type="date" id="evStartDate"/>
+        </div>
+        <div class="form-group">
+          <label>종료일</label>
+          <input type="date" id="evEndDate"/>
+        </div>
+      </div>
+
+      <!-- 시간 -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>시작 시간</label>
+          <input type="time" id="evStartTime"/>
+        </div>
+        <div class="form-group">
+          <label>종료 시간</label>
+          <input type="time" id="evEndTime"/>
+        </div>
+      </div>
+
+      <!-- 메모 -->
+      <div class="form-group">
+        <label>메모</label>
+        <textarea id="evDesc" rows="3" placeholder="상세 내용을 입력하세요"></textarea>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-delete" id="btnDelete" style="display:none">삭제</button>
+      <div class="modal-footer-right">
+        <button class="btn-cancel" id="btnCancel">취소</button>
+        <button class="btn-save"   id="btnSave">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FullCalendar CDN -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/locales/ko.global.min.js"></script>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* ══════════════════════════════════════════════
+   상태 변수
+══════════════════════════════════════════════ */
+let calendar;
+let editingEventId = null;
+let currentAgendaDate = new Date().toISOString().slice(0, 10);
+
+function isMobileView() {
+  return window.innerWidth <= 768;
+}
+
+function escHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ══════════════════════════════════════════════
+   카테고리 → 색상 매핑
+══════════════════════════════════════════════ */
+const CATEGORY_COLOR_MAP = {
+  '일반':    { key: 'blue',   hex: '#2563eb' },
+  '학습':    { key: 'green',  hex: '#16a34a' },
+  '시험':    { key: 'red',    hex: '#dc2626' },
+  '과제':    { key: 'yellow', hex: '#d97706' },
+  '프로젝트': { key: 'purple', hex: '#7c3aed' },
+  '기타':    { key: 'pink',   hex: '#db2777' },
+};
+
+function getColorByCategory(category) {
+  return (CATEGORY_COLOR_MAP[category] || CATEGORY_COLOR_MAP['일반']).key;
+}
+
+function updateCategoryDot(category) {
+  const hex = (CATEGORY_COLOR_MAP[category] || CATEGORY_COLOR_MAP['일반']).hex;
+  document.getElementById('categoryDot').style.background = hex;
+}
+
+/* ══════════════════════════════════════════════
+   FullCalendar 초기화
+══════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', function () {
+  const el = document.getElementById('fullcalendar');
+
+  calendar = new FullCalendar.Calendar(el, {
+    locale:       'ko',
+    initialView:  'dayGridMonth',
+    headerToolbar: isMobileView() ? {
+      left:   'prev,next',
+      center: 'title',
+      right:  'today'
+    } : {
+      left:   'prev,next today',
+      center: 'title',
+      right:  'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
+    },
+    buttonText: {
+      today: '오늘',
+      month: '월',
+      week:  '주',
+      day:   '일',
+      list:  '목록'
+    },
+    height:       isMobileView() ? 'auto' : '100%',
+    editable:     true,
+    selectable:   true,
+    dayMaxEvents: isMobileView() ? 2 : 3,
+    nowIndicator: true,
+
+    // 서버에서 이벤트 불러오기
+    events: '/api/calendar/events',
+
+    // 날짜 클릭 → 모바일은 그날 일정 목록, 데스크톱은 지금처럼 추가 모달
+    dateClick: function (info) {
+      if (isMobileView()) {
+        updateDayAgenda(info.dateStr);
+      } else {
+        openModal(null, info.dateStr);
+      }
+    },
+
+    // 이벤트 클릭 → 수정 모달
+    eventClick: function (info) {
+      const p = info.event.extendedProps;
+      openModal({
+        id:          info.event.id,
+        title:       info.event.title,
+        start_date:  p.start_date,
+        end_date:    p.end_date,
+        start_time:  p.start_time,
+        end_time:    p.end_time,
+        description: p.description,
+        category:    p.category,
+        color:       p.color,
+      });
+    },
+
+    // 드래그로 날짜 이동
+    eventDrop: function (info) {
+      const e = info.event;
+      const p = e.extendedProps;
+      fetchAPI(`/api/calendar/events/${e.id}`, 'PUT', {
+        start_date: e.startStr.slice(0, 10),
+        end_date:   e.endStr ? e.endStr.slice(0, 10) : e.startStr.slice(0, 10),
+        start_time: p.start_time,
+        end_time:   p.end_time,
+      });
+    },
+
+    // 달 변경 시 사이드바 업데이트
+    datesSet: function () {
+      updateUpcomingList();
+    },
+  });
+
+  calendar.render();
+  updateUpcomingList();
+  updateDayAgenda(currentAgendaDate);
+
+  // 카테고리 변경 시 dot 자동 업데이트
+  document.getElementById('evCategory').addEventListener('change', function () {
+    updateCategoryDot(this.value);
+  });
+});
+
+/* ══════════════════════════════════════════════
+   모달 열기
+══════════════════════════════════════════════ */
+function openModal(event, defaultDate) {
+  editingEventId = event ? event.id : null;
+
+  document.getElementById('modalTitle').textContent =
+    event ? '일정 수정' : '일정 추가';
+
+  document.getElementById('btnDelete').style.display =
+    event ? 'inline-flex' : 'none';
+
+  document.getElementById('evTitle').value     = event ? event.title       : '';
+  document.getElementById('evStartDate').value = event ? event.start_date  : (defaultDate || '');
+  document.getElementById('evEndDate').value   = event ? event.end_date    : '';
+  document.getElementById('evStartTime').value = event ? event.start_time  : '';
+  document.getElementById('evEndTime').value   = event ? event.end_time    : '';
+  document.getElementById('evDesc').value      = event ? event.description : '';
+  document.getElementById('evCategory').value  = event ? event.category    : '일반';
+
+  // 카테고리에 맞는 dot 색상 업데이트
+  updateCategoryDot(event ? event.category : '일반');
+
+  document.getElementById('eventModal').classList.add('active');
+  document.getElementById('evTitle').focus();
+}
+
+function closeModal() {
+  document.getElementById('eventModal').classList.remove('active');
+  editingEventId = null;
+}
+
+/* ══════════════════════════════════════════════
+   버튼 이벤트
+══════════════════════════════════════════════ */
+document.getElementById('openAddModal').addEventListener('click', () => openModal(null));
+document.getElementById('closeModal').addEventListener('click', closeModal);
+document.getElementById('btnCancel').addEventListener('click', closeModal);
+
+// 오버레이 클릭 시 닫기
+document.getElementById('eventModal').addEventListener('click', function (e) {
+  if (e.target === this) closeModal();
+});
+
+// 저장
+document.getElementById('btnSave').addEventListener('click', async function () {
+  const title     = document.getElementById('evTitle').value.trim();
+  const startDate = document.getElementById('evStartDate').value;
+  const category  = document.getElementById('evCategory').value;
+
+  if (!title) {
+    alert('제목을 입력해주세요.');
+    document.getElementById('evTitle').focus();
+    return;
+  }
+  if (!startDate) {
+    alert('시작일을 선택해주세요.');
+    return;
+  }
+
+  const payload = {
+    title:       title,
+    start_date:  startDate,
+    end_date:    document.getElementById('evEndDate').value,
+    start_time:  document.getElementById('evStartTime').value,
+    end_time:    document.getElementById('evEndTime').value,
+    description: document.getElementById('evDesc').value.trim(),
+    category:    category,
+    color:       getColorByCategory(category),  // ✅ 카테고리로 자동 결정
+  };
+
+  if (editingEventId) {
+    await fetchAPI(`/api/calendar/events/${editingEventId}`, 'PUT', payload);
+  } else {
+    await fetchAPI('/api/calendar/events', 'POST', payload);
+  }
+
+  calendar.refetchEvents();
+  updateUpcomingList();
+  updateDayAgenda(currentAgendaDate);
+  closeModal();
+});
+
+// 삭제
+document.getElementById('btnDelete').addEventListener('click', async function () {
+  if (!confirm('이 일정을 삭제할까요?')) return;
+  await fetchAPI(`/api/calendar/events/${editingEventId}`, 'DELETE');
+  calendar.refetchEvents();
+  updateUpcomingList();
+  updateDayAgenda(currentAgendaDate);
+  closeModal();
+});
+
+/* ══════════════════════════════════════════════
+   API 공통 함수
+══════════════════════════════════════════════ */
+async function fetchAPI(url, method, body) {
+  const res = await fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body:    body ? JSON.stringify(body) : undefined,
+  });
+  return res.json().catch(() => ({}));
+}
+
+/* ══════════════════════════════════════════════
+   사이드바 : 이번 달 일정 목록
+══════════════════════════════════════════════ */
+function updateUpcomingList() {
+  const list   = document.getElementById('upcomingList');
+  const events = calendar.getEvents()
+    .filter(e => {
+      const now   = new Date();
+      const start = e.start;
+      return start &&
+             start.getFullYear() === now.getFullYear() &&
+             start.getMonth()    === now.getMonth();
+    })
+    .sort((a, b) => a.start - b.start);
+
+  if (events.length === 0) {
+    list.innerHTML = '<li class="cal-upcoming-empty">일정이 없습니다</li>';
+    return;
+  }
+
+  list.innerHTML = events.map(e => `
+    <li class="cal-upcoming-item" onclick="openEventById(${e.id})">
+      <span class="cal-upcoming-dot"
+            style="background:${e.backgroundColor}"></span>
+      <div class="cal-upcoming-info">
+        <span class="cal-upcoming-name">${e.title}</span>
+        <span class="cal-upcoming-date">${formatDate(e.start)}</span>
+      </div>
+    </li>
+  `).join('');
+}
+
+/* ══════════════════════════════════════════════
+   선택한 날짜의 일정 (모바일 전용 패널)
+══════════════════════════════════════════════ */
+function updateDayAgenda(dateStr) {
+  currentAgendaDate = dateStr;
+
+  const titleEl = document.getElementById('calDayAgendaTitle');
+  const listEl  = document.getElementById('calDayAgendaList');
+  if (!titleEl || !listEl) return;
+
+  const d = new Date(dateStr + 'T00:00:00');
+  const weekdayNames = ['일', '월', '화', '수', '목', '금', '토'];
+  titleEl.textContent = `${d.getMonth() + 1}월 ${d.getDate()}일 (${weekdayNames[d.getDay()]})`;
+
+  const dayEvents = calendar.getEvents()
+    .filter(e => {
+      const p = e.extendedProps;
+      const start = p.start_date;
+      const end   = p.end_date || p.start_date;
+      return dateStr >= start && dateStr <= end;
+    })
+    .sort((a, b) => (a.extendedProps.start_time || '').localeCompare(b.extendedProps.start_time || ''));
+
+  if (dayEvents.length === 0) {
+    listEl.innerHTML = '<li class="cal-day-agenda-empty">일정이 없어요</li>';
+    return;
+  }
+
+  listEl.innerHTML = dayEvents.map(e => {
+    const p = e.extendedProps;
+    let timeLabel = '종일';
+    if (p.start_time) {
+      timeLabel = p.start_time.slice(0, 5);
+      if (p.end_time) timeLabel += ` ~ ${p.end_time.slice(0, 5)}`;
+    }
+    return `
+      <li class="cal-day-agenda-item" onclick="openEventById(${e.id})">
+        <span class="cal-day-agenda-dot" style="background:${e.backgroundColor}"></span>
+        <div class="cal-day-agenda-info">
+          <span class="cal-day-agenda-name">${escHtml(e.title)}</span>
+          <span class="cal-day-agenda-time">${timeLabel}</span>
+        </div>
+      </li>`;
+  }).join('');
+}
+
+function openEventById(id) {
+  const e = calendar.getEventById(id);
+  if (!e) return;
+  const p = e.extendedProps;
+  openModal({
+    id:          e.id,
+    title:       e.title,
+    start_date:  p.start_date,
+    end_date:    p.end_date,
+    start_time:  p.start_time,
+    end_time:    p.end_time,
+    description: p.description,
+    category:    p.category,
+    color:       p.color,
+  });
+}
+
+function formatDate(date) {
+  if (!date) return '';
+  return `${date.getMonth() + 1}/${date.getDate()}`;
+}
+</script>
+{% endblock %}
