@@ -51,6 +51,7 @@ def mypage():
         study_plan_count=study_plan_count,
         exam_plan_count=exam_plan_count,
         done_count=done_count,
+        active_menu='mypage',
     )
 
 

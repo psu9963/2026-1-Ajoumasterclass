@@ -14,15 +14,14 @@
 
 <header class="mobile-header">
   <div class="mobile-header-logo">
-    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
-      <svg width="20" height="26" viewBox="0 0 31 41" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M7.54297 21.25L11.2197 10.6445H14.0469L17.709 21.25H15.3506L14.5522 18.8037H10.7144L9.91602 21.25H7.54297ZM13.9956 17.0898L12.6699 13.0322H12.5967L11.271 17.0898H13.9956Z" fill="#2563EB"/>
-        <path d="M20.75 10.25V15.25" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>
-        <path d="M18.25 12.75H23.25" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>
-        <path d="M15.25 1.25C6.85 1.25 1.25 7.65 1.25 15.1167C1.25 20.45 4.05 24.7167 8.71667 27.9167V33.25H21.7833V27.9167C26.45 24.7167 29.25 20.45 29.25 15.1167C29.25 7.65 23.65 1.25 15.25 1.25Z" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M11.25 36.25H19.25" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>
-        <path d="M12.25 39.25H18.25" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>
-      </svg>
+    <svg width="20" height="26" viewBox="0 0 31 41" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M7.54297 21.25L11.2197 10.6445H14.0469L17.709 21.25H15.3506L14.5522 18.8037H10.7144L9.91602 21.25H7.54297ZM13.9956 17.0898L12.6699 13.0322H12.5967L11.271 17.0898H13.9956Z" fill="#2563EB"/>
+      <path d="M20.75 10.25V15.25" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>
+      <path d="M18.25 12.75H23.25" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>
+      <path d="M15.25 1.25C6.85 1.25 1.25 7.65 1.25 15.1167C1.25 20.45 4.05 24.7167 8.71667 27.9167V33.25H21.7833V27.9167C26.45 24.7167 29.25 20.45 29.25 15.1167C29.25 7.65 23.65 1.25 15.25 1.25Z" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M11.25 36.25H19.25" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>
+      <path d="M12.25 39.25H18.25" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>
+    </svg>
     <span>A+ 스터디 플래너</span>
   </div>
   <div class="mobile-header-user">
@@ -126,17 +125,14 @@
     <span>대시보드</span>
   </a>
 
-  <a href="{{ url_for('study_history.history') }}"
-     class="tab-item {% if active_menu == 'study_history' %}active{% endif %}">
+  <a href="{{ url_for('classroom.classroom') }}"
+     class="tab-item {% if active_menu == 'classroom' %}active{% endif %}">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
          stroke-linecap="round" stroke-linejoin="round">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-      <polyline points="14 2 14 8 20 8"/>
-      <line x1="16" y1="13" x2="8" y2="13"/>
-      <line x1="16" y1="17" x2="8" y2="17"/>
-      <polyline points="10 9 9 9 8 9"/>
+      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
     </svg>
-    <span>학습 기록</span>
+    <span>강의실</span>
   </a>
 
   <a href="{{ url_for('analysis.analysis') }}"
