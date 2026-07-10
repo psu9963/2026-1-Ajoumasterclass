@@ -215,7 +215,7 @@ def classroom():
         return redirect(url_for('classroom.classroom_detail', subject_id=subject.id))
 
     subjects = Subject.query.filter_by(user_id=current_user.id).order_by(Subject.created_at.desc()).all()
-    return render_template('classroom.html', subjects=subjects)
+    return render_template('classroom.html', subjects=subjects, active_menu='classroom')
 
 
 def _compute_study_stats(user_id, subject_id):
@@ -296,7 +296,8 @@ def classroom_detail(subject_id):
                            study_records=stats['records'],
                            week_chart=stats['week_chart'],
                            week_minutes=stats['week_minutes'],
-                           total_minutes=stats['total_minutes'])
+                           total_minutes=stats['total_minutes'],
+                           active_menu='classroom')
 
 
 @classroom_bp.route('/classroom/<int:subject_id>/analyze', methods=['POST'])

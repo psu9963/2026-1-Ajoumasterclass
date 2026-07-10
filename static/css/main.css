@@ -44,13 +44,14 @@ img { max-width: 100%; height: auto; display: block; }
   padding: 0 32px; height: 64px;
   display: flex; align-items: center; justify-content: space-between;
 }
-.navbar-logo { 
-  display: flex; 
-  align-items: center; 
-  gap: 3px;
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex-shrink: 0;  /* ← 로고가 찌그러지지 않게 */
 }
-.navbar-logo svg { 
+.navbar-logo svg {
+  width: 22px; height: 29px;
   color: var(--blue-600);
   flex-shrink: 0;  /* ← SVG 크기 고정 */
 }
@@ -696,12 +697,6 @@ img { max-width: 100%; height: auto; display: block; }
   padding: 0 32px; height: 64px;
   display: flex; align-items: center; justify-content: space-between;
 }
-.navbar-logo { display: flex; align-items: center; gap: 8px; }
-.navbar-logo svg { color: var(--blue-600); }
-.navbar-logo-text {
-  font-size: 20px; font-weight: 700;
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
-}
 .navbar-links { display: flex; align-items: center; gap: 24px; }
 .navbar-links a:not(.btn-nav-login) {
   font-size: 15px; color: var(--gray-600); transition: color .15s;
@@ -1286,7 +1281,6 @@ img { max-width: 100%; height: auto; display: block; }
   .hero-title      { font-size: 1.7rem; }
   .showcase-title  { font-size: 1.35rem; }
   .stat-number     { font-size: 2rem; }
-  .navbar-logo-text { font-size: 16px; }
   .features-grid   { grid-template-columns: 1fr; }
   .footer-grid     { grid-template-columns: 1fr; }
 }

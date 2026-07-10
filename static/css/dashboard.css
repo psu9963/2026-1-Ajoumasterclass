@@ -98,11 +98,11 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .header-logo {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   flex-shrink: 0;
 }
 .header-logo svg {
-  width: 32px; height: 32px;
+  width: 22px; height: 29px;
   color: var(--blue-600);
 }
 .header-logo-text {
@@ -856,7 +856,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     display: flex; align-items: center; gap: 8px;
   }
   .mobile-header-logo svg {
-    width: 24px; height: 24px; color: var(--blue-600);
+    width: 22px; height: 29px; color: var(--blue-600);
   }
   .mobile-header-logo span {
     font-size: 15px; font-weight: 700;
