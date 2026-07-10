@@ -22,7 +22,7 @@ app.secret_key = os.getenv("SECRET_KEY")
 
 # ── DB 설정 ──────────────────────────────────────
 db_url = os.environ.get('DATABASE_URL') or 'sqlite:///app.db'
-print("🔥 현재 연결된 DB 주소는:", db_url)
+print("현재 연결된 DB 주소는:", db_url)
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10MB
