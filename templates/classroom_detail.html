@@ -139,20 +139,20 @@
     {% set half = ((plans|length) + 1) // 2 %}
     {% set left_plans  = plans[:half] %}
     {% set right_plans = plans[half:] %}
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0; flex:1; min-height:0;">
+    <div class="plans-two-col">
       <!-- 왼쪽 열 -->
-      <div style="border-right:1px solid var(--gray-100); display:flex; flex-direction:column;">
+      <div class="plans-col plans-col-left">
         {% for p in left_plans %}
-        <div style="display:flex; align-items:center; gap:0; padding:0 14px; flex:1; border-bottom:1px solid var(--gray-50); {% if loop.last and not right_plans %}border-bottom:none;{% endif %}">
+        <div style="display:flex; align-items:center; gap:0; padding:6px 14px; flex:1; border-bottom:1px solid var(--gray-50); {% if loop.last and not right_plans %}border-bottom:none;{% endif %}">
           <span style="font-size:11px; font-weight:700; color:#2563eb; width:26px; flex-shrink:0; font-variant-numeric:tabular-nums;">{{ p.week }}주</span>
           <span style="font-size:12px; color:var(--gray-700); line-height:1.4;">{{ p.topic }}</span>
         </div>
         {% endfor %}
       </div>
       <!-- 오른쪽 열 -->
-      <div style="display:flex; flex-direction:column;">
+      <div class="plans-col">
         {% for p in right_plans %}
-        <div style="display:flex; align-items:center; gap:0; padding:0 14px; flex:1; border-bottom:1px solid var(--gray-50); {% if loop.last %}border-bottom:none;{% endif %}">
+        <div style="display:flex; align-items:center; gap:0; padding:6px 14px; flex:1; border-bottom:1px solid var(--gray-50); {% if loop.last %}border-bottom:none;{% endif %}">
           <span style="font-size:11px; font-weight:700; color:#2563eb; width:26px; flex-shrink:0; font-variant-numeric:tabular-nums;">{{ p.week }}주</span>
           <span style="font-size:12px; color:var(--gray-700); line-height:1.4;">{{ p.topic }}</span>
         </div>
@@ -177,7 +177,7 @@
 </div>
 
 <!-- [2] 학습 시간 기록 — 전체 폭 -->
-<div class="card" style="padding:20px 24px; margin-bottom:16px;">
+<div class="card classroom-section-card">
   <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:8px; flex-wrap:wrap;">
     <div style="display:flex; align-items:center; gap:10px;">
       <div style="width:32px; height:32px; background:#eff6ff; border-radius:9px; display:flex; align-items:center; justify-content:center;">
@@ -306,7 +306,7 @@
 </div>
 
 <!-- [3] AI 학습 계획 — 전체 폭 -->
-<div class="card" style="padding:20px 24px; margin-bottom:16px;">
+<div class="card classroom-section-card">
   <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:8px; flex-wrap:wrap;">
     <div style="display:flex; align-items:center; gap:10px;">
       <div style="width:32px; height:32px; background:#eff6ff; border-radius:9px; display:flex; align-items:center; justify-content:center;">
@@ -347,7 +347,7 @@
             </button>
             <div class="acc-body">
           {% endif %}
-          <label style="display:flex; align-items:flex-start; gap:8px; padding:5px 0; cursor:pointer;">
+          <label class="check-item-label" style="display:flex; align-items:flex-start; gap:8px; cursor:pointer;">
             <input type="checkbox" {% if item.is_done %}checked{% endif %}
                    onchange="toggleItem({{ sp.id }}, {{ item.id }}, this)"
                    style="margin-top:3px; accent-color:#2563eb; flex-shrink:0;"/>
@@ -369,7 +369,7 @@
 </div>
 
 <!-- [4] 시험 대비 계획 (등록 + 시험별 대비 계획) — 전체 폭 -->
-<div class="card" style="padding:20px 24px; margin-bottom:16px;">
+<div class="card classroom-section-card">
   <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:8px; flex-wrap:wrap;">
     <div style="display:flex; align-items:center; gap:10px;">
       <div style="width:32px; height:32px; background:#fef3c7; border-radius:9px; display:flex; align-items:center; justify-content:center;">
@@ -432,7 +432,7 @@
                 <span class="dday-date">{{ item.plan_date | exam_date_label }}</span>
               </div>
             {% endif %}
-            <label style="display:flex; align-items:flex-start; gap:8px; padding:4px 0; cursor:pointer;">
+            <label class="check-item-label check-item-label--compact" style="display:flex; align-items:flex-start; gap:8px; cursor:pointer;">
               <input type="checkbox" {% if item.is_done %}checked{% endif %}
                      onchange="toggleExamItem({{ ep.id }}, {{ item.id }}, this)"
                      style="margin-top:3px; accent-color:#d97706; flex-shrink:0;"/>
@@ -596,6 +596,8 @@
   .acc-header.collapsed .acc-arrow { transform: rotate(-90deg); }
   .acc-body { padding: 8px 14px 12px; display: flex; flex-direction: column; }
   .acc-body.hidden { display: none; }
+  .check-item-label { padding: 5px 0; }
+  .check-item-label--compact { padding: 4px 0; }
   .dday-section { margin-bottom: 10px; }
   .dday-section:last-child { margin-bottom: 0; }
   .dday-header { display: flex; align-items: center; gap: 8px; padding: 8px 0 4px; border-bottom: 1px solid var(--gray-100, #f1f5f9); margin-bottom: 4px; }
@@ -628,11 +630,37 @@
   .exam-items-actions { display: flex; justify-content: flex-end; margin-bottom: 8px; }
   .exam-clear-btn { padding: 5px 12px; border: 1px solid var(--gray-200, #e2e8f0); border-radius: 7px; font-size: 11.5px; font-weight: 600; color: var(--gray-500, #64748b); background: #fff; cursor: pointer; transition: border-color .15s, color .15s; }
   .exam-clear-btn:hover { border-color: #ef4444; color: #ef4444; }
+  .classroom-section-card { padding: 20px 24px; margin-bottom: 16px; }
+  .plans-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0; flex: 1; min-height: 0; }
+  .plans-col { display: flex; flex-direction: column; }
+  .plans-col-left { border-right: 1px solid var(--gray-100); }
   @media (max-width: 640px) {
     .classroom-detail-grid { grid-template-columns: 1fr; }
     .study-time-layout { flex-direction: column; }
-    .study-time-chart-col { padding-left: 0; }
-    .study-time-summary-col { padding-left: 0; border-left: none; border-top: 1px solid var(--gray-100, #f1f5f9); padding-top: 14px; }
+    .study-time-chart-col { padding-left: 0; min-width: 0; }
+    .study-time-summary-col { padding-left: 0; border-left: none; border-top: 1px solid var(--gray-100, #f1f5f9); padding-top: 14px; min-width: 0; }
+
+    .plans-two-col { grid-template-columns: 1fr; }
+    .plans-col-left { border-right: none; border-bottom: 1px solid var(--gray-100); }
+
+    .classroom-section-card { padding: 14px 16px; margin-bottom: 12px; }
+
+    .week-chart-outer { gap: 6px; }
+    .week-chart-yaxis { font-size: 9px; }
+    .week-chart-grid-box { gap: 6px; padding: 0 2px; }
+    .week-chart-bar { max-width: 22px; }
+    .week-chart-bar-col { min-width: 0; }
+    .week-chart-labels { gap: 6px; padding: 0 2px; }
+    .week-chart-label { font-size: 8.5px; min-width: 0; }
+
+    .acc-header { align-items: flex-start; padding: 8px 10px; font-size: 12px; gap: 6px; }
+    .acc-header span { flex: 1; min-width: 0; word-break: keep-all; overflow-wrap: break-word; }
+    .acc-body { padding: 6px 10px 8px; }
+    .plan-list { gap: 6px; }
+    .plan-card-header { padding: 10px 12px; }
+    .plan-card-body { padding: 10px 12px 12px; }
+    .check-item-label { padding: 3px 0; }
+    .check-item-label--compact { padding: 2px 0; }
   }
 </style>
 {% endblock %}
@@ -776,7 +804,7 @@ function renderPlanAccordions(data) {
         </button>
         <div class="acc-body">`;
     }
-    html += `<label style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;cursor:pointer;">
+    html += `<label class="check-item-label" style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;">
       <input type="checkbox" ${item.is_done?'checked':''} onchange="toggleItem(${data.plan_id},${item.id},this)" style="margin-top:3px;accent-color:#2563eb;flex-shrink:0;"/>
       <span id="task-${item.id}" style="font-size:14px;color:${item.is_done?'var(--gray-400)':'var(--gray-700)'};line-height:1.5;${item.is_done?'text-decoration:line-through;':''}">${escHtml(item.task)}</span>
     </label>`;
@@ -1071,7 +1099,7 @@ function renderExamPlanItems(examId, items) {
         <span class="dday-date">${fmtExamDate(dItems[0].plan_date)}</span>
       </div>`;
     for (const item of dItems) {
-      html += `<label style="display:flex;align-items:flex-start;gap:8px;padding:4px 0;cursor:pointer;">
+      html += `<label class="check-item-label check-item-label--compact" style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;">
         <input type="checkbox" ${item.is_done?'checked':''} onchange="toggleExamItem(${examId},${item.id},this)" style="margin-top:3px;accent-color:#d97706;flex-shrink:0;"/>
         <span id="exam-task-${item.id}" style="font-size:14px;color:${item.is_done?'var(--gray-400)':'var(--gray-700)'};line-height:1.5;${item.is_done?'text-decoration:line-through;':''}">${escHtml(item.task)}</span>
       </label>`;
