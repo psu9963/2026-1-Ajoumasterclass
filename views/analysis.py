@@ -193,6 +193,7 @@ def analysis():
         low_threshold=LOW_COMPLETION_THRESHOLD,
         coaching_content=cached.content if cached else None,
         coaching_created=cached.created_at if cached else None,
+        active_menu='analysis',
     )
 
 

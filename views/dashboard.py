@@ -117,7 +117,7 @@ def dashboard():
     user_id      = current_user.id
     display_name = current_user.display_name or current_user.username
     data         = get_dashboard_data(user_id)
-    return render_template('dashboard.html', display_name=display_name, **data)
+    return render_template('dashboard.html', display_name=display_name, active_menu='dashboard', **data)
 
 
 @dashboard_bp.route('/set_weekly_goal', methods=['POST'])
