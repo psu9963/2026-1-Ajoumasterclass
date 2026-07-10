@@ -70,6 +70,37 @@ def get_dashboard_data(user_id):
         for r in subject_rows
     ]
 
+    # ── 연속 학습일 ──────────────────────────────────────────
+    study_dates = set()
+    for r in all_records:
+        try:
+            study_dates.add(datetime.strptime(r.study_date[:10], '%Y-%m-%d').date())
+        except (ValueError, TypeError):
+            continue
+
+    if today in study_dates:
+        anchor = today
+    elif (today - timedelta(days=1)) in study_dates:
+        anchor = today - timedelta(days=1)
+    else:
+        anchor = None
+
+    streak_days = 0
+    if anchor:
+        cursor = anchor
+        while cursor in study_dates:
+            streak_days += 1
+            cursor -= timedelta(days=1)
+
+    weekday_labels = ['월', '화', '수', '목', '금', '토', '일']
+    last_7_days = [
+        {
+            'label':      weekday_labels[(today - timedelta(days=i)).weekday()],
+            'has_record': (today - timedelta(days=i)) in study_dates
+        }
+        for i in range(6, -1, -1)
+    ]
+
     # ── 오늘의 학습 목표 ────────────────────────────────────
     daily_goals = DailyGoal.query.filter_by(
         user_id   = user_id,
@@ -104,6 +135,8 @@ def get_dashboard_data(user_id):
         total_minutes           = total_minutes,
         weekly_minutes          = weekly_minutes,
         subject_stats           = subject_stats,
+        streak_days             = streak_days,
+        last_7_days             = last_7_days,
         daily_goals             = daily_goals,
         upcoming_events         = upcoming_events,
     )
