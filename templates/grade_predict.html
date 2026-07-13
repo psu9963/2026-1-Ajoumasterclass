@@ -106,7 +106,6 @@
   border-radius: 20px;
   border: 2px dashed #e5e7eb;
 }
-.gp-empty .empty-icon { font-size: 48px; margin-bottom: 12px; }
 .gp-empty p { font-size: 15px; color: #9ca3af; margin: 4px 0; }
 
 /* ── 과목 카드 ─────────────────────────────────── */
@@ -693,6 +692,51 @@
   margin-top: 6px;
   display: block;
 }
+
+/* ── 모바일 최적화 (768px 이하) ──────────────── */
+@media (max-width: 768px) {
+  .gp-container { padding: 20px 16px; }
+
+  .gp-header {
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .gp-header-left h1 { font-size: 20px; }
+  .gp-header-left p  { font-size: 13px; }
+  .btn-add { width: 100%; text-align: center; }
+
+  .sc-header { padding: 16px 16px 12px; }
+  .sc-title h2 { font-size: 17px; }
+
+  /* 비율 막대: 비율에 비례한 폭 대신 줄바꿈되는 칩으로 전환 (인라인 flex:{{ratio}} 무시 필요) */
+  .ratio-bar {
+    flex-wrap: wrap;
+    height: auto;
+    margin: 0 16px 4px;
+    gap: 6px;
+  }
+  .rb-item {
+    flex: 0 1 auto !important;
+    min-width: 0;
+    padding: 5px 9px;
+    font-size: 10.5px;
+  }
+
+  .analysis-sections { padding: 16px; }
+  .abox { padding: 16px; }
+  .score-grid { grid-template-columns: repeat(auto-fit, minmax(88px, 1fr)); gap: 8px; }
+
+  .final-hero { padding: 16px; gap: 14px; }
+  .fh-grade { font-size: 40px; }
+  .fh-score { font-size: 22px; }
+
+  .gp-modal-body { padding: 18px; }
+  .gp-modal-footer { padding: 14px 18px; }
+
+  /* 반영 비율 입력 줄: 2열에서는 라벨이 잘리므로 1열로 전환 */
+  .ratio-grid { grid-template-columns: 1fr; }
+}
 </style>
 {% endblock %}
 
@@ -702,7 +746,7 @@
   <!-- 헤더 -->
   <div class="gp-header">
     <div class="gp-header-left">
-      <h1>📊 성적 예측 분석</h1>
+      <h1>성적 예측 분석</h1>
       <p>단계별로 성적을 입력하면 AI가 학점을 예측해드려요</p>
     </div>
     <button class="btn-add" onclick="openModal('modal-step1')">+ 새 과목 추가</button>
@@ -773,7 +817,7 @@
             <!-- 2단계: 중간고사 결과 -->
             {% if p.midterm_data %}
             <div class="abox abox-midterm">
-              <h3>📝 중간고사 분석</h3>
+              <h3>중간고사 분석</h3>
               <div class="score-grid">
                 <div class="sg-item">
                   <div class="sg-label">내 점수</div>
@@ -799,24 +843,24 @@
               {% if p.midterm_data.distribution_type %}
               <div style="display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
                 <span style="background:white; border-radius:8px; padding:6px 12px; font-size:12px; font-weight:700; color:#4f46e5;">
-                  📊 {{ p.midterm_data.distribution_type }}
+                  {{ p.midterm_data.distribution_type }}
                 </span>
                 {% if p.midterm_data.score_position %}
                 <span style="background:white; border-radius:8px; padding:6px 12px; font-size:12px; font-weight:700; color:#059669;">
-                  📍 {{ p.midterm_data.score_position }}
+                  {{ p.midterm_data.score_position }}
                 </span>
                 {% endif %}
               </div>
               {% endif %}
               <div class="ai-comment">{{ p.midterm_data.comment }}</div>
-              <p class="ai-tip">💡 {{ p.midterm_data.next_step_tip }}</p>
+              <p class="ai-tip">{{ p.midterm_data.next_step_tip }}</p>
             </div>
             {% endif %}
 
             <!-- 3단계: 기말고사 결과 -->
             {% if p.final_data %}
             <div class="abox abox-final">
-              <h3>📋 기말고사 분석</h3>
+              <h3>기말고사 분석</h3>
               <div class="score-grid">
                 <div class="sg-item">
                   <div class="sg-label">기말 점수</div>
@@ -842,14 +886,14 @@
                 </div>
               </div>
               <div class="ai-comment">{{ p.final_data.comment }}</div>
-              <p class="ai-tip">💡 {{ p.final_data.remaining_tip }}</p>
+              <p class="ai-tip">{{ p.final_data.remaining_tip }}</p>
             </div>
             {% endif %}
 
             <!-- 4단계: 최종 결과 -->
             {% if p.result_data %}
             <div class="abox abox-result">
-              <h3>🎯 최종 학점 예측</h3>
+              <h3>최종 학점 예측</h3>
               <div class="final-hero">
                 <div class="fh-grade">{{ p.result_data.predicted_grade }}</div>
                 <div class="fh-info">
@@ -869,7 +913,7 @@
               </div>
               <div class="ai-comment">{{ p.result_data.overall_comment }}</div>
               <div class="tips-box" style="margin-top:12px;">
-                <h4>📌 학점 향상 팁</h4>
+                <h4>학점 향상 팁</h4>
                 <ul>
                   {% for tip in p.result_data.grade_up_tips %}
                   <li>{{ tip }}</li>
@@ -883,19 +927,19 @@
             {% if p.current_step == 1 %}
             <div class="next-step-area">
               <button class="btn-green" onclick="openStep2({{ p.id }})">
-                📝 중간고사 점수 입력하기 →
+                중간고사 점수 입력하기 →
               </button>
             </div>
             {% elif p.current_step == 2 %}
             <div class="next-step-area">
               <button class="btn-green" onclick="openStep3({{ p.id }})">
-                📋 기말고사 점수 입력하기 →
+                기말고사 점수 입력하기 →
               </button>
             </div>
             {% elif p.current_step == 3 %}
             <div class="next-step-area">
               <button class="btn-green" onclick="openStep4({{ p.id }})">
-                🎯 최종 점수 입력하기 →
+                최종 점수 입력하기 →
               </button>
             </div>
             {% endif %}
@@ -907,7 +951,6 @@
 
     {% else %}
     <div class="gp-empty">
-      <div class="empty-icon">📭</div>
       <p>아직 등록된 과목이 없어요</p>
       <p>새 과목을 추가해서 성적을 예측해보세요!</p>
     </div>
@@ -922,7 +965,7 @@
 <div class="gp-modal-overlay" id="modal-step1">
   <div class="gp-modal">
     <div class="gp-modal-header">
-      <h2>📚 과목 기본 정보 입력</h2>
+      <h2>과목 기본 정보 입력</h2>
       <button class="modal-x" onclick="closeModal('modal-step1')">✕</button>
     </div>
     <div class="gp-modal-body">
@@ -980,12 +1023,12 @@
 <div class="gp-modal-overlay" id="modal-step2">
   <div class="gp-modal">
     <div class="gp-modal-header">
-      <h2>📝 중간고사 점수 입력</h2>
+      <h2>중간고사 점수 입력</h2>
       <button class="modal-x" onclick="closeModal('modal-step2')">✕</button>
     </div>
     <div class="gp-modal-body">
       <div class="info-note">
-        💡 내 점수와 총점을 입력해주세요. 평균·중앙값·표준편차를 추가하면 더 정확한 예측이 가능해요!
+        내 점수와 총점을 입력해주세요. 평균·중앙값·표준편차를 추가하면 더 정확한 예측이 가능해요!
       </div>
       <div class="score-row">
         <div class="fg">
@@ -1012,7 +1055,7 @@
     </div>
     <div class="gp-modal-footer">
       <button class="btn-gray" onclick="closeModal('modal-step2')">취소</button>
-      <button class="btn-indigo" id="btn-s2" onclick="submitStep2()">AI 분석하기 🔍</button>
+      <button class="btn-indigo" id="btn-s2" onclick="submitStep2()">AI 분석하기</button>
     </div>
   </div>
 </div>
@@ -1024,12 +1067,12 @@
 <div class="gp-modal-overlay" id="modal-step3">
   <div class="gp-modal">
     <div class="gp-modal-header">
-      <h2>📋 기말고사 점수 입력</h2>
+      <h2>기말고사 점수 입력</h2>
       <button class="modal-x" onclick="closeModal('modal-step3')">✕</button>
     </div>
     <div class="gp-modal-body">
       <div class="info-note">
-        💡 내 점수와 총점을 입력해주세요. 평균·중앙값·표준편차를 추가하면 더 정확한 예측이 가능해요!
+        내 점수와 총점을 입력해주세요. 평균·중앙값·표준편차를 추가하면 더 정확한 예측이 가능해요!
       </div>
       <div class="score-row">
         <div class="fg">
@@ -1056,7 +1099,7 @@
     </div>
     <div class="gp-modal-footer">
       <button class="btn-gray" onclick="closeModal('modal-step3')">취소</button>
-      <button class="btn-indigo" id="btn-s3" onclick="submitStep3()">AI 분석하기 🔍</button>
+      <button class="btn-indigo" id="btn-s3" onclick="submitStep3()">AI 분석하기</button>
     </div>
   </div>
 </div>
@@ -1068,14 +1111,14 @@
 <div class="gp-modal-overlay" id="modal-step4">
   <div class="gp-modal">
     <div class="gp-modal-header">
-      <h2>🎯 최종 점수 입력</h2>
+      <h2>최종 점수 입력</h2>
       <button class="modal-x" onclick="closeModal('modal-step4')">✕</button>
     </div>
     <div class="gp-modal-body">
 
       <!-- 과제 섹션 -->
       <div class="fg">
-        <label>📋 과제 점수 입력</label>
+        <label>과제 점수 입력</label>
         <div class="info-note" style="margin-bottom:0;">
           과제 개수에 맞게 추가해주세요. 평균은 선택 입력이에요.
         </div>
@@ -1119,7 +1162,7 @@
     </div>
     <div class="gp-modal-footer">
       <button class="btn-gray" onclick="closeModal('modal-step4')">취소</button>
-      <button class="btn-indigo" id="btn-s4" onclick="submitStep4()">최종 학점 예측 🎯</button>
+      <button class="btn-indigo" id="btn-s4" onclick="submitStep4()">최종 학점 예측</button>
     </div>
   </div>
 </div>
@@ -1130,7 +1173,7 @@
   <div class="loading-card">
     <div class="spinner"></div>
     <p id="loading-msg">AI가 분석 중이에요...</p>
-    <small>잠시만 기다려주세요 ☕</small>
+    <small>잠시만 기다려주세요</small>
   </div>
 </div>
 
